@@ -177,6 +177,17 @@ here:
 ; Long branches
 ; -------------
 
+;; Long branch always
+;; Uses branch is possible (save 1 byte, same cycles)
+.macro JRA target
+	.if .def(target) .and ((*+2)-(target) <= 127)
+		BRA	target
+	.else
+		.local skip
+		JMP	target
+skip:
+	.endif
+.endmacro
 
 ;; Long branch if z set
 .macro JEQ target

@@ -3,7 +3,7 @@ SOURCES  = $(wildcard *.s)
 OBJECTS  = $(patsubst %.s,obj/%.o,$(SOURCES))
 BINARIES = $(patsubst %.s,bin/%.sfc,$(SOURCES))
 
-DEPENDS = $(wildcard ../includes/*.inc ../routines/*.s ../routines/*/*.s)
+DEPENDS = $(wildcard ../includes/*.inc ../routines/*.s ../routines/*/*.s ../routines/*.h ../routines/*/*.h)
 CONFIG = ../config/LOROM_1MBit.cfg
 
 .PHONY: all

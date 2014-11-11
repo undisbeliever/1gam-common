@@ -18,6 +18,16 @@
 ;; The actual branch that is used is the opposite of what is indicated by
 ;; macro name (it improves readability).
 ;;
+;; The following structures are supported:
+;;        * IF_CONDITION ... [ ELSE ... ] ENDIF
+;;        * IFL_CONDITION ... [ ELSEL ... ] ENDIF
+;;        * REPEAT ... FOREVER
+;;        * REPEAT ... UNTIL_CONDITION
+;;        * REPEAT ... WHILE_CONDITION ... WEND
+;;        * FOR_XY start, direction, end ... NEXT
+;;        * CONTINUE for all loops
+;;        * BREAK for all loops
+;;
 ;; These macros provide the following functionaity:
 ;;
 ;;   * An 8 level stack. Up to 8 IFs and REPEATs can be nested in one code.
@@ -28,7 +38,8 @@
 ;;
 ;;   * Long branches will be used on REPEAT / FOR if necessary.
 ;;
-;;   * BREAK / CONTINUE for loops (can be used inside IFs)
+;;   * BREAK / CONTINUE for loops (can be used inside IFs).
+;;	Also BREAK_LABEL and CONTINUE_LABEL for direct access
 ;;
 ;;   * Generates the minimum code needed as all testing is done outside the
 ;;     structure macros (usually with CMP, CPX, XPY, AND, EOR, BIT, etc).
@@ -38,11 +49,13 @@
 ;;   * If a NEXT / UNTIL is missing, no error will be produced.
 ;;     There is no way for ca65 to automatically call a macro at end of file.
 ;;
+;;   * Decrementing FOR loops will only exit if equal.
+;;
+;;   * Incrementing FOR loops will only exit if geater than or equal.
+
 
 .ifndef ::_STRUCTURE_INC_
 ::_STRUCTURE_INC_ = 1
-
-; ::TODO REPEAT ... WHILE ... WEND ::
 
 ; ::SHOULDDO FUNCION, ENDFUNCION ::
 ; http://mynesdev.blogspot.ca/2013/09/getting-most-out-of-ca65-part-1.html
@@ -55,7 +68,8 @@
 
 .define __STRUCTURE_TYPE_IF	 2
 .define __STRUCTURE_TYPE_REPEAT  3
-.define __STRUCTURE_TYPE_FOR     4
+.define __STRUCTURE_TYPE_WHILE   4
+.define __STRUCTURE_TYPE_FOR     5
 
 
 ::__STRUCTURE_STACK_TYPE_08 .set 0
@@ -89,14 +103,14 @@
 
 ::__STRUCTURE_STACK_COUNT .set 0
 
-; ::TODO add BREAK to structure::
+
 ; need to setup new stack
 
 
 .define __STRUCTURE_STACK_LABEL .ident(.sprintf("__STRUCTURE_%04X", ::__STRUCTURE_STACK_ID_01))
 .define __STRUCTURE_STACK_PREV_LABEL .ident(.sprintf("__STRUCTURE_%04X", ::__STRUCTURE_STACK_PREV))
-.define __STRUCTURE_STACK_LOOP_BREAK_LABEL .ident(.sprintf("__STRUCTURE_BREAK_%04X", ::__STRUCTURE_STACK_LOOP_01))
-.define __STRUCTURE_STACK_LOOP_CONTINUE_LABEL .ident(.sprintf("__STRUCTURE_CONTINUE_%04X", ::__STRUCTURE_STACK_LOOP_01))
+.define BREAK_LABEL .ident(.sprintf("__STRUCTURE_BREAK_%04X", ::__STRUCTURE_STACK_LOOP_01))
+.define CONTINUE_LABEL .ident(.sprintf("__STRUCTURE_CONTINUE_%04X", ::__STRUCTURE_STACK_LOOP_01))
 
 
 ; creates a new label name and adds it to the if stack
@@ -156,7 +170,7 @@
 	.endif
 
 	; Pop from loop stack only if it is a looping structure
-	.if (type = __STRUCTURE_TYPE_REPEAT .or type = __STRUCTURE_TYPE_FOR)
+	.if (type = __STRUCTURE_TYPE_REPEAT .or type = __STRUCTURE_TYPE_WHILE .or type = __STRUCTURE_TYPE_FOR)
 		::__STRUCTURE_STACK_LOOP_01 .set ::__STRUCTURE_STACK_LOOP_02
 		::__STRUCTURE_STACK_LOOP_02 .set ::__STRUCTURE_STACK_LOOP_03
 		::__STRUCTURE_STACK_LOOP_03 .set ::__STRUCTURE_STACK_LOOP_04
@@ -191,44 +205,59 @@
 .endmacro
 
 
-; ::TODO IFL (if long) ::
+;; IF
+;;; Tests a single BIT, barnches if (A & param == 0)
+.macro IF_BIT param
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
-;; Tests z flag
+	BIT	param
+	BEQ __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests a single BIT, barnches if (A & param != 0)
+.macro IF_NOT_BIT param
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	BIT	param
+	BEQ __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests z flag
 .macro IF_ZERO
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BNE __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests z flag
+;;; Tests z flag
 .macro IF_NOT_ZERO
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BEQ __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests n Flag
+;;; Tests n Flag
 .macro IF_PLUS
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BMI __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests n Flag
+;;; Tests n Flag
 .macro IF_MINUS
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BPL __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests c Flag
+;;; Tests c Flag
 .macro IF_C_CLEAR
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BCS __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests c Flag
+;;; Tests c Flag
 .macro IF_C_SET
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
@@ -236,42 +265,42 @@
 .endmacro
 
 
-;; Tests z Flag
+;;; Tests z Flag
 .macro IF_Z_CLEAR
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BEQ __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests z Flag
+;;; Tests z Flag
 .macro IF_Z_SET
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BNE __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests v Flag
+;;; Tests v Flag
 .macro IF_V_CLEAR
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BVS __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests v Flag
+;;; Tests v Flag
 .macro IF_V_SET
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BVC __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests n Flag
+;;; Tests n Flag
 .macro IF_N_CLEAR
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BMI __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests n Flag
+;;; Tests n Flag
 .macro IF_N_SET
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
@@ -279,40 +308,40 @@
 .endmacro
 
 
-;; Equals after CMP
+;;; Equals after CMP
 .macro IF_EQ
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 	BNE __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Not equals after CMP
+;;; Not equals after CMP
 .macro IF_NE
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 	BEQ __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Unsigned Greater than or equal after CMP
+;;; Unsigned Greater than or equal after CMP
 .macro IF_GE
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BLT __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Unsigned Greater than after CMP
+;;; Unsigned Greater than after CMP
 .macro IF_GT
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BLE __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Unsigned Less than after CMP
+;;; Unsigned Less than after CMP
 .macro IF_LT
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BGE __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Unsigned Less than or equal after CMP
+;;; Unsigned Less than or equal after CMP
 .macro IF_LE
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
@@ -320,46 +349,211 @@
 .endmacro
 
 
-;; Signed Greater than or equal after CMP
+;;; Signed Greater than or equal after CMP
 .macro IF_SGE
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BSLT __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Signed Greater than after CMP
+;;; Signed Greater than after CMP
 .macro IF_SGT
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BSLE __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Signed less than after CMP
+;;; Signed less than after CMP
 .macro IF_SLT
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BSGE __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Signed Less than or equal after CMP
+;;; Signed Less than or equal after CMP
 .macro IF_SLE
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
 
 	BSGT __STRUCTURE_STACK_LABEL
 .endmacro
 
+;; IF Long Branch
+;;; Tests z flag
+.macro IFL_ZERO
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JNE __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests z flag
+.macro IFL_NOT_ZERO
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JEQ __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests n Flag
+.macro IFL_PLUS
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JMI __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests n Flag
+.macro IFL_MINUS
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JPL __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests c Flag
+.macro IFL_C_CLEAR
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JCS __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests c Flag
+.macro IFL_C_SET
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JCC __STRUCTURE_STACK_LABEL
+.endmacro
+
+
+;;; Tests z Flag
+.macro IFL_Z_CLEAR
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JEQ __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests z Flag
+.macro IFL_Z_SET
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JNE __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests v Flag
+.macro IFL_V_CLEAR
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JVS __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests v Flag
+.macro IFL_V_SET
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JVC __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests n Flag
+.macro IFL_N_CLEAR
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JMI __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Tests n Flag
+.macro IFL_N_SET
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JPL __STRUCTURE_STACK_LABEL
+.endmacro
+
+
+;;; Equals after CMP
+.macro IFL_EQ
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+	JNE __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Not equals after CMP
+.macro IFL_NE
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+	JEQ __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Unsigned Greater than or equal after CMP
+.macro IFL_GE
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JLT __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Unsigned Greater than after CMP
+.macro IFL_GT
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JLE __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Unsigned Less than after CMP
+.macro IFL_LT
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JGE __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Unsigned Less than or equal after CMP
+.macro IFL_LE
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JGT __STRUCTURE_STACK_LABEL
+.endmacro
+
+
+;;; Signed Greater than or equal after CMP
+.macro IFL_SGE
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JSLT __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Signed Greater than after CMP
+.macro IFL_SGT
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JSLE __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Signed less than after CMP
+.macro IFL_SLT
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JSGE __STRUCTURE_STACK_LABEL
+.endmacro
+
+;;; Signed Less than or equal after CMP
+.macro IFL_SLE
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JSGT __STRUCTURE_STACK_LABEL
+.endmacro
+
+
 ;; Else
 .macro ELSE
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_IF
-
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
 	BRA __STRUCTURE_STACK_LABEL
 
 __STRUCTURE_STACK_PREV_LABEL:
-
 .endmacro
 
-; ::TODO else if::
+;; Else Long Branch
+.macro ELSEL
+	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_IF
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+
+	JRA __STRUCTURE_STACK_LABEL
+
+__STRUCTURE_STACK_PREV_LABEL:
+.endmacro
+
 
 ;; End if
 .macro ENDIF
@@ -377,198 +571,374 @@ __STRUCTURE_STACK_LABEL:
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_REPEAT
 
 __STRUCTURE_STACK_LABEL:
+CONTINUE_LABEL:
 .endmacro
 
 ;; Loops a REPEAT forever
 .macro FOREVER
-	JMP __STRUCTURE_STACK_LABEL
+	JRA __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests z flag
+;; UNTIL
+;;; Tests z flag
 .macro UNTIL_ZERO
 	JNE __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests z flah
+;;; Tests z flah
 .macro UNTIL_NOT_ZERO
 	JEQ __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests n Flag
+;;; Tests n Flag
 .macro UNTIL_PLUS
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	JMI __STRUCTURE_STACK_LABEL
 .endmacro
 
-;; Tests n Flag
+;;; Tests n Flag
 .macro UNTIL_MINUS
 	JPL __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests c Flag
+;;; Tests c Flag
 .macro UNTIL_C_CLEAR
 	JCS __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests c Flag
+;;; Tests c Flag
 .macro UNTIL_C_SET
 	JCC __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
 
-;; Tests z Flag
+;;; Tests z Flag
 .macro UNTIL_Z_CLEAR
 	JEQ __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests z Flag
+;;; Tests z Flag
 .macro UNTIL_Z_SET
 	JNE __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests v Flag
+;;; Tests v Flag
 .macro UNTIL_V_CLEAR
 	JVS __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests v Flag
+;;; Tests v Flag
 .macro UNTIL_V_SET
 	JVC __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests n Flag
+;;; Tests n Flag
 .macro UNTIL_N_CLEAR
 	JMI __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Tests n Flag
+;;; Tests n Flag
 .macro UNTIL_N_SET
 	JPL __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
 
-;; Equals after CMP
+;;; Equals after CMP
 .macro UNTIL_EQ
 	JNE __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Not equals after CMP
+;;; Not equals after CMP
 .macro UNTIL_NE
 	JEQ __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Unsigned Greater than or equal after CMP
+;;; Unsigned Greater than or equal after CMP
 .macro UNTIL_GE
 	JLT __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Unsigned Greater than after CMP
+;;; Unsigned Greater than after CMP
 .macro UNTIL_GT
 	JLE __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Unsigned Less than after CMP
+;;; Unsigned Less than after CMP
 .macro UNTIL_LT
 	JGE __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Unsigned Less than or equal after CMP
+;;; Unsigned Less than or equal after CMP
 .macro UNTIL_LE
 	JGT __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
 
-;; Signed Greater than or equal after CMP
+;;; Signed Greater than or equal after CMP
 .macro UNTIL_SGE
 	JSLT __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Signed Greater than after CMP
+;;; Signed Greater than after CMP
 .macro UNTIL_SGT
 	JSLE __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Signed Less than after CMP
+;;; Signed Less than after CMP
 .macro UNTIL_SLT
 	JSGE __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;; Signed Less than or equal after CMP
+;;; Signed Less than or equal after CMP
 .macro UNTIL_SLE
 	JSGT __STRUCTURE_STACK_LABEL
 
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
 
+.macro __WHILE_HELPER
+	.if ::__STRUCTURE_STACK_TYPE_01 <> __STRUCTURE_TYPE_REPEAT
+		.fatal "Missing REPEAT"
+	.endif
 
-; ::TODO REPEAT ... WHILE_COND ... WEND ::
+	::__STRUCTURE_STACK_TYPE_01 .set __STRUCTURE_TYPE_WHILE
+.endmacro
+
+;; WHILE
+
+;;; Tests z flag
+.macro WHILE_ZERO
+	__WHILE_HELPER
+
+	BNE BREAK_LABEL
+.endmacro
+
+;;; Tests z flag
+.macro WHILE_NOT_ZERO
+	__WHILE_HELPER
+
+	BEQ BREAK_LABEL
+.endmacro
+
+;;; Tests n Flag
+.macro WHILE_PLUS
+	__WHILE_HELPER
+
+	BMI BREAK_LABEL
+.endmacro
+
+;;; Tests n Flag
+.macro WHILE_MINUS
+	__WHILE_HELPER
+
+	BPL BREAK_LABEL
+.endmacro
+
+;;; Tests c Flag
+.macro WHILE_C_CLEAR
+	__WHILE_HELPER
+
+	BCS BREAK_LABEL
+.endmacro
+
+;;; Tests c Flag
+.macro WHILE_C_SET
+	__WHILE_HELPER
+
+	BCC BREAK_LABEL
+.endmacro
+
+
+;;; Tests z Flag
+.macro WHILE_Z_CLEAR
+	__WHILE_HELPER
+
+	BEQ BREAK_LABEL
+.endmacro
+
+;;; Tests z Flag
+.macro WHILE_Z_SET
+	__WHILE_HELPER
+
+	BNE BREAK_LABEL
+.endmacro
+
+;;; Tests v Flag
+.macro WHILE_V_CLEAR
+	__WHILE_HELPER
+
+	BVS BREAK_LABEL
+.endmacro
+
+;;; Tests v Flag
+.macro WHILE_V_SET
+	__WHILE_HELPER
+
+	BVC BREAK_LABEL
+.endmacro
+
+;;; Tests n Flag
+.macro WHILE_N_CLEAR
+	__WHILE_HELPER
+
+	BMI BREAK_LABEL
+.endmacro
+
+;;; Tests n Flag
+.macro WHILE_N_SET
+	__WHILE_HELPER
+
+	BPL BREAK_LABEL
+.endmacro
+
+
+;;; Equals after CMP
+.macro WHILE_EQ
+	__WHILE_HELPER
+	BNE BREAK_LABEL
+.endmacro
+
+;;; Not equals after CMP
+.macro WHILE_NE
+	__WHILE_HELPER
+	BEQ BREAK_LABEL
+.endmacro
+
+;;; Unsigned Greater than or equal after CMP
+.macro WHILE_GE
+	__WHILE_HELPER
+
+	BLT BREAK_LABEL
+.endmacro
+
+;;; Unsigned Greater than after CMP
+.macro WHILE_GT
+	__WHILE_HELPER
+
+	BLE BREAK_LABEL
+.endmacro
+
+;;; Unsigned Less than after CMP
+.macro WHILE_LT
+	__WHILE_HELPER
+
+	BGE BREAK_LABEL
+.endmacro
+
+;;; Unsigned Less than or equal after CMP
+.macro WHILE_LE
+	__WHILE_HELPER
+
+	BGT BREAK_LABEL
+.endmacro
+
+
+;;; Signed Greater than or equal after CMP
+.macro WHILE_SGE
+	__WHILE_HELPER
+
+	BSLT BREAK_LABEL
+.endmacro
+
+;;; Signed Greater than after CMP
+.macro WHILE_SGT
+	__WHILE_HELPER
+
+	BSLE BREAK_LABEL
+.endmacro
+
+;;; Signed less than after CMP
+.macro WHILE_SLT
+	__WHILE_HELPER
+
+	BSGE BREAK_LABEL
+.endmacro
+
+;;; Signed Less than or equal after CMP
+.macro WHILE_SLE
+	__WHILE_HELPER
+
+	BSGT BREAK_LABEL
+.endmacro
+
+
+;; End REPEAT ... WHILE loop
+;;
+;; Loops back to the REPEAT statement
+.macro WEND
+	JRA __STRUCTURE_STACK_LABEL
+
+BREAK_LABEL:
+	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_WHILE
+.endmacro
+
 
 
 
@@ -587,10 +957,14 @@ __STRUCTURE_STACK_LOOP_BREAK_LABEL:
 ::__FOR_TYPE      .set 0
 ::__FOR_EXIT      .set 0
 
-.define __FOR_TYPE_INX 10
-.define __FOR_TYPE_DEX 11
-.define __FOR_TYPE_INY 20
-.define __FOR_TYPE_DEY 21
+.define __FOR_TYPE_INX  101
+.define __FOR_TYPE_DEX  111
+.define __FOR_TYPE_INX2 102
+.define __FOR_TYPE_DEX2 112
+.define __FOR_TYPE_INY  201
+.define __FOR_TYPE_DEY  211
+.define __FOR_TYPE_INY2 202
+.define __FOR_TYPE_DEY2 212
 
 
 .macro FOR_X start, direction, exit
@@ -608,13 +982,19 @@ __STRUCTURE_STACK_LOOP_BREAK_LABEL:
 		::__FOR_TYPE .set __FOR_TYPE_INX
 	.elseif .xmatch(direction, DEC)
 		::__FOR_TYPE .set __FOR_TYPE_DEX
+	.elseif .xmatch(direction, INC2)
+		::__FOR_TYPE .set __FOR_TYPE_INX2
+	.elseif .xmatch(direction, DEC2)
+		::__FOR_TYPE .set __FOR_TYPE_DEX2
 	.else
-		.fatal "Unkown direction (expect DEC or INC)"
+		.fatal "Unkown direction (DEC, INC, DEC2, INC2 are valid)"
+	.endif
+
+	.ifnblank start
+		LDX start
 	.endif
 
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_FOR
-
-	LDX start
 
 __STRUCTURE_STACK_LABEL:
 .endmacro
@@ -634,48 +1014,100 @@ __STRUCTURE_STACK_LABEL:
 		::__FOR_TYPE .set __FOR_TYPE_INY
 	.elseif .xmatch(direction, DEC)
 		::__FOR_TYPE .set __FOR_TYPE_DEY
+	.elseif .xmatch(direction, INC2)
+		::__FOR_TYPE .set __FOR_TYPE_INY2
+	.elseif .xmatch(direction, DEC2)
+		::__FOR_TYPE .set __FOR_TYPE_DEY2
 	.else
-		.fatal "Unkown direction (expect DEC or INC)"
+		.fatal "Unkown direction (DEC, INC, DEC2, INC2 are valid)"
+	.endif
+
+	.ifnblank start
+		LDY start
 	.endif
 
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_FOR
-
-	LDY start
 
 __STRUCTURE_STACK_LABEL:
 .endmacro
 
 .macro NEXT
-__STRUCTURE_STACK_LOOP_CONTINUE_LABEL:
+CONTINUE_LABEL:
 
 	.if ::__FOR_TYPE = __FOR_TYPE_DEX
 		DEX
-		.if ::__FOR_EXIT <> 0
+		.if ::__FOR_EXIT = 0
+			JNE __STRUCTURE_STACK_LABEL
+		.else
 			CPX	#::__FOR_EXIT
+			JGT __STRUCTURE_STACK_LABEL
 		.endif 
 	.elseif ::__FOR_TYPE = __FOR_TYPE_INX
 		INX
-		.if ::__FOR_EXIT <> 0
+		.if ::__FOR_EXIT = 0
+			JNE __STRUCTURE_STACK_LABEL
+		.else
 			CPX	#::__FOR_EXIT
+			JLT __STRUCTURE_STACK_LABEL
+		.endif 
+	.elseif ::__FOR_TYPE = __FOR_TYPE_DEX2
+		DEX
+		DEX
+		.if ::__FOR_EXIT = 0
+			JNE __STRUCTURE_STACK_LABEL
+		.else
+			CPX	#::__FOR_EXIT
+			JGT __STRUCTURE_STACK_LABEL
+		.endif 
+	.elseif ::__FOR_TYPE = __FOR_TYPE_INX2
+		INX
+		INX
+		.if ::__FOR_EXIT = 0
+			JNE __STRUCTURE_STACK_LABEL
+		.else
+			CPX	#::__FOR_EXIT
+			JLT __STRUCTURE_STACK_LABEL
 		.endif 
 	.elseif ::__FOR_TYPE = __FOR_TYPE_DEY
 		DEY
-		.if ::__FOR_EXIT <> 0
+		.if ::__FOR_EXIT = 0
+			JNE __STRUCTURE_STACK_LABEL
+		.else
 			CPY	#::__FOR_EXIT
+			JGT __STRUCTURE_STACK_LABEL
 		.endif 
 	.elseif ::__FOR_TYPE = __FOR_TYPE_INY
 		INY
-		.if ::__FOR_EXIT <> 0
+		.if ::__FOR_EXIT = 0
+			JNE __STRUCTURE_STACK_LABEL
+		.else
 			CPY	#::__FOR_EXIT
+			JLT __STRUCTURE_STACK_LABEL
+		.endif 
+	.elseif ::__FOR_TYPE = __FOR_TYPE_DEY2
+		DEY
+		DEY
+		.if ::__FOR_EXIT = 0
+			JNE __STRUCTURE_STACK_LABEL
+		.else
+			CPY	#::__FOR_EXIT
+			JGT __STRUCTURE_STACK_LABEL
+		.endif 
+	.elseif ::__FOR_TYPE = __FOR_TYPE_INY2
+		INY
+		INY
+		.if ::__FOR_EXIT = 0
+			JNE __STRUCTURE_STACK_LABEL
+		.else
+			CPY	#::__FOR_EXIT
+			JLT __STRUCTURE_STACK_LABEL
 		.endif 
 	.else
 		.fatal "Unknown FOR type"
 	.endif
 
-	JNE __STRUCTURE_STACK_LABEL
 
-
-__STRUCTURE_STACK_LOOP_BREAK_LABEL:
+BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_FOR
 
 	; Free the FOR variables
@@ -687,16 +1119,12 @@ __STRUCTURE_STACK_LOOP_BREAK_LABEL:
 
 ;; Break a loop
 .macro BREAK
-	JMP __STRUCTURE_STACK_LOOP_BREAK_LABEL
+	JRA BREAK_LABEL
 .endmacro
 
 ;; Continue a loop
 .macro CONTINUE
-	.if ::__STRUCTURE_STACK_TYPE_01 <> __STRUCTURE_TYPE_FOR
-		.fatal "Continues only allowed in FOR loop"
-	.endif
-
-	JMP __STRUCTURE_STACK_LOOP_CONTINUE_LABEL
+	JRA CONTINUE_LABEL
 .endmacro
 
 .endif ; ::_STRUCTURE_INC_

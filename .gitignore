@@ -1,5 +1,10 @@
-examples/bin
-examples/obj
 *.swp
 *~
+
+examples/bin
+examples/obj
+resources/*.xcf
+resources/*.2bpp
+resources/*.4bpp
+resources/*.clr
 
