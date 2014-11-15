@@ -7,12 +7,13 @@
 .define ROM_NAME "GAME OF LIFE"
 
 .include "includes/sfc_header.inc"
+.include "includes/import_export.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
 .include "includes/structure.inc"
 
-.include "routines/reset-snes.s"
-.include "routines/cpu-usage.s"
+.include "routines/reset-snes.h"
+.include "routines/cpu-usage.h"
 
 ; Ignore interrupts
 IrqHandler	= EmptyHandler
@@ -67,7 +68,7 @@ game_number:		.res 1		; The current game number
 
 .code
 
-Main:
+ROUTINE Main
 	REP	#$10
 	SEP	#$20
 .A8
@@ -125,7 +126,7 @@ Main:
 ;; Play game
 .A8
 .I16
-Play_Game:
+ROUTINE Play_Game
 	REPEAT
 		JSR	Process_Frame
 
@@ -213,8 +214,7 @@ continue:
 ;;
 ;; INPUT: long of data in in rlepos
 ;;
-.export Process_Frame
-Process_Frame:
+ROUTINE Process_Frame
 	REP	#$30
 .I16
 .A16
@@ -291,8 +291,7 @@ endcopy:
 ;;	it must be done manually
 .A8
 .I16
-.export Load_Game
-Load_Game:
+ROUTINE Load_Game
 
 .proc Load_Game_tmp
 
@@ -502,8 +501,7 @@ VBlank:
 ;; Mode 0, BG1 enabled, BG1 tilepos set by BG1_Tilemap and BG1_Tiles
 .A8
 .I16
-.export SetupPPU
-SetupPPU:
+ROUTINE SetupPPU
 	LDA	#INIDISP_FORCE
 	STA	INIDISP
 
@@ -528,8 +526,7 @@ SetupPPU:
 ;; REQUIRES 8 bit A, 16 bit Index, Forced Blank
 .A8
 .I16
-.export LoadTiles
-LoadTiles:
+ROUTINE LoadTiles
 	; Load tiles to BG1 VRAM
 	LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
 	STA	VMAIN

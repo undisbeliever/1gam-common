@@ -1,10 +1,12 @@
 
 .include "reset-snes.h"
+.include "includes/synthetic.inc"
 .include "includes/structure.inc"
 .include "includes/registers.inc"
 
 .setcpu "65816"
 
+.import Main
 .import __STACK_TOP
 
 ;; Memory location contains a zero word.

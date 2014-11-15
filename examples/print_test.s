@@ -11,23 +11,15 @@
 .include "includes/registers.inc"
 .include "includes/structure.inc"
 
-.include "routines/reset-snes.s"
-.include "routines/text.s"
-
-.zeropage
-	tmp:	.res 1
-	tmp1:	.res 1
-	tmp2:	.res 1
-	tmp3:	.res 1
-	tmp4:	.res 1
-
+.include "routines/reset-snes.h"
+.include "routines/text.h"
 
 BG1_MAP		= $0400
 BG1_TILES	= $1000
 
 
 .code
-Main:
+ROUTINE Main
 	REP	#$10        ; X/Y 16-bit
 	SEP	#$20        ; A 8-bit
 .A8
@@ -116,7 +108,7 @@ VBlank:
 ; ::TODO write macro::
 .A8
 .I16
-SetupPPU:
+ROUTINE SetupPPU
 	LDA	#INIDISP_FORCE
 	STA	INIDISP
 
@@ -141,7 +133,7 @@ SetupPPU:
 ;; REQUIRES 8 bit A, 16 bit Index, Forced Blank
 .A8
 .I16
-LoadPalette:
+ROUTINE LoadPalette
 	; Load white to color 1
 	LDA	#0
 	STA	CGADD

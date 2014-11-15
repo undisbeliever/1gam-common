@@ -8,11 +8,12 @@
 .define ROM_NAME "FLASHING COLORS"
 
 .include "includes/sfc_header.inc"
+.include "includes/import_export.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
 .include "includes/structure.inc"
 
-.include "routines/reset-snes.s"
+.include "routines/reset-snes.h"
 
 .segment "SHADOW"
 change_color_flag:	.res 1
@@ -21,7 +22,7 @@ next_color_index:	.res 2
 
 
 .code
-Main:
+ROUTINE Main
 	REP	#$10        ; X/Y 16-bit
 	SEP	#$20        ; A 8-bit
 .A8

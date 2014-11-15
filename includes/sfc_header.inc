@@ -15,10 +15,11 @@
 .import __ROMHEADER_ROM_SIZE
 .import __ROMHEADER_SRAM_SIZE
 
+.import Reset
+
 .interruptor CopHandler
 .interruptor VBlank
 .interruptor IrqHandler
-.interruptor Reset
 .interruptor EmptyHandler
 
 ; 65816 processor

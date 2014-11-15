@@ -78,6 +78,157 @@ IMPORT_MODULE Text
 	;; INPUT: A = the character to print
 	ROUTINE PrintChar
 
+	;; Prints 8 bit A as a Hex string
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: A = the character to print
+	;; MODIFIES: A, X
+	ROUTINE PrintHex_U8A
+
+	;; Prints 16 bit X as a hex string
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: X = the character to print
+	;; MODIFIES: A, X
+	ROUTINE PrintHex_U16X
+
+	;; Prints 16 bit Y as a hex string
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: Y = the character to print
+	;; MODIFIES: A, X
+	ROUTINE PrintHex_U16Y
+
+	;; Prints an unsigned 8 bit A
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: A = the number of digits to print
+	;; MODIFIES: A, X, Y
+	ROUTINE PrintDecimal_U8A
+
+	;; Prints an unsigned 16 bit X
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: X = the number to print
+	;; MODIFIES: A, X, Y
+	ROUTINE PrintDecimal_U16X
+
+	;; Prints an unsigned 16 bit Y
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: Y = the number to print
+	;; MODIFIES: A, X, Y
+	ROUTINE PrintDecimal_U16Y
+
+	;; Prints an unsigned 32 bit XY
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: XY = the number to print (X = low byte)
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses Math::DIVIDE
+	ROUTINE PrintDecimal_U32XY
+
+	;; Prints an unsigned 8 bit A with a fixed width of 1 digit
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: A = the number to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalFixed_U8A_1
+
+	;; Prints an unsigned 8 bit A with a fixed width of 2 digits
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: A = the number to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalFixed_U8A_2
+
+	;; Prints an unsigned 8 bit A with a fixed width of 3 digits
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: A = the number to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalFixed_U8A_3
+
+	;; Prints an unsigned 16 bit Y with a fixed width
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: X = the number to print
+	;;        A = the number of digits to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalFixed_U16X
+
+	;; Prints an unsigned 16 bit X with a fixed width
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: X = the number to print
+	;;        A = the number of digits to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalFixed_U16Y
+
+	;; Prints an unsigned 32 bit XY (with padding)
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: XY = the number to print (X = low byte)
+	;;         A = the minimum number of digits to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses Math::DIVIDE
+	ROUTINE PrintDecimalPadded_U32XY
+
+	;; Prints an unsigned 8 bit A with word wrapping
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: A = the number to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalWrap_U8A
+
+	;; Prints an unsigned 16 bit X with word wrapping
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: X = the number to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalWrap_U16X
+
+	;; Prints an unsigned 16 bit Y with word wrapping
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: Y = the number to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalWrap_U16Y
+
 	;; Moves the cursor to the next line.
 	;;
 	;; If new line is outside the text boundry, Text::OutOfBounds is called.
@@ -85,6 +236,15 @@ IMPORT_MODULE Text
 	;; REQUIRES: DB in Shadow 
 	;; MODIFIES: A, X
 	ROUTINE NewLine
+
+	;; Sets the cursor position
+	;;
+	;; INPUT:
+	;;	X = The window X Position
+	;;	Y = The window Y Position
+	;;
+	;; MODIFIES: A, X, Y
+	ROUTINE SetCursor
 
 	;; Sets up a window at a given location.
 	;;
@@ -131,6 +291,25 @@ IMPORT_MODULE Text
 	;;
 	;; REQUIRES: DB shadow
 	ROUTINE ClearBuffer
+
+	;; Converts the value in the 16 bit X to a string stores in `decimalString`
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index
+	;; INPUT: X = the number to display
+	;; OUTPUT: A the bank of the string to print
+	;;         X the location of the string to print 
+	ROUTINE ConvertDecimalString_U16Y
+
+	;; Converts the value in the 32 but XY to a string with padding.
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index
+	;; INPUT: XY = value, A = number of characters to print
+	;;	   A = the number of padding characters (if 0 then show entire string)
+	;; OUTPUT: A the bank of the string to print
+	;;         X the location of the string to print 
+	ROUTINE ConvertDecimalString_U32XY
+
+
 
 ENDMODULE
 

@@ -1,14 +1,12 @@
 
-.include "text.h"
 .include "includes/import_export.inc"
 .include "includes/structure.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
+.include "routines/math.h"
+.include "routines/text.h"
 
 .setcpu "65816"
-
-.globalzp tmp
-.globalzp tmp2
 
 MODULE Text
 
@@ -20,11 +18,18 @@ MODULE Text
 	;; The position of the string
 	LONG	stringPtr
 
+	; Temporry values used by3this module
+	WORD	tmp
+	WORD	tmp2
+	WORD	tmp3
+
+
+
 
 .segment "WRAM7E"
 	;; The text buffer
 	;; In $7E so shadow RAM can also be accessed.
-	WORD	buffer, 32*32
+	WORD buffer, 32*32
 
 .segment "SHADOW"
 	;; If zero, then update buffer to VRAM on VBlank
@@ -62,8 +67,12 @@ MODULE Text
 		;;; Has no border
 		CONST NO_BORDER, $00
 
-	;; The length of the line.
+	;; The width of the line.
 	WORD lineWidth
+
+	;; Storage area to store decoded string.
+	;; Long enough to cover the enture word.
+	BYTE decimalString, 11
 
 
 .code
@@ -83,6 +92,38 @@ ROUTINE SetColor
 	STA	tilemapOffset+1
 
 	RTS
+
+
+; INPUT: XY = value
+.A8
+.I16
+ROUTINE PrintDecimal_U32XY
+	LDA	#0
+	.assert * = PrintDecimalPadded_U32XY, lderror, "Bad Flow Control"
+
+ROUTINE PrintDecimalPadded_U32XY
+	JSR	ConvertDecimalString_U32XY
+	BRA	PrintString
+
+.A8
+.I16
+ROUTINE PrintDecimal_U8A
+	STA	tmp
+	STZ	tmp + 1
+	LDY	tmp
+	BRA	PrintDecimal_U16Y
+
+.A8
+.I16
+ROUTINE PrintDecimal_U16X
+	TXY
+	.assert * = PrintDecimal_U16Y, lderror, "Bad Flow Control"
+
+.A8
+.I16
+ROUTINE PrintDecimal_U16Y
+	JSR	ConvertDecimalString_U16Y
+	.assert * = PrintString, lderror, "Bad Flow Control"
 
 
 .A8
@@ -105,13 +146,112 @@ ROUTINE PrintString
 
 
 
+padding := tmp
+
+ROUTINE PrintDecimalFixed_U8A_3
+	STA	tmp
+	STZ	tmp + 1
+	LDX	tmp
+	LDA	#2
+	STA	padding
+	BRA	_PrintDecimalFixed_U16X_AfterCheck
+
+ROUTINE PrintDecimalFixed_U8A_2
+	STA	tmp
+	STZ	tmp + 1
+	LDX	tmp
+	LDA	#1
+	STA	padding
+	BRA	_PrintDecimalFixed_U16X_AfterCheck
+
+ROUTINE PrintDecimalFixed_U8A_1
+	STA	tmp
+	STZ	tmp + 1
+	LDX	tmp
+	LDA	#0
+	STA	padding
+	BRA	_PrintDecimalFixed_U16X_AfterCheck
+
+
+; INPUT: A = Padding
+.A8
+.I16
+ROUTINE PrintDecimalFixed_U16Y
+	TYX
+	.assert * = PrintDecimalFixed_U16X, lderror, "Bad Flow Control"
+
+.A8
+.I16
+ROUTINE PrintDecimalFixed_U16X
+	DEC
+	CMP	#.sizeof(decimalString) - 2
+	IF_GE
+		LDA	#.sizeof(decimalString) - 2
+	ENDIF
+
+	STA	padding
+	STZ	padding + 1
+
+_PrintDecimalFixed_U16X_AfterCheck:
+	LDY	tmp
+	REPEAT
+		STX	WRDIVL
+
+		LDA	#10
+		STA	WRDIVB
+
+		; Wait 16 Cycles
+		PHD			; 4
+		PLD			; 5
+		PHB			; 3
+		PLB			; 4
+
+		LDA	RDMPY		; remainder
+		STA	decimalString, Y
+
+		LDX	RDDIV		; result
+
+		DEY
+	UNTIL_MINUS
+
+	LDY	#0
+	REPEAT
+		LDA	decimalString, Y
+		ADD	#'0' - TEXT_DELTA
+
+		JSR	_PrintChar_After_Check
+
+		INY
+		CPY	padding
+	UNTIL_GT
+
+	RTS
+
+.A8
+.I16
+ROUTINE PrintDecimalWrap_U8A
+	STA	tmp
+	STA	tmp + 1
+	LDY	tmp
+	BRA	PrintDecimalWrap_U16Y
+
+.A8
+.I16
+ROUTINE PrintDecimalWrap_U16X
+	TXY
+	.assert * = PrintDecimalWrap_U16Y, lderror, "Bad Flow Control"
+
+.A8
+.I16
+ROUTINE PrintDecimalWrap_U16Y
+	JSR	ConvertDecimalString_U16Y
+	.assert * = PrintStringWrap, lderror, "Bad Flow Control"
+
 .A8
 .I16
 ROUTINE PrintStringWrap
-.scope
-
-startWord := <tmp2
-endWord := <tmp4
+startWord := tmp2
+endWord := tmp3
 
 	STX	stringPtr
 	STA	stringPtr + 2
@@ -265,7 +405,6 @@ _StartPrintWord:
 	STZ	updateBufferIfZero
 
 	RTS
-.endscope
 
 
 
@@ -279,8 +418,6 @@ ROUTINE PrintChar
 	CMP	#EOL
 	BEQ	NewLine
 
-	LDX	bufferPos
-
 	; if A in range FIRST_CHARACTER to LAST_CHARACTER
 	;     A = A - TEXT_DELTA
 	; else
@@ -290,6 +427,9 @@ ROUTINE PrintChar
 	IF_GE
 		LDA	#TEXT_INVALID - TEXT_DELTA
 	ENDIF
+
+_PrintChar_After_Check:
+	LDX	bufferPos
 
 	; Show character
 	REP	#$30
@@ -315,6 +455,64 @@ ROUTINE PrintChar
 
 	STX	bufferPos
 
+	RTS
+
+
+
+.A8
+.I16
+ROUTINE PrintHex_U8A
+	PHA
+
+	LSR
+	LSR
+	LSR
+	LSR
+	CMP	#10
+	IF_GE
+		CLC
+		ADC	#'A' - 10 - TEXT_DELTA
+	ELSE
+		ADC	#'0' - TEXT_DELTA
+	ENDIF
+	JSR	_PrintChar_After_Check
+
+	PLA
+	AND	#$0F
+	CMP	#10
+	IF_GE
+		CLC
+		ADC	#'A' - 10 - TEXT_DELTA
+	ELSE
+		ADC	#'0' - TEXT_DELTA
+	ENDIF
+	BRA	_PrintChar_After_Check
+
+
+
+.I16
+ROUTINE PrintHex_U16Y
+	TYX
+
+	.assert * = PrintHex_U16X, lderror, "Bad Flow"
+
+
+.I16
+ROUTINE PrintHex_U16X
+	PHP
+	REP	#$20
+.A16
+	TXA
+	SEP	#$20
+.A8
+	PHA
+	XBA
+	JSR	PrintHex_U8A
+
+	PLA
+	JSR	PrintHex_U8A
+	
+	PLP
 	RTS
 
 
@@ -365,10 +563,53 @@ ROUTINE NewLine
 
 
 
+ROUTINE SetCursor
+	PHP
+	REP	#$30
+.A16
+.I16
+	CPX	lineWidth
+	IF_GE
+		LDX	#0
+	ENDIF
+
+	; lineStart = windowStart + Y * 64
+	; if lineStart > windowEnd
+	;	linestart = windowStart & $FFC0
+	; bufferPos = lineStart + X * 2
+	; bufferPosLineEnd = lineStart + (lineWidth - 1) * 2
+	TYA
+	XBA
+	AND	#$FF00
+	LSR
+	LSR
+	ADD	windowStart
+	STA	tmp
+
+	CMP	windowEnd
+	IF_GE
+		LDA	windowStart
+		AND	#$FFC0
+	ENDIF
+
+	TXA
+	ASL
+	ADD	tmp
+	STA	bufferPos
+
+	LDA	lineWidth
+	DEC
+	ASL
+	ADD	tmp
+	STA	bufferPosLineEnd
+
+	PLP
+	RTS
+
+
 .A8
 .I16
 ROUTINE SetupWindow
-.scope
 startXPos := <tmp
 
 	STX	windowStart
@@ -395,12 +636,10 @@ startXPos := <tmp
 	BNE	DrawBorder
 
 	JMP	ClearWindow
-.endscope
 
 
 
 ROUTINE DrawBorder
-.scope
 	PHP
 	REP	#$30
 .A16
@@ -501,7 +740,6 @@ bottomRight := windowEnd
 	WEND
 
 	BRA	_ClearWindow_skip_php
-.endscope
 
 
 
@@ -541,15 +779,36 @@ ROUTINE RemoveWindow
 	BRA	_FillWindow_p_on_stack
 
 
+; ::MAYDO replace with call to routine (ClearWRAM7E X = destination, Y = size)::.
+ROUTINE ClearBuffer
+	PHP
+	PHB
+	REP	#$30
+.A16
+.I16
+	LDA	#0
+	STA	f:buffer
+
+	LDX	#.loword(buffer)
+	LDY	#.loword(buffer) + 2 
+	LDA	#.sizeof(buffer) - 3
+	MVN	.bankbyte(buffer), .bankbyte(buffer)
+
+	SEP	#$20
+.A8
+	STZ	updateBufferIfZero
+
+	PLB
+	PLP
+	RTS
+
 
 ; A helper function to fill the entirety of the window.
 ; REQUIRES: 16 bit A, 16 bit Index, P on stack
 ; INPUT: Y = the Tile to copy
 .A16
 .I16
-_FillWindow_p_on_stack:
-.scope
-
+ROUTINE _FillWindow_p_on_stack
 startLine := <tmp
 endLine	  := <tmp2
 
@@ -624,30 +883,100 @@ endLine	  := <tmp2
 
 	PLP
 	RTS
-.endscope
 
 
-; ::MAYDO replace with call to routine (ClearWRAM7E X = destination, Y = size)::.
-ROUTINE ClearBuffer
-	PHP
-	PHB
-	REP	#$30
-.A16
+
+;; Converts the value in the 16 bit X to a string stores in `decimalString`
+;;
+;; REQUIRES: 8 bit A, 16 bit Index
+;; INPUT: X = the number to display
+;; OUTPUT: A the bank of the string to print
+;;         X the location of the string to print 
+.A8
 .I16
-	LDA	#0
-	STA	f:buffer
+ROUTINE ConvertDecimalString_U16Y
+	LDX	#decimalString + .sizeof(decimalString) - 1
 
-	LDX	#.loword(buffer)
-	LDY	#.loword(buffer) + 2 
-	LDA	#.sizeof(buffer) - 3
-	MVN	.bankbyte(buffer), .bankbyte(buffer)
+	REPEAT
+		STY	WRDIVL
 
+		LDA	#10
+		STA	WRDIVB
+
+		; Wait 16 Cycles
+		PHD			; 4
+		PLD			; 5
+		PHB			; 3
+		PLB			; 4
+
+		LDA	RDMPY		; remainder
+		ADD	#'0'
+		DEX
+		STA	0, X
+
+		LDY	RDDIV		; result
+	UNTIL_ZERO
+
+	STZ	decimalString + .sizeof(decimalString) - 1
+
+	LDA	#.bankbyte(decimalString)
+	RTS
+
+;; Converts the value in the 32 but XY to a string stored in `decimalString`
+;;
+;; REQUIRES: 8 bit A, 16 bit Index
+;; INPUT: XY = value, A = number of characters to print
+;;	   A = the number of padding characters (if 0 then show entire string)
+;; OUTPUT: A the bank of the string to print
+;;         X the location of the string to print 
+.A8
+.I16
+ROUTINE ConvertDecimalString_U32XY
+position := tmp2
+	STX	Math::dividend32
+	STY	Math::dividend32 + 2
+
+	STA	padding
+	STZ	padding + 1
+
+	LDX	#.sizeof(decimalString) - 2
+	STX	position
+
+	REPEAT
+		LDA	#10
+		JSR	Math::DIVIDE_U32_U8A
+
+		LDX	position
+
+		ADD	#'0'
+		STA	decimalString, X
+
+		DEC	position
+	UNTIL_MINUS
+
+	STZ	decimalString + .sizeof(decimalString) - 1
+
+	REP	#$20
+.A16
+	; no need for range checking, that is what the BMI is for
+	LDA	#.sizeof(decimalString) - 1 
+	SUB	padding
+	TAY
 	SEP	#$20
 .A8
-	STZ	updateBufferIfZero
 
-	PLB
-	PLP
+	LDX	#decimalString
+	REPEAT
+		LDA	0, X
+		CMP	#'0'
+	WHILE_EQ
+		DEY
+		BMI	BREAK_LABEL
+
+		INX
+	WEND
+	
+	LDA	#.bankbyte(decimalString)
 	RTS
 
 ENDMODULE

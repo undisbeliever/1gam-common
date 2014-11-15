@@ -145,11 +145,7 @@
 
 
 .macro _VARIABLE_HELPER name, type, size, count
-	.if ::__MODULE_TYPE = __MODULE_TYPE_NONE
-		.fatal "Require MODULE or IMPORT_MODULE"
-	.endif
-
-	.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
+	.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT .or ::__MODULE_TYPE = __MODULE_TYPE_NONE
 		.ifblank count
 			name:	.res size
 			.ident(.sprintf("%s__size", .string(name))) .set size
@@ -162,10 +158,18 @@
 
 		.ident(.sprintf("%s__type", .string(name))) := type
 
-		.if ::__MODULE_ZEROPAGE
-			.exportzp .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
+		.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
+			.if ::__MODULE_ZEROPAGE
+				.exportzp .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
+			.else
+				.export .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
+			.endif
 		.else
-			.export .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
+			.if ::__MODULE_ZEROPAGE
+				.exportzp name
+			.else
+				.export name
+			.endif
 		.endif
 	.endif
 
@@ -191,14 +195,14 @@
 
 
 .macro _SYMBOL_HELPER name, type
-	.if ::__MODULE_TYPE = __MODULE_TYPE_NONE
-		.fatal "Require MODULE or IMPORT_MODULE"
-	.endif
-
-	.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
+	.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT .or ::__MODULE_TYPE = __MODULE_TYPE_NONE
 		.ident(.sprintf("%s__type", .string(name))) = type
 
-		.export .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
+		.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
+			.export .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
+		.else
+				.export name
+		.endif
 		name:
 	.endif
 

@@ -1,5 +1,6 @@
 
 .include "cpu-usage.h"
+.include "includes/synthetic.inc"
 .include "includes/structure.inc"
 .include "includes/registers.inc"
 
