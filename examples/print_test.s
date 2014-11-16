@@ -13,12 +13,14 @@
 
 .include "routines/reset-snes.h"
 .include "routines/text.h"
+.include "routines/text8x8.h"
 
 BG1_MAP		= $0400
 BG1_TILES	= $1000
 
 
 .code
+
 ROUTINE Main
 	REP	#$10        ; X/Y 16-bit
 	SEP	#$20        ; A 8-bit
@@ -31,37 +33,44 @@ ROUTINE Main
 	LDA	#NMITIMEN_VBLANK_FLAG
 	STA	NMITIMEN
 
-	Text_LoadFont Font8Bold, BG1_TILES, BG1_MAP, 1
+	Text_LoadFont Font8Bold, BG1_TILES, BG1_MAP
+	Text_SetInterface Text8x8::DoubleSpacingInterface, 1
+	Text_SetStringBasic
+
 	JSR	LoadPalette
 
 	LDA	#$0F
 	STA	INIDISP
 
-	Text_SetupWindow 2, 2, 29, 25, Text::BORDER, 2
+	Text_SetupWindow 2, 2, 29, 25, Text::WINDOW_BORDER
 
 	LDA	#4
 	JSR	Text::SetColor
 
-	Text_PrintStringWrap "The quick brown fox jumped over the lazy dog."
+	Text_PrintStringLn "The quick brown fox jumped over the lazy dog."
 
-	JSR	Text::NewLine
+	Text_SetStringWordWrapping
 
 	LDA	#5
 	JSR	Text::SetColor
 
-	Text_PrintStringWrap "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG."
+	Text_PrintStringLn "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG."
 
 	JSR	Text::NewLine
 
-	LDA	#6
+	Text_SetStringBasic
+
+	LDA	#4
 	JSR	Text::SetColor
 
 	Text_PrintString StringFromLabel
 
-	LDA	#7
+	Text_SetStringWordWrapping
+
+	LDA	#5
 	JSR	Text::SetColor
 
-	Text_PrintStringWrap StringFromLabel
+	Text_PrintString StringFromLabel
 
 	REPEAT
 		WAI
@@ -70,7 +79,7 @@ ROUTINE Main
 .rodata
 
 StringFromLabel:
-	.byte "123456789 123456789 123456789", EOL 
+	.byte "123456789 123456789 123456789 "
 	.byte "123456789012345678901234567890", EOL, 0 ; Word wrap test
 
 .code

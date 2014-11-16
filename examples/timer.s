@@ -12,8 +12,9 @@
 .include "includes/structure.inc"
 
 .include "routines/math.h"
-.include "routines/text.h"
 .include "routines/reset-snes.h"
+.include "routines/text.h"
+.include "routines/text8x8.h"
 
 FPS		= 60 ; ::TODO make configurable::
 
@@ -40,13 +41,16 @@ ROUTINE Main
 	LDA	#NMITIMEN_VBLANK_FLAG
 	STA	NMITIMEN
 
-	Text_LoadFont Font8BoldTransparent, BG1_TILES, BG1_MAP, 0
+	Text_LoadFont Font8BoldTransparent, BG1_TILES, BG1_MAP
+	Text_SetInterface Text8x8::DoubleSpacingInterface, 0
+	Text_SetStringBasic
+
 	JSR	LoadPalette
 
 	LDA	#$0F
 	STA	INIDISP
 
-	Text_SetupWindow 3, 3, 28, 24, Text::BORDER, 2
+	Text_SetupWindow 3, 3, 28, 24, Text::WINDOW_BORDER
 
 	REPEAT
 		JSR	CalculateTime
@@ -102,7 +106,6 @@ ROUTINE Main
 		LDY	#12
 		JSR	Text::SetCursor
 
-
 		LDX	hours
 		JSR	Text::PrintDecimal_U16X
 
@@ -110,19 +113,19 @@ ROUTINE Main
 		JSR	Text::PrintChar
 
 		LDA	minutes
-		JSR	Text::PrintDecimalFixed_U8A_2
+		JSR	Text::PrintDecimalPadded_U8A_2
 
 		LDA	#':'
 		JSR	Text::PrintChar
 
 		LDA	seconds
-		JSR	Text::PrintDecimalFixed_U8A_2
+		JSR	Text::PrintDecimalPadded_U8A_2
 
 		LDA	#':'
 		JSR	Text::PrintChar
 
 		LDA	fractionOfSeconds
-		JSR	Text::PrintDecimalFixed_U8A_2
+		JSR	Text::PrintDecimalPadded_U8A_2
 
 		JSR	Text::NewLine
 

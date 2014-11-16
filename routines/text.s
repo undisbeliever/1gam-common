@@ -10,21 +10,12 @@
 
 MODULE Text
 
-.define LAST_CHARACTER		144
-
-; ::TODO SetCursor::
+;; Public Variables
+;; ================
 
 .zeropage
 	;; The position of the string
 	LONG	stringPtr
-
-	; Temporry values used by3this module
-	WORD	tmp
-	WORD	tmp2
-	WORD	tmp3
-
-
-
 
 .segment "WRAM7E"
 	;; The text buffer
@@ -38,41 +29,23 @@ MODULE Text
 	;; Word address of the tilemap in VRAM
 	WORD vramMapAddr
 
-	;; This word is added to each character to convert to a tileset
-	;; Also used to set text color (palette)
-	WORD tilemapOffset
+	;; The Window settings
+	STRUCT window, TextWindow
 
-	;; Index position of the buffer
-	WORD bufferPos
 
-	;; When bufferPos >= bufferLineEnd goto next line
-	WORD bufferPosLineEnd
+;; Private Variables
+;; =================
 
-	;; Number of tiles inbetween lines.
-	;; (2 = double spacing or 8x16 font)
-	BYTE lineSpacing
-
-	;; Index of Text window Starting byte (Ypos * 64 + XPos * 2)
-	WORD windowStart
-
-	;; Index of Text window Ending byte (Ypos * 64 + XPos * 2)
-	WORD windowEnd
-
-	;; Window Flags
-	BYTE flags
-
-		;;; Has a border
-		CONST BORDER, $01
-
-		;;; Has no border
-		CONST NO_BORDER, $00
-
-	;; The width of the line.
-	WORD lineWidth
-
+.segment "SHADOW"
 	;; Storage area to store decoded string.
 	;; Long enough to cover the enture word.
 	BYTE decimalString, 11
+
+.zeropage
+	; Temporry values used by3this module
+	WORD	tmp
+	WORD	tmp2
+	WORD	tmp3
 
 
 .code
@@ -86,13 +59,54 @@ ROUTINE SetColor
 
 	STA	tmp
 
-	LDA	tilemapOffset+1
+	LDA	window + TextWindow::tilemapOffset + 1
 	AND	#$E3
 	ORA	tmp
-	STA	tilemapOffset+1
+	STA	window + TextWindow::tilemapOffset + 1
 
 	RTS
 
+
+
+.A8
+.I16
+ROUTINE PrintDecimalPadded_U8A_3
+	STA	tmp
+	STZ	tmp + 1
+	LDY	tmp
+	LDA	#3
+	BRA	PrintDecimalPadded_U16Y
+
+.A8
+.I16
+ROUTINE PrintDecimalPadded_U8A_2
+	STA	tmp
+	STZ	tmp + 1
+	LDY	tmp
+	LDA	#2
+	BRA	PrintDecimalPadded_U16Y
+
+.A8
+.I16
+ROUTINE PrintDecimalPadded_U8A_1
+	STA	tmp
+	STZ	tmp + 1
+	LDX	tmp
+	LDA	#1
+
+	.assert * = PrintDecimalPadded_U16X, lderror, "Bad Flow Control" ; Faster than BRA
+
+.A8
+.I16
+ROUTINE PrintDecimalPadded_U16X
+	TXY
+	.assert * = PrintDecimalPadded_U16Y, lderror, "Bad Flow Control"
+
+.A8
+.I16
+ROUTINE PrintDecimalPadded_U16Y
+	JSR	ConvertDecimalStringPadded_U16Y
+	BRA	PrintString
 
 ; INPUT: XY = value
 .A8
@@ -128,335 +142,11 @@ ROUTINE PrintDecimal_U16Y
 
 .A8
 .I16
-ROUTINE PrintString
+ROUTINE	PrintString
 	STX	stringPtr
 	STA	stringPtr + 2
 
-	LDY	#0
-
-	REPEAT
-		LDA	[stringPtr], Y
-	WHILE_NOT_ZERO
-		INY
-
-		JSR PrintChar
-	WEND
-
-	RTS
-
-
-
-padding := tmp
-
-ROUTINE PrintDecimalFixed_U8A_3
-	STA	tmp
-	STZ	tmp + 1
-	LDX	tmp
-	LDA	#2
-	STA	padding
-	BRA	_PrintDecimalFixed_U16X_AfterCheck
-
-ROUTINE PrintDecimalFixed_U8A_2
-	STA	tmp
-	STZ	tmp + 1
-	LDX	tmp
-	LDA	#1
-	STA	padding
-	BRA	_PrintDecimalFixed_U16X_AfterCheck
-
-ROUTINE PrintDecimalFixed_U8A_1
-	STA	tmp
-	STZ	tmp + 1
-	LDX	tmp
-	LDA	#0
-	STA	padding
-	BRA	_PrintDecimalFixed_U16X_AfterCheck
-
-
-; INPUT: A = Padding
-.A8
-.I16
-ROUTINE PrintDecimalFixed_U16Y
-	TYX
-	.assert * = PrintDecimalFixed_U16X, lderror, "Bad Flow Control"
-
-.A8
-.I16
-ROUTINE PrintDecimalFixed_U16X
-	DEC
-	CMP	#.sizeof(decimalString) - 2
-	IF_GE
-		LDA	#.sizeof(decimalString) - 2
-	ENDIF
-
-	STA	padding
-	STZ	padding + 1
-
-_PrintDecimalFixed_U16X_AfterCheck:
-	LDY	tmp
-	REPEAT
-		STX	WRDIVL
-
-		LDA	#10
-		STA	WRDIVB
-
-		; Wait 16 Cycles
-		PHD			; 4
-		PLD			; 5
-		PHB			; 3
-		PLB			; 4
-
-		LDA	RDMPY		; remainder
-		STA	decimalString, Y
-
-		LDX	RDDIV		; result
-
-		DEY
-	UNTIL_MINUS
-
-	LDY	#0
-	REPEAT
-		LDA	decimalString, Y
-		ADD	#'0' - TEXT_DELTA
-
-		JSR	_PrintChar_After_Check
-
-		INY
-		CPY	padding
-	UNTIL_GT
-
-	RTS
-
-.A8
-.I16
-ROUTINE PrintDecimalWrap_U8A
-	STA	tmp
-	STA	tmp + 1
-	LDY	tmp
-	BRA	PrintDecimalWrap_U16Y
-
-.A8
-.I16
-ROUTINE PrintDecimalWrap_U16X
-	TXY
-	.assert * = PrintDecimalWrap_U16Y, lderror, "Bad Flow Control"
-
-.A8
-.I16
-ROUTINE PrintDecimalWrap_U16Y
-	JSR	ConvertDecimalString_U16Y
-	.assert * = PrintStringWrap, lderror, "Bad Flow Control"
-
-.A8
-.I16
-ROUTINE PrintStringWrap
-startWord := tmp2
-endWord := tmp3
-
-	STX	stringPtr
-	STA	stringPtr + 2
-
-	; startWord = 0
-	; while
-	;	endWord = get_word_ending(string, startWord);
-	;	if endWord == startWord
-	;		if string[startWord] == 0
-	;			break
-	;		else if string[startWord] == EOL
-	;			NewLine()
-	;			continue
-	;
-	;	len = endWord - startWord
-	;	if len < lineWidth / 2
-	;		if bufferPos + (len - 1 * 2) > bufferPosLineEnd
-	;			NewLine()
-	;
-	;	; Ensure spaces after word are printed
-	;	while string[endWord] == ' '
-	;		endWord++
-	;
-	;	print string[wordStart - wordEnd]
-	LDY	#0
-
-	REPEAT
-_StartPrintWord:
-		STY	startWord
-
-		REPEAT
-			LDA	[stringPtr], Y
-		WHILE_NOT_ZERO
-			CMP	#' '
-			BEQ	BREAK_LABEL
-
-			CMP	#EOL
-			BEQ	BREAK_LABEL
-
-			INY
-		WEND
-
-		CPY	startWord
-		IF_EQ
-			LDA	[stringPtr], Y
-			BEQ	BREAK_LABEL
-
-			CMP	#EOL
-			IF_EQ
-				JSR	NewLine
-				INY
-				CONTINUE
-			ENDIF
-		ENDIF
-
-		STY	endWord
-
-		REP	#$20
-.A16
-			TYA
-			CLC			; Adds an extra - 1
-			SBC	startWord
-			ASL
-			CMP	lineWidth
-			IF_LT
-				ADD	bufferPos
-				DEC			; Faster than IF_GT
-				CMP	bufferPosLineEnd
-				IF_GE
-					JSR	NewLine
-					LDX	bufferPos
-				ENDIF
-			ENDIF
-
-		SEP	#$20
-.A8
-
-		REPEAT
-			LDA	[stringPtr], Y
-			CMP	#' '
-		WHILE_EQ
-			INY
-		WEND
-		STY	endWord
-
-		REP	#$30
-.A16
-
-		; Print stringPtr[wordStart - wordEnd]
-		LDX	bufferPos
-		LDY	startWord
-		REPEAT
-			LDA	[stringPtr], Y
-			INY
-
-			AND	#$00FF
-
-			; if A in range FIRST_CHARACTER to LAST_CHARACTER
-			;     A = A - TEXT_DELTA
-			; else
-			;     A = INVALID_CHARACTER
-			SUB	#TEXT_DELTA
-			CMP	#LAST_CHARACTER - TEXT_DELTA
-			IF_GE
-				LDA	#TEXT_INVALID
-			ENDIF
-
-			; But to buffer
-			ADD	tilemapOffset
-			STA	f:buffer, X
-
-
-			; If bufferpos >= byfferPosLineEnd
-			;   NewLine()
-			;   get new bufferPos
-			;   skip spaces
-			;   break
-			; Else
-			;   bufferpos += 2
-			CPX	bufferPosLineEnd
-			IF_GE
-				STX	bufferPos
-				JSR	NewLine
-
-				SEP	#$20
-.A8
-
-				REPEAT
-					LDA	[stringPtr], Y
-					CMP	#' '
-				WHILE_EQ
-					INY
-				WEND
-
-				JRA	_StartPrintWord
-			ENDIF
-
-			INX
-			INX
-
-			; Loop until entire word printed
-			CPY	endWord
-		UNTIL_GE
-
-		SEP	#$20
-.A8
-
-		STX	bufferPos
-	FOREVER
-
-	STZ	updateBufferIfZero
-
-	RTS
-
-
-
-.A8
-.I16
-; INPUT: A - the character to print
-; MODIFIES: A, X
-; MUST NOT USE Y
-ROUTINE PrintChar
-	; If character is newline call NewLine
-	CMP	#EOL
-	BEQ	NewLine
-
-	; if A in range FIRST_CHARACTER to LAST_CHARACTER
-	;     A = A - TEXT_DELTA
-	; else
-	;     A = INVALID_CHARACTER
-	SUB	#TEXT_DELTA
-	CMP	#LAST_CHARACTER - TEXT_DELTA
-	IF_GE
-		LDA	#TEXT_INVALID - TEXT_DELTA
-	ENDIF
-
-_PrintChar_After_Check:
-	LDX	bufferPos
-
-	; Show character
-	REP	#$30
-.A16
-		AND	#$00FF
-		ADD	tilemapOffset
-		STA	f:buffer, X
-
-	SEP	#$20
-.A8
-
-	STZ	updateBufferIfZero
-
-	; If ++bufferpos >= byfferPosLineEnd
-	;   call NewLine
-	; Else
-	;   bufferpos += 2
-	CPX	bufferPosLineEnd
-	BGE	NewLine
-
-	INX
-	INX
-
-	STX	bufferPos
-
-	RTS
-
+	JMP	(window + TextWindow::printStringAddr)
 
 
 .A8
@@ -471,23 +161,38 @@ ROUTINE PrintHex_U8A
 	CMP	#10
 	IF_GE
 		CLC
-		ADC	#'A' - 10 - TEXT_DELTA
+		ADC	#'A' - 10
 	ELSE
-		ADC	#'0' - TEXT_DELTA
+		ADC	#'0'
 	ENDIF
-	JSR	_PrintChar_After_Check
+	STA	decimalString + 0
 
 	PLA
 	AND	#$0F
 	CMP	#10
 	IF_GE
 		CLC
-		ADC	#'A' - 10 - TEXT_DELTA
+		ADC	#'A' - 10
 	ELSE
-		ADC	#'0' - TEXT_DELTA
+		ADC	#'0'
 	ENDIF
-	BRA	_PrintChar_After_Check
+	STA	decimalString + 1
+	STZ	decimalString + 2
 
+	LDA	#.bankbyte(decimalString)
+	LDX	#decimalString
+
+	BRA	PrintString
+
+
+.A8
+.I16
+ROUTINE PrintChar
+	LDX	window + TextWindow::textInterfaceAddr
+	JSR	(TextInterface::PrintChar, X)
+
+	STZ	Text::updateBufferIfZero
+	RTS
 
 
 .I16
@@ -507,68 +212,80 @@ ROUTINE PrintHex_U16X
 .A8
 	PHA
 	XBA
-	JSR	PrintHex_U8A
+	PHA
+
+	LSR
+	LSR
+	LSR
+	LSR
+	CMP	#10
+	IF_GE
+		CLC
+		ADC	#'A' - 10
+	ELSE
+		ADC	#'0'
+	ENDIF
+	STA	decimalString + 0
 
 	PLA
-	JSR	PrintHex_U8A
-	
+	AND	#$0F
+	CMP	#10
+	IF_GE
+		CLC
+		ADC	#'A' - 10
+	ELSE
+		ADC	#'0'
+	ENDIF
+	STA	decimalString + 1
+
+	LDA	1, S
+
+	LSR
+	LSR
+	LSR
+	LSR
+	CMP	#10
+	IF_GE
+		CLC
+		ADC	#'A' - 10
+	ELSE
+		ADC	#'0'
+	ENDIF
+	STA	decimalString + 2
+
+	PLA
+	AND	#$0F
+	CMP	#10
+	IF_GE
+		CLC
+		ADC	#'A' - 10
+	ELSE
+		ADC	#'0'
+	ENDIF
+	STA	decimalString + 3
+
+	STZ	decimalString + 4
+
+	LDA	#.bankbyte(decimalString)
+	LDX	#decimalString
+
 	PLP
-	RTS
+	JRA	PrintString
+
 
 
 
 ROUTINE NewLine
-	PHP
-	REP	#$30
-.A16
-
-	; bufferPos = (Bufferpos & $FFC0) + (64 * lineSpacing) + (windowStart & $3F)
-	LDA	bufferPos
-	AND	#$FFC0
-	STA	tmp
-
-	LDA	lineSpacing - 1
-	AND	#$FF00
-	LSR
-	LSR
-	ADD	tmp
-	STA	tmp
-
-	LDA	windowStart
-	AND	#$003F
-	ORA	tmp
-	STA	bufferPos
-	
-	; If out of bounds
-	CMP	windowEnd
-	IF_GT
-		; ::TODO Check settings and move text up one line::
-
-		LDA	windowStart
-		STA	bufferPos
-		AND	#$FFC0
-		STA	tmp
-	ENDIF
-
-	; bufferPosLineEnd = (bufferPos & $FFC0) + (windowEnd  & $3F)
-	LDA	windowEnd
-	AND	#$003F
-	ORA	tmp
-	STA	bufferPosLineEnd
-
-	; ::TODO Check settings and Clear line::
-
-	PLP
-	RTS
+	LDX	window + TextWindow::textInterfaceAddr
+	JMP	(TextInterface::NewLine, X)
 
 
 
 ROUTINE SetCursor
-	PHP
 	REP	#$30
 .A16
 .I16
-	CPX	lineWidth
+	CPX	window + TextWindow::lineTilesWidth
 	IF_GE
 		LDX	#0
 	ENDIF
@@ -577,62 +294,65 @@ ROUTINE SetCursor
 	; if lineStart > windowEnd
 	;	linestart = windowStart & $FFC0
 	; bufferPos = lineStart + X * 2
-	; bufferPosLineEnd = lineStart + (lineWidth - 1) * 2
 	TYA
 	XBA
 	AND	#$FF00
 	LSR
 	LSR
-	ADD	windowStart
+	ADD	window + TextWindow::windowStart
 	STA	tmp
 
-	CMP	windowEnd
+	CMP	window + TextWindow::windowEnd
 	IF_GE
-		LDA	windowStart
+		LDA	window + TextWindow::windowStart
 		AND	#$FFC0
 	ENDIF
 
 	TXA
 	ASL
 	ADD	tmp
-	STA	bufferPos
+	STA	window + TextWindow::bufferPos
 
-	LDA	lineWidth
-	DEC
-	ASL
-	ADD	tmp
-	STA	bufferPosLineEnd
+	; LineWidth = lineTilesWidth - X
+	SEP	#$20
+.A8
+	TXA
+	STA	tmp
 
-	PLP
-	RTS
+	LDA	window + TextWindow::lineTilesWidth
+	SUB	tmp
+	STA	window + TextWindow::tilesLeftInLine
+
+	; Goto Callback
+	LDX	window + TextWindow::textInterfaceAddr
+	JMP	(TextInterface::CursorMoved, X)
+
 
 
 .A8
 .I16
 ROUTINE SetupWindow
-startXPos := <tmp
-
-	STX	windowStart
-	STY	windowEnd
-	STA	flags
+	STX	window + TextWindow::windowStart
+	STY	window + TextWindow::windowEnd
+	STA	window + TextWindow::flags
 
 	REP	#$30
 .A16
-	; lineWidth = ((windowEnd & $3F) - (windowStart & $3F)) / 2 + 1
+	; lineTilesWidth = ((windowEnd & $3F) - (windowStart & $3F)) / 2 + 1
 	TXA
 	AND	#$003F
-	STA	startXPos
+	STA	tmp
 	TYA
 	AND	#$003F
-	SUB	startXPos
+	SUB	tmp
 	LSR
 	INC
-	STA	lineWidth
+	STA	window + TextWindow::lineTilesWidth
 
 	SEP	#$20
 .A8
-	LDA	flags
-	BIT	#BORDER
+	LDA	window + TextWindow::flags
+	BIT	#Text::WINDOW_BORDER
 	BNE	DrawBorder
 
 	JMP	ClearWindow
@@ -640,55 +360,54 @@ startXPos := <tmp
 
 
 ROUTINE DrawBorder
-	PHP
 	REP	#$30
 .A16
 .I16
 
-topLeft  := windowStart
+topLeft  := window + TextWindow::windowStart
 topRight := <tmp
 bottomLeft  := <tmp2
-bottomRight := windowEnd
+bottomRight := window + TextWindow::windowEnd
 
-	LDA	windowStart
+	LDA	window + TextWindow::windowStart
 	AND	#$003F
 	STA	bottomLeft
-	LDA	windowEnd
+	LDA	window + TextWindow::windowEnd
 	AND	#$FFC0
 	ORA	bottomLeft
 	STA	bottomLeft
 
-	LDA	windowEnd
+	LDA	window + TextWindow::windowEnd
 	AND	#$003F
 	STA	topRight
-	LDA	windowStart
+	LDA	window + TextWindow::windowStart
 	AND	#$FFC0
 	ORA	topRight
 	STA	topRight
 
 	; Draw four corners
-	LDA	tilemapOffset
-	ADD	#BORDER_TOP_LEFT - TEXT_DELTA
+	LDA	window + TextWindow::tilemapOffset
+	ADD	#BORDER_TOP_LEFT - Text::ASCII_DELTA
 	LDX	topLeft
 	STA	f:buffer - 66, X
 
-	LDA	tilemapOffset
-	ADD	#BORDER_TOP_RIGHT - TEXT_DELTA
+	LDA	window + TextWindow::tilemapOffset
+	ADD	#BORDER_TOP_RIGHT - Text::ASCII_DELTA
 	LDX	topRight
 	STA	f:buffer - 62, X
 
-	LDA	tilemapOffset
-	ADD	#BORDER_BOTTOM_LEFT - TEXT_DELTA
+	LDA	window + TextWindow::tilemapOffset
+	ADD	#BORDER_BOTTOM_LEFT - Text::ASCII_DELTA
 	LDX	bottomLeft
 	STA	f:buffer + 62, X
 
-	LDA	tilemapOffset
-	ADD	#BORDER_BOTTOM_RIGHT - TEXT_DELTA
+	LDA	window + TextWindow::tilemapOffset
+	ADD	#BORDER_BOTTOM_RIGHT - Text::ASCII_DELTA
 	LDX	bottomRight
 	STA	f:buffer + 66, X
 
-	LDA	tilemapOffset
-	ADD	#BORDER_TOP - TEXT_DELTA
+	LDA	window + TextWindow::tilemapOffset
+	ADD	#BORDER_TOP - Text::ASCII_DELTA
 	LDX	topLeft
 	REPEAT
 		STA	f:buffer - 64, X
@@ -698,8 +417,8 @@ bottomRight := windowEnd
 		INX
 	WEND
 
-	LDA	tilemapOffset
-	ADD	#BORDER_BOTTOM - TEXT_DELTA
+	LDA	window + TextWindow::tilemapOffset
+	ADD	#BORDER_BOTTOM - Text::ASCII_DELTA
 	LDX	bottomLeft
 	REPEAT
 		STA	f:buffer + 64, X
@@ -709,33 +428,35 @@ bottomRight := windowEnd
 		INX
 	WEND
 
-	LDA	tilemapOffset
-	ADD	#BORDER_LEFT - TEXT_DELTA
+	LDA	window + TextWindow::tilemapOffset
+	ADD	#BORDER_LEFT - Text::ASCII_DELTA
+	TAY
+
 	LDX	topLeft
 	REPEAT
 		STA	f:buffer - 2, X
 
 		CPX	bottomLeft
 	WHILE_LT
-		TAY
-			TXA
-			ADD	#64
-			TAX
+		TXA
+		ADD	#64
+		TAX
 		TYA
 	WEND
 
-	LDA	tilemapOffset
-	ADD	#BORDER_RIGHT - TEXT_DELTA
+	LDA	window + TextWindow::tilemapOffset
+	ADD	#BORDER_RIGHT - Text::ASCII_DELTA
+	TAY
+
 	LDX	topRight
 	REPEAT
 		STA	f:buffer + 2, X
 
 		CPX	bottomRight
 	WHILE_LT
-		TAY
-			TXA
-			ADD	#64
-			TAX
+		TXA
+		ADD	#64
+		TAX
 		TYA
 	WEND
 
@@ -744,14 +465,13 @@ bottomRight := windowEnd
 
 
 ROUTINE ClearWindow
-	PHP
 	REP	#$30
 .A16
 .I16
 _ClearWindow_skip_php:
 
-	LDA	#TEXT_CLEAR - TEXT_DELTA
-	ADD	tilemapOffset
+	LDA	#TEXT_CLEAR - Text::ASCII_DELTA
+	ADD	window + TextWindow::tilemapOffset
 	TAY
 
 	BRA	_FillWindow_p_on_stack
@@ -764,23 +484,102 @@ ROUTINE RemoveWindow
 	REP	#$30
 .A16
 .I16
-	LDA	flags
-	IF_BIT	#BORDER
+	LDA	window + TextWindow::flags
+	IF_BIT	#Text::WINDOW_BORDER
 		; if has a border, then ensure that gets cleaned too
-		LDA	windowStart
+		LDA	window + TextWindow::windowStart
 		SUB	#66
-		STA	windowStart
-		LDA	windowEnd
+		STA	window + TextWindow::windowStart
+		LDA	window + TextWindow::windowEnd
 		ADD	#66
-		STA	windowEnd
+		STA	window + TextWindow::windowEnd
 	ENDIF
 
 	LDY	#0
 	BRA	_FillWindow_p_on_stack
 
 
+
+;; A helper function to fill the entirety of the window.
+;; REQUIRES: 16 bit A, 16 bit Index, P on stack
+;; INPUT: Y = the Tile to copy
+.A16
+.I16
+ROUTINE _FillWindow_p_on_stack
+startLine := <tmp
+endLine	  := <tmp2
+
+	; startLine = windowStart
+	; endLine = (windowStart & $FFC0) + (windowEnd & $3F)
+	; A = Y
+	; repeat
+	;    buffer[x] = A
+	;    if (x >= windowEnd)
+	;       break loop
+	;    elseif x >= endLine
+	;       startLine += 64
+	;       endLine += 64
+	;       x = startLine
+	;    else
+	;       x += 2
+	LDA	window + TextWindow::windowStart
+	STA	startLine
+
+	AND	#$FFC0
+	STA	endLine
+	LDA	window + TextWindow::windowEnd
+	AND	#$003F
+	ORA	endLine
+	STA	endLine
+
+	TYA
+
+	LDX	window + TextWindow::windowStart
+	REPEAT
+		STA	f:buffer, X
+
+		CPX	window + TextWindow::windowEnd
+	WHILE_LT
+		CPX	endLine
+		IF_EQ
+			LDA	startLine
+			ADD	#64
+			STA	startLine
+			TAX
+
+			LDA	endLine
+			ADD	#64
+			STA	endLine
+
+			TYA
+			CONTINUE
+		ENDIF
+
+		INX
+		INX
+	WEND
+
+	SEP	#$20
+.A8
+	; bufferPos = windowStart
+	; tilesLeftInLine = lineTilesWidth
+	LDA	window + TextWindow::windowStart
+	STA	window + TextWindow::bufferPos
+
+	LDA	window + TextWindow::lineTilesWidth
+	STA	window + TextWindow::tilesLeftInLine
+
+	; update on VBlank flag
+	STZ	updateBufferIfZero
+
+	LDX	window + TextWindow::textInterfaceAddr
+	JMP	(TextInterface::CursorMoved, X)
+
+
+
+
 ; ::MAYDO replace with call to routine (ClearWRAM7E X = destination, Y = size)::.
-ROUTINE ClearBuffer
+ROUTINE ClearEntireBuffer
 	PHP
 	PHB
 	REP	#$30
@@ -803,95 +602,126 @@ ROUTINE ClearBuffer
 	RTS
 
 
-; A helper function to fill the entirety of the window.
-; REQUIRES: 16 bit A, 16 bit Index, P on stack
-; INPUT: Y = the Tile to copy
-.A16
+
+;; Print String Methods
+;; ====================
+
+.A8
 .I16
-ROUTINE _FillWindow_p_on_stack
-startLine := <tmp
-endLine	  := <tmp2
+ROUTINE PrintStringBasic
 
-	; startLine = windowStart
-	; endLine = (windowStart & $FFC0) + (windowEnd & $3F)
-	; A = Y
-	; repeat
-	;    buffer[x] = A
-	;    if (x >= windowEnd)
-	;       break loop
-	;    elseif x >= endLine
-	;       startLine += 64
-	;       endLine += 64
-	;       x = startLine
-	;    else
-	;       x += 2
-	LDA	windowStart
-	STA	startLine
-
-	AND	#$FFC0
-	STA	endLine
-	LDA	windowEnd
-	AND	#$003F
-	ORA	endLine
-	STA	endLine
-
-	TYA
-
-	LDX	windowStart
 	REPEAT
-		STA	f:buffer, X
+		LDA	[stringPtr]
+	WHILE_NOT_ZERO
+		LDX	window + TextWindow::textInterfaceAddr
+		JSR	(TextInterface::PrintChar, X)
 
-		CPX	windowEnd
-	WHILE_LT
-		CPX	endLine
-		IF_EQ
-			LDA	startLine
-			ADD	#64
-			STA	startLine
-			TAX
-
-			LDA	endLine
-			ADD	#64
-			STA	endLine
-
-			TYA
-			CONTINUE
-		ENDIF
-
-		INX
-		INX
+		REP	#$20
+.A16
+		INC	stringPtr
+.A8
+		SEP	#$20
 	WEND
 
+	STZ	Text::updateBufferIfZero
 
-	; bufferPos = windowStart
-	; bufferPosLineEnd = (windowStart & $FFC0) + ((windowEnd + 2) & $3F)
-	LDA	windowStart
-	STA	bufferPos
-
-	AND	#$FFC0
-	STA	tmp
-
-	LDA	windowEnd
-	AND	#$003F
-	ORA	tmp
-	STA	bufferPosLineEnd
-
-	SEP	#$20
-.A8
-	; update on VBlank flag
-	STZ	updateBufferIfZero
-
-	PLP
 	RTS
 
 
 
-;; Converts the value in the 16 bit X to a string stores in `decimalString`
-;;
-;; REQUIRES: 8 bit A, 16 bit Index
-;; INPUT: X = the number to display
-;; OUTPUT: A the bank of the string to print
-;;         X the location of the string to print 
+.A8
+.I16
+ROUTINE PrintStringWordWrapping
+	; repeat
+	;	length, lengthAfterSpaces = getWordLength()
+	; 	if length > tilesLeftInLine AND length * 2 < lineTilesWidth
+	;		NewLine()
+	;	if lengthAfterSpaces > tilesLeftInLine
+	;		toPrint = length - 1
+	;	else
+	;		toPrint = lengthAfterSpaces - 1
+	;
+	;	repeat
+	;		char = [stringPtr]
+	;		if char == 0
+	;			return
+	;		stringPtr++
+	;		print char
+	;	until --toPrint < 0
+	;
+	;	; Skip any spaces that may have not been printed
+	;	while [stringPtr] == ' '
+	;		stringPtr++
+	; forever
+
+	REPEAT
+		LDX	window + TextWindow::textInterfaceAddr
+		JSR	(TextInterface::GetWordLength, X)
+		STA	tmp
+		STY	tmp2
+
+		DEC	; faster than IF_GT
+		CMP	window + TextWindow::tilesLeftInLine
+		IF_GE
+			ASL
+			CMP	window + TextWindow::lineTilesWidth
+			IF_LT
+				LDX	window + TextWindow::textInterfaceAddr
+				JSR	(TextInterface::NewLine, X)
+				LDX	window + TextWindow::textInterfaceAddr
+			ENDIF
+		ENDIF
+
+		LDA	tmp2
+		DEC
+		CMP	window + TextWindow::tilesLeftInLine
+		IF_GE
+			LDA	tmp
+			DEC
+		ENDIF
+		STA	tmp
+
+		REPEAT
+			LDA	[stringPtr]
+			BEQ	_EndPrintWrapLoop
+
+			REP	#$20
+			INC	stringPtr
+			SEP	#$20
+	
+			; ::TODO special characters::
+
+.A8
+
+			LDX	window + TextWindow::textInterfaceAddr
+			JSR	(TextInterface::PrintChar, X)
+
+			DEC	tmp
+		UNTIL_MINUS
+
+		; Skip any spaces that may have not been printed
+		REPEAT
+			LDA	[stringPtr]
+			CMP	#' '
+		WHILE_EQ
+			REP	#$20
+			INC	stringPtr
+			SEP	#$20
+		WEND
+	FOREVER
+
+_EndPrintWrapLoop:
+
+	STZ	Text::updateBufferIfZero
+
+	RTS
+
+
+
+;; Helpful Functions
+;; =================
+
+
 .A8
 .I16
 ROUTINE ConvertDecimalString_U16Y
@@ -922,17 +752,51 @@ ROUTINE ConvertDecimalString_U16Y
 	LDA	#.bankbyte(decimalString)
 	RTS
 
-;; Converts the value in the 32 but XY to a string stored in `decimalString`
-;;
-;; REQUIRES: 8 bit A, 16 bit Index
-;; INPUT: XY = value, A = number of characters to print
-;;	   A = the number of padding characters (if 0 then show entire string)
-;; OUTPUT: A the bank of the string to print
-;;         X the location of the string to print 
+
+
+.A8
+.I16
+ROUTINE ConvertDecimalStringPadded_U16Y
+	REP	#$20
+.A16
+	; Faster than alternative
+	; Never need more than 7 chars anyway
+	.assert .sizeof(decimalString) > 7, error, "decimalString too small"
+	AND	#$0007
+	STA	tmp
+
+	LDA	#decimalString + .sizeof(decimalString) - 1 + 1
+	SUB	tmp
+	STA	tmp
+
+	SEP	#$20
+.A8
+
+	JSR	ConvertDecimalString_U16Y
+
+	CPX	tmp
+	IF_GE
+		LDA	#'0'
+
+		REPEAT
+			DEX
+			STA	0, X
+
+			CPX	tmp
+		UNTIL_LT
+	ENDIF
+
+	LDA	#.bankbyte(decimalString)
+	RTS
+
+
+
 .A8
 .I16
 ROUTINE ConvertDecimalString_U32XY
+padding := tmp
 position := tmp2
+
 	STX	Math::dividend32
 	STY	Math::dividend32 + 2
 
@@ -978,6 +842,7 @@ position := tmp2
 	
 	LDA	#.bankbyte(decimalString)
 	RTS
+
 
 ENDMODULE
 

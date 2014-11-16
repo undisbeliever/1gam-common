@@ -284,6 +284,11 @@
 	_SYMBOL_HELPER name, TYPE_LABEL
 .endmacro
 
+.macro BREAKPOINT
+	.global BREAKPOINT_
+	BREAKPOINT_:
+.endmacro
+
 
 .endif ; ::_IMPORT_EXPORT_H_
 
