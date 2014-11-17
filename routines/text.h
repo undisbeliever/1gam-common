@@ -49,6 +49,7 @@
 .endstruct
 
 
+; ::SHOULDO rebuild using import/export macros::
 .struct TextInterface
 	;; Go to the next line
 	;;
@@ -123,6 +124,8 @@ IMPORT_MODULE Text
 	;; The Window settings
 	STRUCT window, TextWindow
 
+	;; The character to use when padding a string.
+	BYTE paddingCharacter
 
 	;; Constants
 	;; =========
@@ -231,6 +234,8 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 8 bit A with a minimum of 1 digit
 	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
+	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: A = the number to print
@@ -240,6 +245,8 @@ IMPORT_MODULE Text
 	ROUTINE PrintDecimalPadded_U8A_1
 
 	;; Prints an unsigned 8 bit A with a minimum of 2 digits
+	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -251,6 +258,8 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 8 bit A with a minimum of 3 digits
 	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
+	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: A = the number to print
@@ -260,6 +269,8 @@ IMPORT_MODULE Text
 	ROUTINE PrintDecimalPadded_U8A_3
 
 	;; Prints an unsigned 16 bit Y with padding
+	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -272,6 +283,8 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 16 bit X with a padding
 	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
+	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: X = the number to print
@@ -282,6 +295,8 @@ IMPORT_MODULE Text
 	ROUTINE PrintDecimalPadded_U16Y
 
 	;; Prints an unsigned 32 bit XY (with padding)
+	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -407,6 +422,8 @@ IMPORT_MODULE Text
 	;; Converts the value in the 16 bit Y with padding to a string stored
 	;; in `decimalString`
 	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
+	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display
 	;;        A = minimum number of digits to display (must be > 8)
@@ -416,11 +433,13 @@ IMPORT_MODULE Text
 
 	;; Converts the value in the 32 but XY to a string with padding.
 	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
+	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: XY = value, A = number of characters to print
 	;;	   A = the number of padding characters (if 0 then show entire string)
 	;; OUTPUT: A the bank of the string to print
-	;;         X the location of the string to print 
+	;;         X the location of the string to print
 	ROUTINE ConvertDecimalString_U32XY
 
 ENDMODULE
@@ -467,8 +486,13 @@ ENDMODULE
 ;; A Label called `$tileset_End` must be defined marking the end of the
 ;; tileset.
 ;;
+;; Also sets the padding character to '0'.
+;;
 ;; REQUIRES: 8 bit A, 16 bit X, DB in shadow, Force or V-Blank
 .macro Text_LoadFont tileset, vramTilesetAddr, mapAddr
+	LDA	#'0'
+	STA	::Text::paddingCharacter
+
 	LDX	#mapAddr
 	STX	::Text::vramMapAddr
 

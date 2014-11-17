@@ -32,6 +32,9 @@ MODULE Text
 	;; The Window settings
 	STRUCT window, TextWindow
 
+	;; The character to use when padding a string.
+	BYTE paddingCharacter
+
 
 ;; Private Variables
 ;; =================
@@ -776,7 +779,7 @@ ROUTINE ConvertDecimalStringPadded_U16Y
 
 	CPX	tmp
 	IF_GE
-		LDA	#'0'
+		LDA	paddingCharacter
 
 		REPEAT
 			DEX
@@ -812,7 +815,6 @@ position := tmp2
 
 		LDX	position
 
-		ADD	#'0'
 		STA	decimalString, X
 
 		DEC	position
@@ -832,14 +834,36 @@ position := tmp2
 	LDX	#decimalString
 	REPEAT
 		LDA	0, X
-		CMP	#'0'
-	WHILE_EQ
+	WHILE_ZERO
 		DEY
 		BMI	BREAK_LABEL
 
 		INX
 	WEND
-	
+
+	TXY
+	REPEAT
+		CPY	#decimalString + .sizeof(decimalString) - 2
+	WHILE_LT
+		LDA	0, Y
+		BNE	BREAK_LABEL
+
+		LDA	paddingCharacter
+		STA	0, Y
+
+		INY
+	WEND
+
+	REPEAT
+		CPY	#decimalString + .sizeof(decimalString) - 1
+	WHILE_LT
+		LDA	0, Y
+		ADD	#'0'
+		STA	0, Y
+
+		INY
+	WEND
+
 	LDA	#.bankbyte(decimalString)
 	RTS
 
