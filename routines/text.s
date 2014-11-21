@@ -22,6 +22,11 @@ MODULE Text
 	;; In $7E so shadow RAM can also be accessed.
 	WORD buffer, 32*32
 
+.if N_TEXT_WINDOWS > 1
+	;; Storage of the various Text Windows
+	STRUCT windowArray, TextWindow, N_TEXT_WINDOWS
+.endif
+
 .segment "SHADOW"
 	;; If zero, then update buffer to VRAM on VBlank
 	BYTE updateBufferIfZero
@@ -29,11 +34,16 @@ MODULE Text
 	;; Word address of the tilemap in VRAM
 	WORD vramMapAddr
 
-	;; The Window settings
+	;; The current Window settings
 	STRUCT window, TextWindow
 
 	;; The character to use when padding a string.
 	BYTE paddingCharacter
+
+.if N_TEXT_WINDOWS > 1
+	;; The current window index.
+	BYTE currentWindow
+.endif
 
 
 ;; Private Variables
@@ -295,7 +305,7 @@ ROUTINE SetCursor
 
 	; lineStart = windowStart + Y * 64
 	; if lineStart > windowEnd
-	;	linestart = windowStart & $FFC0
+	;	linestart = windowStart
 	; bufferPos = lineStart + X * 2
 	TYA
 	XBA
@@ -303,13 +313,12 @@ ROUTINE SetCursor
 	LSR
 	LSR
 	ADD	window + TextWindow::windowStart
-	STA	tmp
 
 	CMP	window + TextWindow::windowEnd
 	IF_GE
 		LDA	window + TextWindow::windowStart
-		AND	#$FFC0
 	ENDIF
+	STA	tmp
 
 	TXA
 	ASL
@@ -330,6 +339,90 @@ ROUTINE SetCursor
 	LDX	window + TextWindow::textInterfaceAddr
 	JMP	(TextInterface::CursorMoved, X)
 
+
+.if N_TEXT_WINDOWS > 1
+ROUTINE SelectWindow
+	PHP
+	SEP	#$30
+.A8
+.I8
+
+	CMP	#N_TEXT_WINDOWS
+	IF_GE
+		LDA	#0
+	ENDIF
+
+	; Y = A * 15
+	.assert .sizeof(TextWindow) = 15, error, "Incorrect TextWindow Size"
+	.assert N_TEXT_WINDOWS * .sizeof(TextWindow) <= 255, error, "8 bit overflow"
+
+	STA	tmp
+	ASL
+	ASL
+	ASL
+	ASL
+	SUB	tmp
+
+	TAY
+
+_SelectWindowSkip:
+
+	; Don't change bank, (Change Bank = 16 cycles, but only saves 8)
+
+	LDX	currentWindow
+
+	; Copy 15 bytes to windowArray
+	LDA	window + 0
+	STA	f:windowArray + 0, X
+
+	REP	#$20
+.A16
+	; Save buffer
+	LDA	window + 1
+	STA	f:windowArray + 1, X
+	LDA	window + 3
+	STA	f:windowArray + 3, X
+	LDA	window + 5
+	STA	f:windowArray + 5, X
+	LDA	window + 7
+	STA	f:windowArray + 7, X
+	LDA	window + 9
+	STA	f:windowArray + 9, X
+	LDA	window + 11
+	STA	f:windowArray + 11, X
+	LDA	window + 13
+	STA	f:windowArray + 13, X
+
+
+	TYX
+	STX	currentWindow
+
+	; Copy 15 bytes from windowArray
+	; Save buffer
+	LDA	f:windowArray + 0, X
+	STA	window + 0
+	LDA	f:windowArray + 2, X
+	STA	window + 2
+	LDA	f:windowArray + 4, X
+	STA	window + 4
+	LDA	f:windowArray + 6, X
+	STA	window + 6
+	LDA	f:windowArray + 8, X
+	STA	window + 8
+	LDA	f:windowArray + 10, X
+	STA	window + 10
+	LDA	f:windowArray + 12, X
+	STA	window + 12
+
+	SEP	#$20
+.A8
+
+	LDA	f:windowArray + 14, X
+	STA	window + 14
+
+	PLP
+	RTS
+.endif
 
 
 .A8
@@ -566,8 +659,8 @@ endLine	  := <tmp2
 .A8
 	; bufferPos = windowStart
 	; tilesLeftInLine = lineTilesWidth
-	LDA	window + TextWindow::windowStart
-	STA	window + TextWindow::bufferPos
+	LDX	window + TextWindow::windowStart
+	STX	window + TextWindow::bufferPos
 
 	LDA	window + TextWindow::lineTilesWidth
 	STA	window + TextWindow::tilesLeftInLine

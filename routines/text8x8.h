@@ -14,6 +14,13 @@
 IMPORT_MODULE Text8x8
 	STRUCT	SingleSpacingInterface, TextInterface
 	STRUCT	DoubleSpacingInterface, TextInterface
+
+	ROUTINE NewLine_SingleSpacing
+	ROUTINE NewLine_DoubleSpacing
+	ROUTINE PrintChar
+	ROUTINE CursorMoved
+	ROUTINE GetWordLength
+	ROUTINE SpecialCharacter
 ENDMODULE
 
 .endif ; ::_TEXT_H_

@@ -11,6 +11,10 @@
 
 .include "includes/import_export.inc"
 
+.ifndef N_TEXT_WINDOWS
+	.define N_TEXT_WINDOWS 4
+.endif
+
 .struct TextWindow 
 	;; This word is appended to each character to convert it into a tileset
 	;; It represents the ' ' character in a fixed tileset
@@ -337,10 +341,26 @@ IMPORT_MODULE Text
 	;; INPUT: A the color of the text
 	ROUTINE SetColor
 
-	; ::TODO SetWindow ::
-
 	;; Windows
 	;; =======
+
+.if N_TEXT_WINDOWS > 1
+	;; Selects a given TextWindow
+	;;
+	;; The current window settings will be saved to WRAM
+	;; and the new window will loaded from WRAM into `Text::window`
+	;;
+	;; The save/load method was chosen because it simplifies the TextInterface.
+	;; And I believe that most window switching would occour in Text Scenes
+	;; and menus which will require a lot of processor time.
+	;;
+	;; I also throught about using DP to select Window, but it wastes precious
+	;; Shadow RAM and would actually waste CPU time if more than 250 characters
+	;; were printed.
+	;;
+	;; INPUT: A = Window Number. If > N_TEXT_WINDOWS, window 0 will be used.
+	ROUTINE SelectWindow
+.endif
 
 	;; Sets up a window at a given location.
 	;;
@@ -444,6 +464,16 @@ IMPORT_MODULE Text
 
 ENDMODULE
 
+.if N_TEXT_WINDOWS > 1
+;; Selects the given window
+;;
+;; INPUT: win - the window number, if const then
+.macro Text_SelectWindow win
+	LDA	win
+	JSR	::Text::SelectWindow
+.endmacro
+.endif
+
 ;; Sets up a window with no border with a given dimensions.
 ;;
 ;; REQUIRES: 8 bit A, 16 bit Index
@@ -480,6 +510,13 @@ ENDMODULE
 	STX	::Text::window + TextWindow::tilemapOffset
 .endmacro
 
+;; Sets the color of the text.
+;;
+;; REQUIRES: 8 bit A, 16 bit Index
+.macro Text_SetColor color
+	LDA	color
+	JSR	::Text::SetColor
+.endmacro
 
 ;; Loads the font
 ;;
@@ -558,7 +595,6 @@ ENDMODULE
 	ENDIF
 .endmacro
 
-
 ;; Sets the printing mode to basic
 ;;
 ;; REQUIRES: 16 bit Index
@@ -621,7 +657,7 @@ ENDMODULE
 		string:
 			.byte param, EOL, 0
 		.code
-			.assert check = skip, lderror, "Bad flow in Text_PrintString"
+			.assert check = skip, lderror, "Bad flow in Text_PrintStringLn"
 		skip:
 			LDX	#.loword(string)
 			LDA	#.bankbyte(string)
@@ -634,6 +670,116 @@ ENDMODULE
 		JSR	::Text::PrintString
 		JSR	::Text::NewLine
 	.endif
+.endmacro
+
+;; Prints a character
+;;
+;; REQUIRES: 8 bit A, 16 bit Index
+.macro Text_PrintChar c
+	LDA	#c
+	JSR	::Text::PrintChar
+.endmacro
+
+;; Prints a hexidecimal value for a given variable.
+;;
+;; The routine that will be called will depend on the value of `$var__type`.
+;;
+;; REQUIRES: 8 bit A, 16 bit Index
+;;
+;; @see includes/import_export.inc
+.macro Text_PrintHex var
+	_Text_PrintHex_Helper var, .ident(.sprintf("%s__type", .string(var))) 
+.endmacro
+
+.macro _Text_PrintHex_Helper var, type
+	.if type = ::TYPE_BYTE .or type = ::TYPE_UINT8 .or type = ::TYPE_SINT8
+		LDA	var
+		JSR	::Text::PrintHex_U8A
+	.elseif type = ::TYPE_WORD .or type = ::TYPE_ADDR .or type = ::TYPE_UINT16 .or type = ::TYPE_SINT16
+		LDX	var
+		JSR	::Text::PrintHex_U16X
+	.elseif type = ::TYPE_LONG
+		; ::MAYDO replace with dedicated routine::
+		LDA	var + 2
+		JSR	::Text::PrintHex_U8A
+		LDX	var
+		JSR	::Text::PrintHex_U16X
+	.elseif type = ::TYPE_UINT32 .or type = ::TYPE_SINT32
+		; ::MAYDO replace with dedicated routine::
+		LDX	var + 2
+		JSR	::Text::PrintHex_U16X
+		LDX	var
+		JSR	::Text::PrintHex_U16X
+	.else
+		.error .sprintf("variable %s type (%d) unsupported", .string(var), type)
+	.endif
+.endmacro
+
+;; Prints a decimal value for a given variable.
+;;
+;; The routine that will be called will depend on the value of `$var__type`.
+;;
+;; REQUIRES: 8 bit A, 16 bit Index
+;;
+;; INPUT: var - the variable to print
+;;	  padding - optional - padding to use (use const)
+;;
+;; @see includes/import_export.inc
+.macro Text_PrintDecimal var, padding
+	_Text_PrintDecimal_Helper var, .ident(.sprintf("%s__type", .string(var))), padding
+.endmacro
+
+.macro _Text_PrintDecimal_Helper var, type, padding
+	; ::TODO signed decimal printing::
+	; ::SHOULDDO long (24 bit) decimal printing::
+
+	.if type = ::TYPE_BYTE .or type = ::TYPE_UINT8
+		LDA	var
+		.ifblank padding
+			JSR	::Text::PrintDecimal_U8A
+		.else
+			.if .xmatch(padding, #1)
+				JSR	::Text::PrintDecimalPadded_U8A_1
+			.elseif .xmatch(padding, #2)
+				JSR	::Text::PrintDecimalPadded_U8A_2
+			.elseif .xmatch(padding, #3)
+				JSR	::Text::PrintDecimalPadded_U8A_3
+			.else
+				.error "Unknown padding (only allow #1, #2, #3)"
+			.endif
+		.endif
+	.elseif type = ::TYPE_WORD .or type = ::TYPE_ADDR .or type = ::TYPE_UINT16
+		LDY	var
+		.ifblank padding
+			JSR	::Text::PrintDecimal_U16Y
+		.else
+			LDA	padding
+			JSR	::Text::PrintDecimalPadded_U16Y
+		.endif	
+	.elseif type = ::TYPE_UINT32
+		LDX	var
+		LDY	var + 2
+		.ifblank padding
+			JSR	::Text::PrintDecimal_U32XY
+		.else
+			LDA	padding
+			JSR	::Text::PrintDecimalPadded_U32XY
+		.endif	
+	.else
+		.error .sprintf("variable %s type (%d) not supported", .string(var), type)
+	.endif
+.endmacro
+
+
+;; Sets the cursor to a given xpos and ypos.
+;;
+;; INPUT: xpos and ypos can be const, or a label
+;;
+;; REQUIRE: 8 bit A, 16 bit Index
+.macro Text_SetCursor xpos, ypos
+	LDX	xpos
+	LDY	ypos
+	JSR	::Text::SetCursor
 .endmacro
 
 ;; End of line character

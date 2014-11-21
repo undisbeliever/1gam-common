@@ -33,7 +33,7 @@ ROUTINE Main
 	LDA	#NMITIMEN_VBLANK_FLAG
 	STA	NMITIMEN
 
-	Text_LoadFont Font8Bold, BG1_TILES, BG1_MAP
+	Text_LoadFont Font8x8Bold, BG1_TILES, BG1_MAP
 	Text_SetInterface Text8x8::DoubleSpacingInterface, 1
 	Text_SetStringBasic
 
@@ -44,32 +44,24 @@ ROUTINE Main
 
 	Text_SetupWindow 2, 2, 29, 25, Text::WINDOW_BORDER
 
-	LDA	#4
-	JSR	Text::SetColor
-
+	Text_SetColor #4
 	Text_PrintStringLn "The quick brown fox jumped over the lazy dog."
 
 	Text_SetStringWordWrapping
 
-	LDA	#5
-	JSR	Text::SetColor
-
+	Text_SetColor #5
 	Text_PrintStringLn "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG."
 
 	JSR	Text::NewLine
 
 	Text_SetStringBasic
 
-	LDA	#4
-	JSR	Text::SetColor
-
+	Text_SetColor #4
 	Text_PrintString StringFromLabel
 
 	Text_SetStringWordWrapping
 
-	LDA	#5
-	JSR	Text::SetColor
-
+	Text_SetColor #5
 	Text_PrintString StringFromLabel
 
 	REPEAT
@@ -153,12 +145,12 @@ ROUTINE LoadPalette
 	LDA	#.lobyte(CGDATA)
 	STA	BBAD0
 
-	LDX	#Font8BoldPalette_End - Font8BoldPalette
+	LDX	#FontBoldPalette_End - FontBoldPalette
 	STX	DAS0
 
-	LDX	#.loword(Font8BoldPalette)
+	LDX	#.loword(FontBoldPalette)
 	STX	A1T0
-	LDA	#.bankbyte(Font8BoldPalette)
+	LDA	#.bankbyte(FontBoldPalette)
 	STA	A1B0
 
 	LDA	#MDMAEN_DMA0
@@ -170,12 +162,12 @@ ROUTINE LoadPalette
 
 .rodata
 
-Font8Bold:
+Font8x8Bold:
 	.res 16, 0
-	.incbin "../resources/font8-bold.2bpp"
-Font8Bold_End:
+	.incbin "../resources/font8x8-bold.2bpp"
+Font8x8Bold_End:
 
-Font8BoldPalette:                          ; ANSI Colors
+FontBoldPalette:                          ; ANSI Colors
 	.word	$001f, $7FFF, $0000, $5294 ; Black   (0)
 	.word	$7FFF, $7FFF, $001F, $5294 ; Red     (1)
 	.word	$7FFF, $7FFF, $02E0, $5294 ; Green   (2)
@@ -184,5 +176,5 @@ Font8BoldPalette:                          ; ANSI Colors
 	.word	$7FFF, $7FFF, $3C0F, $5294 ; Magenta (5)
 	.word	$7FFF, $7FFF, $3DE0, $5294 ; Cyan    (6)
 	.word	$7FFF, $7FFF, $3DEF, $5294 ; Gray    (7)
-Font8BoldPalette_End:
+FontBoldPalette_End:
 
