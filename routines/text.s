@@ -50,8 +50,10 @@ MODULE Text
 ;; =================
 
 .segment "SHADOW"
+	;; Storage area for '-' of signed character (worse case)
+	BYTE decimalStringPrependSign
 	;; Storage area to store decoded string.
-	;; Long enough to cover the enture word.
+	;; Long enough to cover the a unsigned 32 bit integer and EOS.
 	BYTE decimalString, 11
 
 .zeropage
@@ -104,16 +106,10 @@ ROUTINE PrintDecimalPadded_U8A_2
 ROUTINE PrintDecimalPadded_U8A_1
 	STA	tmp
 	STZ	tmp + 1
-	LDX	tmp
+	LDY	tmp
 	LDA	#1
 
-	.assert * = PrintDecimalPadded_U16X, lderror, "Bad Flow Control" ; Faster than BRA
-
-.A8
-.I16
-ROUTINE PrintDecimalPadded_U16X
-	TXY
-	.assert * = PrintDecimalPadded_U16Y, lderror, "Bad Flow Control"
+	.assert * = PrintDecimalPadded_U16Y, lderror, "Bad Flow Control" ; Faster than BRA
 
 .A8
 .I16
@@ -121,16 +117,63 @@ ROUTINE PrintDecimalPadded_U16Y
 	JSR	ConvertDecimalStringPadded_U16Y
 	BRA	PrintString
 
+
+.A8
+.I16
+ROUTINE PrintDecimalPadded_S16Y
+	JSR	ConvertDecimalStringPadded_S16Y
+	BRA	PrintString
+
+
 ; INPUT: XY = value
 .A8
 .I16
 ROUTINE PrintDecimal_U32XY
-	LDA	#0
+	LDA	#1
 	.assert * = PrintDecimalPadded_U32XY, lderror, "Bad Flow Control"
 
 ROUTINE PrintDecimalPadded_U32XY
 	JSR	ConvertDecimalString_U32XY
 	BRA	PrintString
+
+
+
+; INPUT: XY = value
+.A8
+.I16
+ROUTINE PrintDecimal_S32XY
+	LDA	#1
+	.assert * = PrintDecimalPadded_S32XY, lderror, "Bad Flow Control"
+
+ROUTINE PrintDecimalPadded_S32XY
+	JSR	ConvertDecimalString_S32XY
+	BRA	PrintString
+
+
+
+.A8
+.I16
+ROUTINE PrintDecimal_S8A
+	; Convert to S16Y
+
+	STA	tmp
+	CMP	#$80
+	IF_GE
+		LDA	#$FF
+		STA	tmp + 1
+	ELSE
+		STZ	tmp + 1
+	ENDIF
+	LDY	tmp
+
+	.assert * = PrintDecimal_S16Y, lderror, "Bad Flow Control"
+
+.A8
+.I16
+ROUTINE PrintDecimal_S16Y
+	JSR	ConvertDecimalString_S16Y
+	BRA	PrintString
+
 
 .A8
 .I16
@@ -138,13 +181,9 @@ ROUTINE PrintDecimal_U8A
 	STA	tmp
 	STZ	tmp + 1
 	LDY	tmp
-	BRA	PrintDecimal_U16Y
 
-.A8
-.I16
-ROUTINE PrintDecimal_U16X
-	TXY
 	.assert * = PrintDecimal_U16Y, lderror, "Bad Flow Control"
+
 
 .A8
 .I16
@@ -164,8 +203,8 @@ ROUTINE	PrintString
 
 .A8
 .I16
-ROUTINE PrintHex_U8A
-	PHA
+ROUTINE PrintHex_8A
+	TAX
 
 	LSR
 	LSR
@@ -180,7 +219,7 @@ ROUTINE PrintHex_U8A
 	ENDIF
 	STA	decimalString + 0
 
-	PLA
+	TXA
 	AND	#$0F
 	CMP	#10
 	IF_GE
@@ -198,34 +237,16 @@ ROUTINE PrintHex_U8A
 	BRA	PrintString
 
 
-.A8
 .I16
-ROUTINE PrintChar
-	LDX	window + TextWindow::textInterfaceAddr
-	JSR	(TextInterface::PrintChar, X)
-
-	STZ	Text::updateBufferIfZero
-	RTS
-
-
-.I16
-ROUTINE PrintHex_U16Y
-	TYX
-
-	.assert * = PrintHex_U16X, lderror, "Bad Flow"
-
-
-.I16
-ROUTINE PrintHex_U16X
+ROUTINE PrintHex_16Y
 	PHP
 	REP	#$20
 .A16
-	TXA
+	TYA
+	XBA
 	SEP	#$20
 .A8
-	PHA
-	XBA
-	PHA
+	TAX
 
 	LSR
 	LSR
@@ -240,7 +261,7 @@ ROUTINE PrintHex_U16X
 	ENDIF
 	STA	decimalString + 0
 
-	PLA
+	TXA
 	AND	#$0F
 	CMP	#10
 	IF_GE
@@ -251,8 +272,8 @@ ROUTINE PrintHex_U16X
 	ENDIF
 	STA	decimalString + 1
 
-	LDA	1, S
 
+	TYA
 	LSR
 	LSR
 	LSR
@@ -266,7 +287,7 @@ ROUTINE PrintHex_U16X
 	ENDIF
 	STA	decimalString + 2
 
-	PLA
+	TYA
 	AND	#$0F
 	CMP	#10
 	IF_GE
@@ -285,6 +306,16 @@ ROUTINE PrintHex_U16X
 	PLP
 	JRA	PrintString
 
+
+
+.A8
+.I16
+ROUTINE PrintChar
+	LDX	window + TextWindow::textInterfaceAddr
+	JSR	(TextInterface::PrintChar, X)
+
+	STZ	Text::updateBufferIfZero
+	RTS
 
 
 
@@ -817,6 +848,37 @@ _EndPrintWrapLoop:
 ;; Helpful Functions
 ;; =================
 
+padding := tmp2
+position := tmp3
+
+
+.A8
+.I16
+ROUTINE ConvertDecimalString_S16Y
+	REP	#$20
+.A16
+	TYA
+	IF_MINUS
+		NEG16
+		TAY
+
+		SEP	#$20
+.A8
+		JSR	ConvertDecimalStringPadded_U16Y
+
+		; Draw negative sign.
+		DEX
+		LDA	#'-'
+		STA	0, X
+	
+		LDA	#.bankbyte(decimalString)
+		RTS	
+	ENDIF
+
+	SEP	#$20
+.A8
+	.assert * = ConvertDecimalString_U16Y, lderror, "Bad Flow"
+
 
 .A8
 .I16
@@ -852,6 +914,44 @@ ROUTINE ConvertDecimalString_U16Y
 
 .A8
 .I16
+ROUTINE ConvertDecimalStringPadded_S16Y
+	STA	tmp
+
+	REP	#$20
+.A16
+	TYA
+	IF_MINUS
+		NEG16
+		TAY
+
+		; Decrement padding, an extra character would be printed.
+		; Must match check in ConvertDecimalStringPadded_U16Y
+		LDA	tmp
+		AND	#$0007
+		DEC
+		IF_MINUS
+			LDA	#0
+		ENDIF
+
+		JSR	_ConvertDecimalStringPadded_U16Y_AfterCheckA
+
+		SEP	#$20
+.A8
+		; Draw negative sign.
+		DEX
+		LDA	#'-'
+		STA	0, X
+	
+		LDA	#.bankbyte(decimalString)
+		RTS	
+	ENDIF
+
+	LDA	tmp
+	.assert * = ConvertDecimalStringPadded_U16Y, lderror, "Bad Flow"
+
+
+.A8
+.I16
 ROUTINE ConvertDecimalStringPadded_U16Y
 	REP	#$20
 .A16
@@ -859,6 +959,7 @@ ROUTINE ConvertDecimalStringPadded_U16Y
 	; Never need more than 7 chars anyway
 	.assert .sizeof(decimalString) > 7, error, "decimalString too small"
 	AND	#$0007
+_ConvertDecimalStringPadded_U16Y_AfterCheckA:
 	STA	tmp
 
 	LDA	#decimalString + .sizeof(decimalString) - 1 + 1
@@ -886,18 +987,63 @@ ROUTINE ConvertDecimalStringPadded_U16Y
 	RTS
 
 
+.A8
+.I16
+ROUTINE ConvertDecimalString_S32XY
+	REP	#$20
+.A16
+
+	AND	#$00FF
+	STA	padding
+
+	TXA
+	IF_MINUS
+		EOR	#$FFFF
+		STA	Math::dividend32 + 2
+		
+		TYA
+		EOR	#$FFFF
+		STA	Math::dividend32
+
+		INC32	Math::dividend32
+
+		SEP	#$20
+.A8
+
+		; Decrement padding, an extra character would be printed.
+		DEC	padding
+		IF_MINUS
+			STZ	padding
+		ENDIF
+
+		JSR	_ConvertDecimalStringPadded_U32XY_AfterVarStore
+
+		; Draw negative sign.
+		DEX
+		LDA	#'-'
+		STA	0, X
+	
+		LDA	#.bankbyte(decimalString)
+		RTS	
+	ENDIF
+
+	SEP	#$20
+.A8
+	STXY	Math::dividend32
+
+	BRA	_ConvertDecimalStringPadded_U32XY_AfterVarStore
+
 
 .A8
 .I16
 ROUTINE ConvertDecimalString_U32XY
-padding := tmp
-position := tmp2
 
-	STX	Math::dividend32
-	STY	Math::dividend32 + 2
+	STXY	Math::dividend32
 
 	STA	padding
 	STZ	padding + 1
+
+_ConvertDecimalStringPadded_U32XY_AfterVarStore:
 
 	LDX	#.sizeof(decimalString) - 2
 	STX	position

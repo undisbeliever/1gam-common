@@ -178,15 +178,7 @@ IMPORT_MODULE Text
 	;;
 	;; INPUT: A = the character to print
 	;; MODIFIES: A, X
-	ROUTINE PrintHex_U8A
-
-	;; Prints 16 bit X as a hex string
-	;;
-	;; REQUIRES: 8 bit A, 16 bit Index
-	;;
-	;; INPUT: X = the character to print
-	;; MODIFIES: A, X
-	ROUTINE PrintHex_U16X
+	ROUTINE PrintHex_8A
 
 	;; Prints 16 bit Y as a hex string
 	;;
@@ -194,25 +186,25 @@ IMPORT_MODULE Text
 	;;
 	;; INPUT: Y = the character to print
 	;; MODIFIES: A, X
-	ROUTINE PrintHex_U16Y
+	ROUTINE PrintHex_16Y
 
 	;; Prints an unsigned 8 bit A
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
-	;; INPUT: A = the number of digits to print
+	;; INPUT: A = the unsigned 8 bit value to print
 	;; MODIFIES: A, X, Y
 	;; CAVATS: Uses SNES Division Register
 	ROUTINE PrintDecimal_U8A
 
-	;; Prints an unsigned 16 bit X
+	;; Prints an signed 8 bit A
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
-	;; INPUT: X = the number to print
+	;; INPUT: A = the signed 8 bit value to print
 	;; MODIFIES: A, X, Y
 	;; CAVATS: Uses SNES Division Register
-	ROUTINE PrintDecimal_U16X
+	ROUTINE PrintDecimal_S8A
 
 	;; Prints an unsigned 16 bit Y
 	;;
@@ -223,15 +215,34 @@ IMPORT_MODULE Text
 	;; CAVATS: Uses SNES Division Register
 	ROUTINE PrintDecimal_U16Y
 
+	;; Prints a signed 16 bit Y
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: Y = the number to print (signed)
+	;; MODIFIES: A, X, Y
+	;; CAVATS: Uses SNES Division Register
+	ROUTINE PrintDecimal_S16Y
+
 	;; Prints an unsigned 32 bit XY
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
-	;; INPUT: XY = the number to print (X = low byte)
+	;; INPUT: XY = the number to print (Y = low byte)
 	;; MODIFIES: A, X, Y
 	;;
 	;; CAVATS: Uses Math::DIVIDE
 	ROUTINE PrintDecimal_U32XY
+
+	;; Prints a signed 32 bit XY
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: XY = the number to print (Y = low byte)
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses Math::DIVIDE
+	ROUTINE PrintDecimal_S32XY
 
 	;; Padded Numbers
 	;; --------------
@@ -272,31 +283,31 @@ IMPORT_MODULE Text
 	;; CAVATS: Uses SNES Division Registers
 	ROUTINE PrintDecimalPadded_U8A_3
 
-	;; Prints an unsigned 16 bit Y with padding
+	;; Prints an unsigned 16 bit Y with a padding
 	;;
 	;; `Text::paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
-	;; INPUT: X = the number to print
-	;;        A = minimum number of digits to display (must be > 8)
-	;; MODIFIES: A, X, Y
-	;;
-	;; CAVATS: Uses SNES Division Registers
-	ROUTINE PrintDecimalPadded_U16X
-
-	;; Prints an unsigned 16 bit X with a padding
-	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
-	;;
-	;; REQURES: 8 bit A, 16 bit Index
-	;;
-	;; INPUT: X = the number to print
+	;; INPUT: Y = the number to print
 	;;        A = minimum number of digits to display (must be > 8)
 	;; MODIFIES: A, X, Y
 	;;
 	;; CAVATS: Uses SNES Division Registers
 	ROUTINE PrintDecimalPadded_U16Y
+
+	;; Prints an signed 16 bit Y with a padding
+	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: Y = the number to print (signed)
+	;;        A = minimum number of digits to display (must be > 8)
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses SNES Division Registers
+	ROUTINE PrintDecimalPadded_S16Y
 
 	;; Prints an unsigned 32 bit XY (with padding)
 	;;
@@ -304,13 +315,25 @@ IMPORT_MODULE Text
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
-	;; INPUT: XY = the number to print (X = low byte)
+	;; INPUT: XY = the number to print (Y = low byte)
 	;;         A = the minimum number of digits to print
 	;; MODIFIES: A, X, Y
 	;;
 	;; CAVATS: Uses Math::DIVIDE
 	ROUTINE PrintDecimalPadded_U32XY
 
+	;; Prints a signed 32 bit XY (with padding)
+	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
+	;;
+	;; REQURES: 8 bit A, 16 bit Index
+	;;
+	;; INPUT: XY = the number to print (Y = low byte)
+	;;         A = the minimum number of digits to print
+	;; MODIFIES: A, X, Y
+	;;
+	;; CAVATS: Uses Math::DIVIDE
+	ROUTINE PrintDecimalPadded_S32XY
 
 	;; Cursor Routines
 	;; ===============
@@ -431,7 +454,15 @@ IMPORT_MODULE Text
 	;; Helpful Functions
 	;; =================
 
-	;; Converts the value in the 16 bit Y to a string stored in `decimalString`
+	;; Converts the signed value in the 16 bit Y to a string stored in `decimalString`
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index
+	;; INPUT: Y = the number to display (signed)
+	;; OUTPUT: A the bank of the string to print
+	;;         X the location of the string to print 
+	ROUTINE ConvertDecimalString_S16Y
+
+	;; Converts the unsigned value in the 16 bit Y to a string stored in `decimalString`
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display
@@ -439,24 +470,36 @@ IMPORT_MODULE Text
 	;;         X the location of the string to print 
 	ROUTINE ConvertDecimalString_U16Y
 
-	;; Converts the value in the 16 bit Y with padding to a string stored
+	;; Converts the unsigned value in the 16 bit Y with padding to a string stored
 	;; in `decimalString`
 	;;
 	;; `Text::paddingCharacter` will be used as the padding character.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display
-	;;        A = minimum number of digits to display (must be > 8)
+	;;        A = minimum number of digits to display (must be < 8)
 	;; OUTPUT: A the bank of the string to print
 	;;         X the location of the string to print 
 	ROUTINE ConvertDecimalStringPadded_U16Y
 
-	;; Converts the value in the 32 but XY to a string with padding.
+	;; Converts the signed value in the 16 bit Y with padding to a string stored
+	;; in `decimalString`
 	;;
 	;; `Text::paddingCharacter` will be used as the padding character.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
-	;; INPUT: XY = value, A = number of characters to print
+	;; INPUT: Y = the number to display (signed)
+	;;        A = minimum number of digits to display (must be < 8)
+	;; OUTPUT: A the bank of the string to print
+	;;         X the location of the string to print 
+	ROUTINE ConvertDecimalStringPadded_S16Y
+
+	;; Converts the unsigned value in the 32 but XY to a string with padding.
+	;;
+	;; `Text::paddingCharacter` will be used as the padding character.
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index
+	;; INPUT: XY = the number to print (Y = low byte)
 	;;	   A = the number of padding characters (if 0 then show entire string)
 	;; OUTPUT: A the bank of the string to print
 	;;         X the location of the string to print
@@ -680,6 +723,14 @@ ENDMODULE
 	JSR	::Text::PrintChar
 .endmacro
 
+;; Prints a new line
+;;
+;; REQUIRES: DB in Shadow 
+;; MODIFIES: A, X
+.macro Text_NewLine
+	JSR	::Text::NewLine
+.endmacro
+
 ;; Prints a hexidecimal value for a given variable.
 ;;
 ;; The routine that will be called will depend on the value of `$var__type`.
@@ -694,22 +745,22 @@ ENDMODULE
 .macro _Text_PrintHex_Helper var, type
 	.if type = ::TYPE_BYTE .or type = ::TYPE_UINT8 .or type = ::TYPE_SINT8
 		LDA	var
-		JSR	::Text::PrintHex_U8A
+		JSR	::Text::PrintHex_8A
 	.elseif type = ::TYPE_WORD .or type = ::TYPE_ADDR .or type = ::TYPE_UINT16 .or type = ::TYPE_SINT16
-		LDX	var
-		JSR	::Text::PrintHex_U16X
+		LDY	var
+		JSR	::Text::PrintHex_16Y
 	.elseif type = ::TYPE_LONG
 		; ::MAYDO replace with dedicated routine::
-		LDA	var + 2
-		JSR	::Text::PrintHex_U8A
-		LDX	var
-		JSR	::Text::PrintHex_U16X
+		LDY	var + 2
+		JSR	::Text::PrintHex_8A
+		LDY	var
+		JSR	::Text::PrintHex_16Y
 	.elseif type = ::TYPE_UINT32 .or type = ::TYPE_SINT32
 		; ::MAYDO replace with dedicated routine::
-		LDX	var + 2
-		JSR	::Text::PrintHex_U16X
-		LDX	var
-		JSR	::Text::PrintHex_U16X
+		LDY	var + 2
+		JSR	::Text::PrintHex_16Y
+		LDY	var
+		JSR	::Text::PrintHex_16Y
 	.else
 		.error .sprintf("variable %s type (%d) unsupported", .string(var), type)
 	.endif
@@ -732,7 +783,7 @@ ENDMODULE
 .macro _Text_PrintDecimal_Helper var, type, padding
 	; ::TODO signed decimal printing::
 	; ::SHOULDDO long (24 bit) decimal printing::
-
+	
 	.if type = ::TYPE_BYTE .or type = ::TYPE_UINT8
 		LDA	var
 		.ifblank padding
@@ -748,6 +799,13 @@ ENDMODULE
 				.error "Unknown padding (only allow #1, #2, #3)"
 			.endif
 		.endif
+	.elseif type = ::TYPE_SINT8
+		LDA	var
+		.ifblank padding
+			JSR	::Text::PrintDecimal_S8A
+		.else
+			.error "Padding not supported"
+		.endif
 	.elseif type = ::TYPE_WORD .or type = ::TYPE_ADDR .or type = ::TYPE_UINT16
 		LDY	var
 		.ifblank padding
@@ -755,10 +813,16 @@ ENDMODULE
 		.else
 			LDA	padding
 			JSR	::Text::PrintDecimalPadded_U16Y
-		.endif	
+		.endif
+	.elseif type = ::TYPE_SINT16
+		LDY	var
+		.ifblank padding
+			JSR	::Text::PrintDecimal_S16Y
+		.else
+			.error "Padding not supported"
+		.endif
 	.elseif type = ::TYPE_UINT32
-		LDX	var
-		LDY	var + 2
+		LDXY	var
 		.ifblank padding
 			JSR	::Text::PrintDecimal_U32XY
 		.else

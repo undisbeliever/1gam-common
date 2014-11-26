@@ -1,6 +1,6 @@
 ;; Synthetic Instructions.
 ;;
-;; Inspiration: <http://forums.nesdev.com/viewtopic.php?p=87209#p87209>
+;; Inspiration: <http:;forums.nesdev.com/viewtopic.php?p=87209#p87209>
 
 .ifndef ::_SYNTHETIC_INC_
 ::_SYNTHETIC_INC_ = 1
@@ -24,42 +24,49 @@
 ;; Reverse Subract
 ;;
 ;; REQUIRES: 8 bit A
-.macro RSB param
-	// ::TODO test 8/16 bit A::
-	.if
-		EOR	#$FF
-		SEC
-		ADC	param
-	.else
-		EOR	#$FFFF
-		SEC
-		ADC	param
-	.endif
+.macro RSB8 param
+	; ::TODO test 8/16 bit A::
+	EOR	#$FF
+	SEC
+	ADC	param
+.endmacro
+
+.macro RSB16 param
+	EOR	#$FFFF
+	SEC
+	ADC	param
 .endmacro
 
 ;; Reverse Subract with carry
-.macro RSC param
-	// ::TODO test 8/16 bit A::
-	.if 
-		EOR	#$FF
-		SEC
-		ADC	param
-	.else
-		EOR	#$FFFF
-		SEC
-		ADC	param
-	.endif
+;;
+;; REQUIRE: 8 bit A
+.macro RSC8 param
+	; ::TODO test 8/16 bit A::
+	EOR	#$FF
+	SEC
+	ADC	param
 .endmacro
 
-;; Arithmetic Shift Right
-.macro ASR param
-	.if 
-		CMP	#$80		; carry set to the sign bit
-		ROR
-	.else
-		CMP	#$8000		; carry set to the sign bit
-		ROR
-	.endif
+.macro RSC16 param
+	EOR	#$FFFF
+	SEC
+	ADC	param
+.endmacro
+
+;; 8 bit Arithmetic Shift Right
+;;
+;; REQUIRE: 8 bit A
+.macro ASR8
+	CMP	#$80		; carry set to the sign bit
+	ROR
+.endmacro
+
+;; 16 bit Arithmetic Shift Right
+;;
+;; REQUIRE: 16 bit A
+.macro ASR16
+	CMP	#$8000		; carry set to the sign bit
+	ROR
 .endmacro
 
 
@@ -78,11 +85,27 @@
 	ROR
 .endmacro
 
+;; Negate 8 bit A
+;;
+;; REQUIRE: 8 bit A
+.macro NEG8
+	EOR	#$FF
+	INC
+.endmacro
+
+;; Negate 16 bit A
+;;
+;; REQUIRE: 16 bit A
+.macro NEG16
+	EOR	#$FFFF
+	INC
+.endmacro
 
 ;; 32 bit increment
+;;
 ;; REQUIRES: 16 bit A
 .macro INC32 param
-	// ::TODO enforce 16 bit A::
+	; ::TODO enforce 16 bit A::
 	.local skip
 
 	INC	param
@@ -93,9 +116,10 @@ skip:
 
 
 ;; 32 bit decrement
+;;
 ;; REQUIRES: 16 bit A
 .macro DEC32 param
-	// ::TODO enforce 16 bit A::
+	; ::TODO enforce 16 bit A::
 	.local skip
 
 	LDA	param
@@ -104,6 +128,33 @@ skip:
 
 skip:
 	DEC	param
+.endmacro
+
+;; Loads the 32 bit value into XY
+;;
+;; OUTPUT: X/Y the 32 bit value to load (Y = loword)
+;;
+;; REQUIRES: 16 bit Index
+.macro LDXY param
+	.if (.match (.left (1, {param}), #))
+		; immediate mode
+		LDY	#.loword(.right (.tcount ({param})-1, {param}))
+		LDX	#.hiword(.right (.tcount ({param})-1, {param}))
+	.else
+		; absolute or zero page
+		LDY	param
+		LDX	2 + (param)
+	.endif
+.endmacro
+
+;; Stores the 32 bit XY into a variable
+;;
+;; INPUT: X/Y the 32 bit value to load (Y = loword)
+;;
+;; REQUIRES: 16 bit Index
+.macro STXY param
+	STY	param
+	STX	2 + (param)
 .endmacro
 
 
