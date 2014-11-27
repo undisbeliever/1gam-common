@@ -314,7 +314,7 @@ ROUTINE PrintChar
 	LDX	window + TextWindow::textInterfaceAddr
 	JSR	(TextInterface::PrintChar, X)
 
-	STZ	Text::updateBufferIfZero
+	STZ	Text__updateBufferIfZero
 	RTS
 
 
@@ -479,7 +479,7 @@ ROUTINE SetupWindow
 	SEP	#$20
 .A8
 	LDA	window + TextWindow::flags
-	BIT	#Text::WINDOW_BORDER
+	BIT	#Text__WINDOW_BORDER
 	BNE	DrawBorder
 
 	JMP	ClearWindow
@@ -514,27 +514,27 @@ bottomRight := window + TextWindow::windowEnd
 
 	; Draw four corners
 	LDA	window + TextWindow::tilemapOffset
-	ADD	#BORDER_TOP_LEFT - Text::ASCII_DELTA
+	ADD	#BORDER_TOP_LEFT - Text__ASCII_DELTA
 	LDX	topLeft
 	STA	f:buffer - 66, X
 
 	LDA	window + TextWindow::tilemapOffset
-	ADD	#BORDER_TOP_RIGHT - Text::ASCII_DELTA
+	ADD	#BORDER_TOP_RIGHT - Text__ASCII_DELTA
 	LDX	topRight
 	STA	f:buffer - 62, X
 
 	LDA	window + TextWindow::tilemapOffset
-	ADD	#BORDER_BOTTOM_LEFT - Text::ASCII_DELTA
+	ADD	#BORDER_BOTTOM_LEFT - Text__ASCII_DELTA
 	LDX	bottomLeft
 	STA	f:buffer + 62, X
 
 	LDA	window + TextWindow::tilemapOffset
-	ADD	#BORDER_BOTTOM_RIGHT - Text::ASCII_DELTA
+	ADD	#BORDER_BOTTOM_RIGHT - Text__ASCII_DELTA
 	LDX	bottomRight
 	STA	f:buffer + 66, X
 
 	LDA	window + TextWindow::tilemapOffset
-	ADD	#BORDER_TOP - Text::ASCII_DELTA
+	ADD	#BORDER_TOP - Text__ASCII_DELTA
 	LDX	topLeft
 	REPEAT
 		STA	f:buffer - 64, X
@@ -545,7 +545,7 @@ bottomRight := window + TextWindow::windowEnd
 	WEND
 
 	LDA	window + TextWindow::tilemapOffset
-	ADD	#BORDER_BOTTOM - Text::ASCII_DELTA
+	ADD	#BORDER_BOTTOM - Text__ASCII_DELTA
 	LDX	bottomLeft
 	REPEAT
 		STA	f:buffer + 64, X
@@ -556,7 +556,7 @@ bottomRight := window + TextWindow::windowEnd
 	WEND
 
 	LDA	window + TextWindow::tilemapOffset
-	ADD	#BORDER_LEFT - Text::ASCII_DELTA
+	ADD	#BORDER_LEFT - Text__ASCII_DELTA
 	TAY
 
 	LDX	topLeft
@@ -572,7 +572,7 @@ bottomRight := window + TextWindow::windowEnd
 	WEND
 
 	LDA	window + TextWindow::tilemapOffset
-	ADD	#BORDER_RIGHT - Text::ASCII_DELTA
+	ADD	#BORDER_RIGHT - Text__ASCII_DELTA
 	TAY
 
 	LDX	topRight
@@ -597,7 +597,7 @@ ROUTINE ClearWindow
 .I16
 _ClearWindow_skip_php:
 
-	LDA	#TEXT_CLEAR - Text::ASCII_DELTA
+	LDA	#TEXT_CLEAR - Text__ASCII_DELTA
 	ADD	window + TextWindow::tilemapOffset
 	TAY
 
@@ -612,7 +612,7 @@ ROUTINE RemoveWindow
 .A16
 .I16
 	LDA	window + TextWindow::flags
-	IF_BIT	#Text::WINDOW_BORDER
+	IF_BIT	#Text__WINDOW_BORDER
 		; if has a border, then ensure that gets cleaned too
 		LDA	window + TextWindow::windowStart
 		SUB	#66
@@ -750,7 +750,7 @@ ROUTINE PrintStringBasic
 		SEP	#$20
 	WEND
 
-	STZ	Text::updateBufferIfZero
+	STZ	Text__updateBufferIfZero
 
 	RTS
 
@@ -839,7 +839,7 @@ ROUTINE PrintStringWordWrapping
 
 _EndPrintWrapLoop:
 
-	STZ	Text::updateBufferIfZero
+	STZ	Text__updateBufferIfZero
 
 	RTS
 
@@ -999,13 +999,13 @@ ROUTINE ConvertDecimalString_S32XY
 	TXA
 	IF_MINUS
 		EOR	#$FFFF
-		STA	Math::dividend32 + 2
+		STA	Math__dividend32 + 2
 		
 		TYA
 		EOR	#$FFFF
-		STA	Math::dividend32
+		STA	Math__dividend32
 
-		INC32	Math::dividend32
+		INC32	Math__dividend32
 
 		SEP	#$20
 .A8
@@ -1029,7 +1029,7 @@ ROUTINE ConvertDecimalString_S32XY
 
 	SEP	#$20
 .A8
-	STXY	Math::dividend32
+	STXY	Math__dividend32
 
 	BRA	_ConvertDecimalStringPadded_U32XY_AfterVarStore
 
@@ -1038,7 +1038,7 @@ ROUTINE ConvertDecimalString_S32XY
 .I16
 ROUTINE ConvertDecimalString_U32XY
 
-	STXY	Math::dividend32
+	STXY	Math__dividend32
 
 	STA	padding
 	STZ	padding + 1
@@ -1050,7 +1050,7 @@ _ConvertDecimalStringPadded_U32XY_AfterVarStore:
 
 	REPEAT
 		LDA	#10
-		JSR	Math::DIVIDE_U32_U8A
+		JSR	Math__DIVIDE_U32_U8A
 
 		LDX	position
 

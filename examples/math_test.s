@@ -21,7 +21,8 @@ BG1_MAP			= $0400
 BG1_TILES		= $1000
 
 .zeropage
-	WORD	tmp
+	BYTE	tmpByte
+	WORD	tmpWord
 
 .segment "SHADOW"
 	ADDR	pageIndex
@@ -42,8 +43,8 @@ ROUTINE Main
 
 	Text_SelectWindow #0
 	Text_SetStringWordWrapping
-	Text_SetInterface Text8x16::Interface, 0
-	Text_SetupWindow 1, 1, 30, 26, Text::WINDOW_NO_BORDER
+	Text_SetInterface Text8x16__Interface, 0
+	Text_SetupWindow 1, 1, 30, 26, Text__WINDOW_NO_BORDER
 
 	LDA	#$0F
 	STA	INIDISP
@@ -53,7 +54,7 @@ ROUTINE Main
 	STX	pageIndex
 
 	REPEAT
-		JSR	Text::ClearWindow
+		JSR	Text__ClearWindow
 
 		LDX	pageIndex
 		JSR	(.loword(PageRoutines), X)
@@ -90,40 +91,40 @@ ROUTINE SignedPrintingPage
 
 	Text_PrintString "S8A   Minus 33     "
 	LDA	#.lobyte(-33)
-	JSR	Text::PrintDecimal_S8A
+	JSR	Text__PrintDecimal_S8A
 
 	Text_NewLine
 
 	Text_PrintString "S16Y  Minus 1      "
 	LDY	#.loword(-1)
-	JSR	Text::PrintDecimal_S16Y
+	JSR	Text__PrintDecimal_S16Y
 
 	Text_NewLine
 
 	Text_PrintString "S32XY Minus 123456 "
 	LDXY	#-123456
-	JSR	Text::PrintDecimal_S32XY
+	JSR	Text__PrintDecimal_S32XY
 
 	Text_NewLine
 	Text_NewLine
 
 	Text_PrintString "S8A   Plus 33      "
 	LDA	#.lobyte(33)
-	JSR	Text::PrintDecimal_S8A
+	JSR	Text__PrintDecimal_S8A
 
 	Text_NewLine
 
 	Text_PrintString "S16Y  Plus 1       "
 	LDA	#6
 	LDY	#.loword(1)
-	JSR	Text::PrintDecimalPadded_S16Y
+	JSR	Text__PrintDecimalPadded_S16Y
 
 	Text_NewLine
 
 	Text_PrintString "S32XY Plus 123456  "
 	LDA	#8
 	LDXY	#123456
-	JSR	Text::PrintDecimalPadded_S32XY
+	JSR	Text__PrintDecimalPadded_S32XY
 
 	Text_NewLine
 	Text_NewLine
@@ -131,14 +132,14 @@ ROUTINE SignedPrintingPage
 	Text_PrintString "S16Y  Minus 1      "
 	LDA	#6
 	LDY	#.loword(-1)
-	JSR	Text::PrintDecimalPadded_S16Y
+	JSR	Text__PrintDecimalPadded_S16Y
 
 	Text_NewLine
 
 	Text_PrintString "S32XY Minus 123456 "
 	LDA	#8
 	LDXY	#-123456
-	JSR	Text::PrintDecimalPadded_S32XY
+	JSR	Text__PrintDecimalPadded_S32XY
 
 	Text_NewLine
 
@@ -153,16 +154,15 @@ ROUTINE DivisionPage
 	Text_PrintString "  12345 / 678   = "
 	LDX	#12345
 	LDY	#678
-	JSR	Math::DIVIDE_U16X_U16Y
+	JSR	Math__DIVIDE_U16X_U16Y
 
-	PHY
+	STY	tmpWord
 	TXY
-	JSR	Text::PrintDecimal_U16Y
+	JSR	Text__PrintDecimal_U16Y
 
 	Text_PrintString " r "
 
-	PLY
-	JSR	Text::PrintDecimal_U16Y
+	Text_PrintDecimal tmpWord
 
 	Text_NewLine
 
@@ -170,16 +170,15 @@ ROUTINE DivisionPage
 	Text_PrintString "  12345 / 67    = "
 	LDX	#12345
 	LDY	#67
-	JSR	Math::DIVIDE_U16X_U16Y
+	JSR	Math__DIVIDE_U16X_U16Y
 
-	PHY
+	STY	tmpWord
 	TXY
-	JSR	Text::PrintDecimal_U16Y
+	JSR	Text__PrintDecimal_U16Y
 
 	Text_PrintString " r "
 
-	PLY
-	JSR	Text::PrintDecimal_U16Y
+	Text_PrintDecimal tmpWord
 	
 	Text_NewLine
 	Text_NewLine
@@ -188,16 +187,15 @@ ROUTINE DivisionPage
 	Text_PrintString "  9876 / 54     = "
 	LDX	#9876
 	LDA	#54
-	JSR	Math::DIVIDE_U16X_U8A
+	JSR	Math__DIVIDE_U16X_U8A
 
-	STY	tmp
+	STY	tmpWord
 	TXY
-	JSR	Text::PrintDecimal_U16Y
+	JSR	Text__PrintDecimal_U16Y
 
 	Text_PrintString " r "
 
-	LDY	tmp
-	JSR	Text::PrintDecimal_U16Y
+	Text_PrintDecimal tmpWord
 	
 	Text_NewLine
 	Text_NewLine
@@ -206,38 +204,30 @@ ROUTINE DivisionPage
 	Text_PrintString "  123456 / 789  = "
 
 	LDXY	#123456
-	STXY	Math::dividend32
+	STXY	Math__dividend32
 	LDXY	#789
-	STXY	Math::divisor32
+	STXY	Math__divisor32
 
-	JSR	Math::DIVIDE_U32_U32
+	JSR	Math__DIVIDE_U32_U32
 
-	LDXY	Math::result32
-	JSR	Text::PrintDecimal_U32XY
-
+	Text_PrintDecimal Math__result32
 	Text_PrintString " r "
-
-	LDXY	Math::remainder32
-	JSR	Text::PrintDecimal_U32XY
+	Text_PrintDecimal Math__remainder32
 
 	Text_NewLine
 
 	Text_PrintString "  987 / 654321  = "
 
 	LDXY	#987
-	STXY	Math::dividend32
+	STXY	Math__dividend32
 	LDXY	#654321
-	STXY	Math::divisor32
+	STXY	Math__divisor32
 
-	JSR	Math::DIVIDE_U32_U32
+	JSR	Math__DIVIDE_U32_U32
 
-	LDXY	Math::result32
-	JSR	Text::PrintDecimal_U32XY
-
+	Text_PrintDecimal Math__result32
 	Text_PrintString " r "
-
-	LDXY	Math::remainder32
-	JSR	Text::PrintDecimal_U32XY
+	Text_PrintDecimal Math__remainder32
 
 	Text_NewLine
 	Text_NewLine
@@ -246,20 +236,16 @@ ROUTINE DivisionPage
 	Text_PrintString "  12345678 / 9  = "
 
 	LDXY	#12345678
-	STXY	Math::dividend32
+	STXY	Math__dividend32
 	LDA	#9
 
-	JSR	Math::DIVIDE_U32_U8A
+	JSR	Math__DIVIDE_U32_U8A
 
-	STA	tmp
+	STA	tmpByte
 
-	LDXY	Math::result32
-	JSR	Text::PrintDecimal_U32XY
-
+	Text_PrintDecimal Math__result32
 	Text_PrintString " r "
-
-	LDA	tmp
-	JSR	Text::PrintDecimal_U8A
+	Text_PrintDecimal tmpByte
 
 	RTS
 

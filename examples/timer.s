@@ -56,15 +56,15 @@ ROUTINE Main
 
 	Text_SelectWindow #0
 	Text_SetStringBasic
-	Text_SetInterface Text8x8::SingleSpacingInterface, 0
+	Text_SetInterface Text8x8__SingleSpacingInterface, 0
 	Text_SetColor #7
-	Text_SetupWindow 16, 3, 28, 4, Text::WINDOW_BORDER
+	Text_SetupWindow 16, 3, 28, 4, Text__WINDOW_BORDER
 	Text_SetColor #6
 
 	Text_SelectWindow #1
 	Text_SetStringBasic
-	Text_SetInterface Text8x16::Interface, LARGE_FONT_OFFSET
-	Text_SetupWindow 3, 19, 28, 24, Text::WINDOW_BORDER
+	Text_SetInterface Text8x16__Interface, LARGE_FONT_OFFSET
+	Text_SetupWindow 3, 19, 28, 24, Text__WINDOW_BORDER
 
 	REPEAT
 		JSR	CalculateTime
@@ -132,29 +132,29 @@ ROUTINE DisplayTimeDecimal
 .I16
 ROUTINE CalculateTime
 	LDX	frameCounter
-	STX	Math::dividend32
+	STX	Math__dividend32
 	LDX	frameCounter + 2
-	STX	Math::dividend32 + 2
+	STX	Math__dividend32 + 2
 
 	LDA	#FPS
-	JSR	Math::DIVIDE_U32_U8A
+	JSR	Math__DIVIDE_U32_U8A
 
 	STA	fractionOfSeconds ; A = remainder
 
 	; result32 and dividend32 share memory location
 
 	LDA	#60
-	JSR	Math::DIVIDE_U32_U8A
+	JSR	Math__DIVIDE_U32_U8A
 
 	STA	seconds
 
 	; result32 and dividend32 share memory location
 	LDA	#60
-	JSR	Math::DIVIDE_U32_U8A
+	JSR	Math__DIVIDE_U32_U8A
 
 	STA	minutes
 
-	LDX	Math::result32
+	LDX	Math__result32
 	STX	hours
 	RTS
 

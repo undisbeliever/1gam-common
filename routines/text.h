@@ -60,8 +60,8 @@
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; Preforms the following:
-	;;    * Sets `Text::window::bufferPos`
-	;;    * Resets `Text::window::charsLeftInLine`
+	;;    * Sets `Text__window::bufferPos`
+	;;    * Resets `Text__window::charsLeftInLine`
 	NewLine			.addr
 
 	;; Prints a single character to the screen
@@ -70,34 +70,34 @@
 	;;
 	;; Preforms the following:
 	;;   * Displays the character to the buffer`
-	;;   * Increments `Text::window::bufferPos`
-	;;   * Decrements Text::window::tilesLeftInLine`
-	;;   * Calls `Text::NewLine` if `Text::window::tilesLeftInLine` is 0
-	;;   * Calls `Text::NewLine` if character if EOL
+	;;   * Increments `Text__window::bufferPos`
+	;;   * Decrements Text__window::tilesLeftInLine`
+	;;   * Calls `Text__NewLine` if `Text__window::tilesLeftInLine` is 0
+	;;   * Calls `Text__NewLine` if character if EOL
 	;;
 	;; This routine does not:
-	;;   * Set `Text::updateBufferIfZero`
+	;;   * Set `Text__updateBufferIfZero`
 	;;   * Call `NewLine`
 	PrintChar		.addr
 
-	;; Called when the cursor has moved, either by `Text::SetCursor` or `Text::NewLine`
+	;; Called when the cursor has moved, either by `Text__SetCursor` or `Text__NewLine`
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	CursorMoved		.addr
 
-	;; Returns the width of the word in `Text::stringPtr` and the number of spaces
+	;; Returns the width of the word in `Text__stringPtr` and the number of spaces
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
-	;; RETURNS: A = the length of the word in `Text::stringPtr`.
+	;; RETURNS: A = the length of the word in `Text__stringPtr`.
 	;;              0 if there is no word.
 	;;          Y = the length of the word after spaces
 	;;
-	;; This routine does not modify `Text::stringPtr`
+	;; This routine does not modify `Text__stringPtr`
 	;;
 	;; You should modify this routine to implement special characters.
 	GetWordLength		.addr
 
-	;; Called when the character is unknown in `Text::PrintString`
+	;; Called when the character is unknown in `Text__PrintString`
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: A = character to print
@@ -231,7 +231,7 @@ IMPORT_MODULE Text
 	;; INPUT: XY = the number to print (Y = low byte)
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses Math::DIVIDE
+	;; CAVATS: Uses Math__DIVIDE
 	ROUTINE PrintDecimal_U32XY
 
 	;; Prints a signed 32 bit XY
@@ -241,7 +241,7 @@ IMPORT_MODULE Text
 	;; INPUT: XY = the number to print (Y = low byte)
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses Math::DIVIDE
+	;; CAVATS: Uses Math__DIVIDE
 	ROUTINE PrintDecimal_S32XY
 
 	;; Padded Numbers
@@ -249,7 +249,7 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 8 bit A with a minimum of 1 digit
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -261,7 +261,7 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 8 bit A with a minimum of 2 digits
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -273,7 +273,7 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 8 bit A with a minimum of 3 digits
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -285,7 +285,7 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 16 bit Y with a padding
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -298,7 +298,7 @@ IMPORT_MODULE Text
 
 	;; Prints an signed 16 bit Y with a padding
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -311,7 +311,7 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 32 bit XY (with padding)
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -319,12 +319,12 @@ IMPORT_MODULE Text
 	;;         A = the minimum number of digits to print
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses Math::DIVIDE
+	;; CAVATS: Uses Math__DIVIDE
 	ROUTINE PrintDecimalPadded_U32XY
 
 	;; Prints a signed 32 bit XY (with padding)
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQURES: 8 bit A, 16 bit Index
 	;;
@@ -332,7 +332,7 @@ IMPORT_MODULE Text
 	;;         A = the minimum number of digits to print
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses Math::DIVIDE
+	;; CAVATS: Uses Math__DIVIDE
 	ROUTINE PrintDecimalPadded_S32XY
 
 	;; Cursor Routines
@@ -340,7 +340,7 @@ IMPORT_MODULE Text
 
 	;; Moves the cursor to the next line.
 	;;
-	;; If new line is outside the text boundry, Text::OutOfBounds is called.
+	;; If new line is outside the text boundry, Text__OutOfBounds is called.
 	;;
 	;; REQUIRES: DB in Shadow 
 	;; MODIFIES: A, X
@@ -371,7 +371,7 @@ IMPORT_MODULE Text
 	;; Selects a given TextWindow
 	;;
 	;; The current window settings will be saved to WRAM
-	;; and the new window will loaded from WRAM into `Text::window`
+	;; and the new window will loaded from WRAM into `Text__window`
 	;;
 	;; The save/load method was chosen because it simplifies the TextInterface.
 	;; And I believe that most window switching would occour in Text Scenes
@@ -434,20 +434,20 @@ IMPORT_MODULE Text
 	;; Print String Methods
 	;; ====================
 
-	;; Prints the string contained in `Text::stringPtr` to the screen
+	;; Prints the string contained in `Text__stringPtr` to the screen
 	;; with no special characters and no word wrapping
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
-	;; INPUT: `Text::stringPtr` the string to print
+	;; INPUT: `Text__stringPtr` the string to print
 	ROUTINE PrintStringBasic
 
-	;; Prints the string contained in `Text::stringPtr` to the screen
+	;; Prints the string contained in `Text__stringPtr` to the screen
 	;; with word wrapping
 	;;
 	;; ::TODO add special characters::
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
-	;; INPUT: `Text::stringPtr` the string to print
+	;; INPUT: `Text__stringPtr` the string to print
 	ROUTINE PrintStringWordWrapping
 
 
@@ -473,7 +473,7 @@ IMPORT_MODULE Text
 	;; Converts the unsigned value in the 16 bit Y with padding to a string stored
 	;; in `decimalString`
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display
@@ -485,7 +485,7 @@ IMPORT_MODULE Text
 	;; Converts the signed value in the 16 bit Y with padding to a string stored
 	;; in `decimalString`
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display (signed)
@@ -496,7 +496,7 @@ IMPORT_MODULE Text
 
 	;; Converts the unsigned value in the 32 but XY to a string with padding.
 	;;
-	;; `Text::paddingCharacter` will be used as the padding character.
+	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: XY = the number to print (Y = low byte)
@@ -513,7 +513,7 @@ ENDMODULE
 ;; INPUT: win - the window number, if const then
 .macro Text_SelectWindow win
 	LDA	win
-	JSR	::Text::SelectWindow
+	JSR	::Text__SelectWindow
 .endmacro
 .endif
 
@@ -537,7 +537,7 @@ ENDMODULE
 	LDX	#startYPos * 64 + startXPos * 2
 	LDY	#endYPos * 64 + endXPos * 2
 	LDA	#flags
-	JSR	::Text::SetupWindow
+	JSR	::Text__SetupWindow
 .endmacro
 
 ;; Sets the tileOffset and TextInterface for the selected Window.
@@ -547,10 +547,10 @@ ENDMODULE
 ;; interface must be a TextInterface
 .macro Text_SetInterface interface,  tileOffset
 	LDX	#.loword(interface)
-	STX	::Text::window + TextWindow::textInterfaceAddr
+	STX	::Text__window + TextWindow::textInterfaceAddr
 
 	LDX	#tileOffset
-	STX	::Text::window + TextWindow::tilemapOffset
+	STX	::Text__window + TextWindow::tilemapOffset
 .endmacro
 
 ;; Sets the color of the text.
@@ -558,7 +558,7 @@ ENDMODULE
 ;; REQUIRES: 8 bit A, 16 bit Index
 .macro Text_SetColor color
 	LDA	color
-	JSR	::Text::SetColor
+	JSR	::Text__SetColor
 .endmacro
 
 ;; Loads the font
@@ -571,10 +571,10 @@ ENDMODULE
 ;; REQUIRES: 8 bit A, 16 bit X, DB in shadow, Force or V-Blank
 .macro Text_LoadFont tileset, vramTilesetAddr, mapAddr
 	LDA	#'0'
-	STA	::Text::paddingCharacter
+	STA	::Text__paddingCharacter
 
 	LDX	#mapAddr
-	STX	::Text::vramMapAddr
+	STX	::Text__vramMapAddr
 
 ; ::TODO VRAM DMA macro::
 
@@ -609,12 +609,12 @@ ENDMODULE
 ;; REQUIRES: 8 bit A
 ; ::SHOULDDO dedicated VBlank channel::
 .macro Text_VBlank
-	LDA	::Text::updateBufferIfZero
+	LDA	::Text__updateBufferIfZero
 	IF_ZERO
 		LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
 		STA	VMAIN
 
-		LDX	Text::vramMapAddr
+		LDX	Text__vramMapAddr
 		STX	VMADD
 
 		LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS
@@ -623,18 +623,18 @@ ENDMODULE
 		LDA	#.lobyte(VMDATA)
 		STA	BBAD0
 
-		LDX	#Text::buffer__size
+		LDX	#Text__buffer__size
 		STX	DAS0
 
-		LDX	#.loword(Text::buffer)
+		LDX	#.loword(Text__buffer)
 		STX	A1T0
-		LDA	#.bankbyte(Text::buffer)
+		LDA	#.bankbyte(Text__buffer)
 		STA	A1B0
 
 		LDA	#MDMAEN_DMA0
 		STA	MDMAEN
 
-		STA	::Text::updateBufferIfZero
+		STA	::Text__updateBufferIfZero
 	ENDIF
 .endmacro
 
@@ -645,8 +645,8 @@ ENDMODULE
 ;;
 ;; mode must be a string routine
 .macro Text_SetStringBasic
-	LDX	#.loword(Text::PrintStringBasic)
-	STX	::Text::window + TextWindow::printStringAddr
+	LDX	#.loword(Text__PrintStringBasic)
+	STX	::Text__window + TextWindow::printStringAddr
 .endmacro
 
 ;; Sets the printing mode to word wrapping
@@ -656,8 +656,8 @@ ENDMODULE
 ;;
 ;; mode must be a string routine
 .macro Text_SetStringWordWrapping
-	LDX	#.loword(Text::PrintStringWordWrapping)
-	STX	::Text::window + TextWindow::printStringAddr
+	LDX	#.loword(Text__PrintStringWordWrapping)
+	STX	::Text__window + TextWindow::printStringAddr
 .endmacro
 
 
@@ -679,12 +679,12 @@ ENDMODULE
 			LDX	#.loword(string)
 			LDA	#.bankbyte(string)
 
-			JSR	::Text::PrintString
+			JSR	::Text__PrintString
 	.else
 		LDX	#.loword(param)
 		LDA	#.bankbyte(param)
 
-		JSR	::Text::PrintString
+		JSR	::Text__PrintString
 	.endif
 .endmacro
 
@@ -705,13 +705,13 @@ ENDMODULE
 			LDX	#.loword(string)
 			LDA	#.bankbyte(string)
 
-			JSR	::Text::PrintString
+			JSR	::Text__PrintString
 	.else
 		LDX	#.loword(param)
 		LDA	#.bankbyte(param)
 
-		JSR	::Text::PrintString
-		JSR	::Text::NewLine
+		JSR	::Text__PrintString
+		JSR	::Text__NewLine
 	.endif
 .endmacro
 
@@ -720,7 +720,7 @@ ENDMODULE
 ;; REQUIRES: 8 bit A, 16 bit Index
 .macro Text_PrintChar c
 	LDA	#c
-	JSR	::Text::PrintChar
+	JSR	::Text__PrintChar
 .endmacro
 
 ;; Prints a new line
@@ -728,7 +728,7 @@ ENDMODULE
 ;; REQUIRES: DB in Shadow 
 ;; MODIFIES: A, X
 .macro Text_NewLine
-	JSR	::Text::NewLine
+	JSR	::Text__NewLine
 .endmacro
 
 ;; Prints a hexidecimal value for a given variable.
@@ -745,22 +745,22 @@ ENDMODULE
 .macro _Text_PrintHex_Helper var, type
 	.if type = ::TYPE_BYTE .or type = ::TYPE_UINT8 .or type = ::TYPE_SINT8
 		LDA	var
-		JSR	::Text::PrintHex_8A
+		JSR	::Text__PrintHex_8A
 	.elseif type = ::TYPE_WORD .or type = ::TYPE_ADDR .or type = ::TYPE_UINT16 .or type = ::TYPE_SINT16
 		LDY	var
-		JSR	::Text::PrintHex_16Y
+		JSR	::Text__PrintHex_16Y
 	.elseif type = ::TYPE_LONG
 		; ::MAYDO replace with dedicated routine::
 		LDY	var + 2
-		JSR	::Text::PrintHex_8A
+		JSR	::Text__PrintHex_8A
 		LDY	var
-		JSR	::Text::PrintHex_16Y
+		JSR	::Text__PrintHex_16Y
 	.elseif type = ::TYPE_UINT32 .or type = ::TYPE_SINT32
 		; ::MAYDO replace with dedicated routine::
 		LDY	var + 2
-		JSR	::Text::PrintHex_16Y
+		JSR	::Text__PrintHex_16Y
 		LDY	var
-		JSR	::Text::PrintHex_16Y
+		JSR	::Text__PrintHex_16Y
 	.else
 		.error .sprintf("variable %s type (%d) unsupported", .string(var), type)
 	.endif
@@ -787,14 +787,14 @@ ENDMODULE
 	.if type = ::TYPE_BYTE .or type = ::TYPE_UINT8
 		LDA	var
 		.ifblank padding
-			JSR	::Text::PrintDecimal_U8A
+			JSR	::Text__PrintDecimal_U8A
 		.else
 			.if .xmatch(padding, #1)
-				JSR	::Text::PrintDecimalPadded_U8A_1
+				JSR	::Text__PrintDecimalPadded_U8A_1
 			.elseif .xmatch(padding, #2)
-				JSR	::Text::PrintDecimalPadded_U8A_2
+				JSR	::Text__PrintDecimalPadded_U8A_2
 			.elseif .xmatch(padding, #3)
-				JSR	::Text::PrintDecimalPadded_U8A_3
+				JSR	::Text__PrintDecimalPadded_U8A_3
 			.else
 				.error "Unknown padding (only allow #1, #2, #3)"
 			.endif
@@ -802,32 +802,32 @@ ENDMODULE
 	.elseif type = ::TYPE_SINT8
 		LDA	var
 		.ifblank padding
-			JSR	::Text::PrintDecimal_S8A
+			JSR	::Text__PrintDecimal_S8A
 		.else
 			.error "Padding not supported"
 		.endif
 	.elseif type = ::TYPE_WORD .or type = ::TYPE_ADDR .or type = ::TYPE_UINT16
 		LDY	var
 		.ifblank padding
-			JSR	::Text::PrintDecimal_U16Y
+			JSR	::Text__PrintDecimal_U16Y
 		.else
 			LDA	padding
-			JSR	::Text::PrintDecimalPadded_U16Y
+			JSR	::Text__PrintDecimalPadded_U16Y
 		.endif
 	.elseif type = ::TYPE_SINT16
 		LDY	var
 		.ifblank padding
-			JSR	::Text::PrintDecimal_S16Y
+			JSR	::Text__PrintDecimal_S16Y
 		.else
 			.error "Padding not supported"
 		.endif
 	.elseif type = ::TYPE_UINT32
 		LDXY	var
 		.ifblank padding
-			JSR	::Text::PrintDecimal_U32XY
+			JSR	::Text__PrintDecimal_U32XY
 		.else
 			LDA	padding
-			JSR	::Text::PrintDecimalPadded_U32XY
+			JSR	::Text__PrintDecimalPadded_U32XY
 		.endif	
 	.else
 		.error .sprintf("variable %s type (%d) not supported", .string(var), type)
@@ -843,7 +843,7 @@ ENDMODULE
 .macro Text_SetCursor xpos, ypos
 	LDX	xpos
 	LDY	ypos
-	JSR	::Text::SetCursor
+	JSR	::Text__SetCursor
 .endmacro
 
 ;; End of line character

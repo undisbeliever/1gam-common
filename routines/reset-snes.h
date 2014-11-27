@@ -10,7 +10,7 @@
 .include "includes/import_export.inc"
 
 ;; Link to Reset::ResetSNES
-.global ResetHandler
+IMPORT_ROUTINE ResetHandler
 
 IMPORT_MODULE Reset
 

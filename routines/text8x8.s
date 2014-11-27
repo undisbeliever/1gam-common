@@ -36,24 +36,24 @@ ROUTINE NewLine_SingleSpacing
 	REP	#$30
 .A16
 
-	; bufferPos = (Bufferpos & $FFC0) + 64 + (Text::windowStart & $3F)
-	LDA	Text::window + TextWindow::bufferPos
+	; bufferPos = (Bufferpos & $FFC0) + 64 + (Text__windowStart & $3F)
+	LDA	Text__window + TextWindow::bufferPos
 	AND	#$FFC0
 	ADD	#64
 	STA	tmp
 
-	LDA	Text::window + TextWindow::windowStart
+	LDA	Text__window + TextWindow::windowStart
 	AND	#$003F
 	ORA	tmp
-	STA	Text::window + TextWindow::bufferPos
+	STA	Text__window + TextWindow::bufferPos
 	
 	; If out of bounds
-	CMP	Text::window + TextWindow::windowEnd
+	CMP	Text__window + TextWindow::windowEnd
 	IF_GT
 		; ::TODO Check settings and move text up one line::
 
-		LDA	Text::window + TextWindow::windowStart
-		STA	Text::window + TextWindow::bufferPos
+		LDA	Text__window + TextWindow::windowStart
+		STA	Text__window + TextWindow::bufferPos
 		AND	#$FFC0
 		STA	tmp
 	ENDIF
@@ -64,8 +64,8 @@ ROUTINE NewLine_SingleSpacing
 .A8
 
 	; reset tiles Left in line
-	LDA	Text::window + TextWindow::lineTilesWidth
-	STA	Text::window + TextWindow::tilesLeftInLine
+	LDA	Text__window + TextWindow::lineTilesWidth
+	STA	Text__window + TextWindow::tilesLeftInLine
 
 	RTS
 
@@ -77,24 +77,24 @@ ROUTINE NewLine_DoubleSpacing
 	REP	#$30
 .A16
 
-	; bufferPos = (Bufferpos & $FFC0) + 128 + (Text::windowStart & $3F)
-	LDA	Text::window + TextWindow::bufferPos
+	; bufferPos = (Bufferpos & $FFC0) + 128 + (Text__windowStart & $3F)
+	LDA	Text__window + TextWindow::bufferPos
 	AND	#$FFC0
 	ADD	#128
 	STA	tmp
 
-	LDA	Text::window + TextWindow::windowStart
+	LDA	Text__window + TextWindow::windowStart
 	AND	#$003F
 	ORA	tmp
-	STA	Text::window + TextWindow::bufferPos
+	STA	Text__window + TextWindow::bufferPos
 	
 	; If out of bounds
-	CMP	Text::window + TextWindow::windowEnd
+	CMP	Text__window + TextWindow::windowEnd
 	IF_GT
 		; ::TODO Check settings and move text up one line::
 
-		LDA	Text::window + TextWindow::windowStart
-		STA	Text::window + TextWindow::bufferPos
+		LDA	Text__window + TextWindow::windowStart
+		STA	Text__window + TextWindow::bufferPos
 		AND	#$FFC0
 		STA	tmp
 	ENDIF
@@ -105,8 +105,8 @@ ROUTINE NewLine_DoubleSpacing
 .A8
 
 	; reset tiles Left in line
-	LDA	Text::window + TextWindow::lineTilesWidth
-	STA	Text::window + TextWindow::tilesLeftInLine
+	LDA	Text__window + TextWindow::lineTilesWidth
+	STA	Text__window + TextWindow::tilesLeftInLine
 
 	RTS
 
@@ -118,7 +118,7 @@ ROUTINE PrintChar
 	; If character is newline call NewLine
 	CMP	#EOL
 	IF_EQ
-		LDX	Text::window + TextWindow::textInterfaceAddr
+		LDX	Text__window + TextWindow::textInterfaceAddr
 		JMP	(TextInterface::NewLine, X)
 	ENDIF
 
@@ -127,31 +127,31 @@ ROUTINE PrintChar
 	; else
 	;     A = INVALID_CHARACTER
 
-	SUB	#Text::ASCII_DELTA
-	CMP	#Text::LAST_CHARACTER - Text::ASCII_DELTA
+	SUB	#Text__ASCII_DELTA
+	CMP	#Text__LAST_CHARACTER - Text__ASCII_DELTA
 	IF_GE
-		LDA	#TEXT_INVALID - Text::ASCII_DELTA
+		LDA	#TEXT_INVALID - Text__ASCII_DELTA
 	ENDIF
 
 	; Show character
 	REP	#$30
 .A16
-	LDX	Text::window + TextWindow::bufferPos
+	LDX	Text__window + TextWindow::bufferPos
 
 	AND	#$00FF
-	ADD	Text::window + TextWindow::tilemapOffset
-	STA	f:Text::buffer, X
+	ADD	Text__window + TextWindow::tilemapOffset
+	STA	f:Text__buffer, X
 
 	INX
 	INX
-	STX	Text::window + TextWindow::bufferPos
+	STX	Text__window + TextWindow::bufferPos
 
 	SEP	#$20
 .A8
 
-	DEC	Text::window + TextWindow::tilesLeftInLine
+	DEC	Text__window + TextWindow::tilesLeftInLine
 	IF_ZERO
-		LDX	Text::window + TextWindow::textInterfaceAddr
+		LDX	Text__window + TextWindow::textInterfaceAddr
 		JSR	(TextInterface::NewLine, X)	
 	ENDIF
 
@@ -172,7 +172,7 @@ ROUTINE GetWordLength
 	LDY	#0
 
 	REPEAT
-		LDA	[Text::stringPtr], Y
+		LDA	[Text__stringPtr], Y
 	WHILE_NOT_ZERO
 		CMP	#EOL
 		BEQ	BREAK_LABEL
@@ -186,7 +186,7 @@ ROUTINE GetWordLength
 	TYX
 
 	REPEAT
-		LDA	[Text::stringPtr], Y
+		LDA	[Text__stringPtr], Y
 		CMP	#' '
 	WHILE_EQ
 		INY

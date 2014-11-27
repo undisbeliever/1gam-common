@@ -34,7 +34,7 @@ ROUTINE Main
 	STA	NMITIMEN
 
 	Text_LoadFont Font8x8Bold, BG1_TILES, BG1_MAP
-	Text_SetInterface Text8x8::DoubleSpacingInterface, 1
+	Text_SetInterface Text8x8__DoubleSpacingInterface, 1
 	Text_SetStringBasic
 
 	JSR	LoadPalette
@@ -42,7 +42,7 @@ ROUTINE Main
 	LDA	#$0F
 	STA	INIDISP
 
-	Text_SetupWindow 2, 2, 29, 25, Text::WINDOW_BORDER
+	Text_SetupWindow 2, 2, 29, 25, Text__WINDOW_BORDER
 
 	Text_SetColor #4
 	Text_PrintStringLn "The quick brown fox jumped over the lazy dog."
@@ -52,7 +52,7 @@ ROUTINE Main
 	Text_SetColor #5
 	Text_PrintStringLn "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG."
 
-	JSR	Text::NewLine
+	JSR	Text__NewLine
 
 	Text_SetStringBasic
 

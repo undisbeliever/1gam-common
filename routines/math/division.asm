@@ -8,8 +8,7 @@
 	UINT32 dividend32
 	UINT32 divisor32
 	UINT32 remainder32
-
-result32 := dividend32
+	SAME_VARIABLE result32, dividend32
 
 
 .code

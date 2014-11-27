@@ -96,7 +96,7 @@ IMPORT_MODULE CpuUsage
 	;;
 	;; REQUIRE 8 bit A
 	.macro CpuUsage_NMI
-		INC ::CpuUsage::vBlankCounter
+		INC ::CpuUsage__vBlankCounter
 	.endmacro
 
 ENDMODULE

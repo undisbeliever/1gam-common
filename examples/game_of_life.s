@@ -78,7 +78,7 @@ ROUTINE Main
 	SEP	#$20
 .A8
 .I16
-	JSR	CpuUsage::CalcReference
+	JSR	CpuUsage__CalcReference
 
 	JSR	SetupPPU
 	JSR	LoadTiles
@@ -99,7 +99,7 @@ ROUTINE Main
 		; Wait a second
 		; ::SHOULDDO use symbol (FRAMES_PER_SECOND) instead of hard numbers::
 		LDA	#60
-		JSR	CpuUsage::WaitLimited
+		JSR	CpuUsage__WaitLimited
 
 		LDA	#$0F
 		STA	INIDISP
@@ -111,7 +111,7 @@ ROUTINE Main
 		STA	INIDISP
 
 		LDA	#10
-		JSR	CpuUsage::WaitLimited
+		JSR	CpuUsage__WaitLimited
 
 		; Increment to the next game
 		LDA	gameNumber
@@ -134,7 +134,7 @@ ROUTINE PlayGame
 
 		; Clip the framerate (to known worst case)
 		LDA	#3
-		JSR	CpuUsage::WaitLimited
+		JSR	CpuUsage__WaitLimited
 
 		LDX	framesLeft
 		DEX

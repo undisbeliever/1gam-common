@@ -16,11 +16,11 @@ CONST	SECOND_HALF_TILE, 112
 .rodata
 
 LABEL Interface
-	.addr	Text8x8::NewLine_DoubleSpacing	; NewLine
+	.addr	Text8x8__NewLine_DoubleSpacing	; NewLine
 	.addr	PrintChar			; PrintChar
-	.addr	Text8x8::CursorMoved		; CursorMoved
-	.addr	Text8x8::GetWordLength		; GetWordLength
-	.addr	Text8x8::SpecialCharacter	; SpecialCharacter
+	.addr	Text8x8__CursorMoved		; CursorMoved
+	.addr	Text8x8__GetWordLength		; GetWordLength
+	.addr	Text8x8__SpecialCharacter	; SpecialCharacter
 
 
 .code
@@ -31,7 +31,7 @@ ROUTINE PrintChar
 	; If character is newline call NewLine
 	CMP	#EOL
 	IF_EQ
-		LDX	Text::window + TextWindow::textInterfaceAddr
+		LDX	Text__window + TextWindow::textInterfaceAddr
 		JMP	(TextInterface::NewLine, X)
 	ENDIF
 
@@ -40,34 +40,34 @@ ROUTINE PrintChar
 	; else
 	;     A = INVALID_CHARACTER
 
-	SUB	#Text::ASCII_DELTA
-	CMP	#Text::LAST_CHARACTER - Text::ASCII_DELTA
+	SUB	#Text__ASCII_DELTA
+	CMP	#Text__LAST_CHARACTER - Text__ASCII_DELTA
 	IF_GE
-		LDA	#TEXT_INVALID - Text::ASCII_DELTA
+		LDA	#TEXT_INVALID - Text__ASCII_DELTA
 	ENDIF
 
 	; Show character
 	REP	#$30
 .A16
-	LDX	Text::window + TextWindow::bufferPos
+	LDX	Text__window + TextWindow::bufferPos
 
 	AND	#$00FF
-	ADD	Text::window + TextWindow::tilemapOffset
-	STA	f:Text::buffer, X
+	ADD	Text__window + TextWindow::tilemapOffset
+	STA	f:Text__buffer, X
 
 	ADD	#SECOND_HALF_TILE
-	STA	f:Text::buffer + 64, X
+	STA	f:Text__buffer + 64, X
 
 	INX
 	INX
-	STX	Text::window + TextWindow::bufferPos
+	STX	Text__window + TextWindow::bufferPos
 
 	SEP	#$20
 .A8
 
-	DEC	Text::window + TextWindow::tilesLeftInLine
+	DEC	Text__window + TextWindow::tilesLeftInLine
 	IF_ZERO
-		LDX	Text::window + TextWindow::textInterfaceAddr
+		LDX	Text__window + TextWindow::textInterfaceAddr
 		JSR	(TextInterface::NewLine, X)	
 	ENDIF
 

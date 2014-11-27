@@ -23,12 +23,12 @@
 ;;
 ;; It will also
 ;;
-;;	* Export a variable called `_MODULE_name`
+;;	* Export a variable called `MODULE_name`
 ;;	* Also creates:
-;;		* `_MODULE_name__type` which matches the `TYPE_*` enum symbols
-;;		* `_MODULE_name__size` containg the total size of the variable in bytes
-;;		* `_MODULE_name__elsize` containing the size of each element in bytes (if count is used)
-;;		* `_MODULE_name__count` containing the number of elements
+;;		* `MODULE__name__type` which matches the `TYPE_*` enum symbols
+;;		* `MODULE__name__size` containg the total size of the variable in bytes
+;;		* `MODULE__name__elsize` containing the size of each element in bytes (if count is used)
+;;		* `MODULE__name__count` containing the number of elements
 ;;
 ;; Any variables defined inside a `ZEROPAGE` ... `ENDZEROPAGE` block will be 
 ;; imported/exported within the zero page. 
@@ -68,16 +68,16 @@
 ;;
 ;; Will create the following symbols in all files that include the header
 ;;
-;;	Test::variable
-;;	Test::Routine
-;;	Test::variable__size
-;;	Test::variable__type
-;;	Test::Routine__type
+;;	Test__variable
+;;	Test__Routine
+;;	Test__variable__size
+;;	Test__variable__type
+;;	Test__Routine__type
 ;;
 
-;; ::TODO add accumulator/index check to ROUTINE::
-;; ::TODO add CALL macro that uses assert on accumulator/index and then JSR::
-;; ::TODO macros for setting accumulator/index sizes::
+;; ::MAYDO add accumulator/index check to ROUTINE::
+;; ::MAYDO add CALL macro that uses assert on accumulator/index and then JSR::
+;; ::MAYDO macros for setting accumulator/index sizes::
 
 .ifndef ::_IMPORT_EXPORT_H_
 ::_IMPORT_EXPORT_H_ = 1
@@ -120,15 +120,10 @@
 	::__MODULE_ZEROPAGE .set 0
 
 	.define __MODULE_NAME .string(name)
-	.scope name
 .endmacro
 
 ;; Cleans up the end of a module.
 .macro ENDMODULE
-	.if ::__MODULE_TYPE = __MODULE_TYPE_IMPORT
-		.endscope
-	.endif
-
 	::__MODULE_TYPE .set __MODULE_TYPE_NONE
 	.undefine __MODULE_NAME
 .endmacro
@@ -145,96 +140,139 @@
 
 
 .macro _VARIABLE_HELPER name, type, size, count
-	.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT .or ::__MODULE_TYPE = __MODULE_TYPE_NONE
+	.if ::__MODULE_TYPE = __MODULE_TYPE_NONE
+		.ident(.sprintf("%s__type", .string(name))) = type
+
 		.ifblank count
 			name:	.res size
-			.ident(.sprintf("%s__size", .string(name))) .set size
+			.ident(.sprintf("%s__size", .string(name))) = size
 		.else
 			name:	.res size * (count)
-			.ident(.sprintf("%s__elsize", .string(name))) .set size
-			.ident(.sprintf("%s__size", .string(name))) .set size * (count)
-			.ident(.sprintf("%s__count", .string(name))) .set count
+			.ident(.sprintf("%s__elsize", .string(name))) = size
+			.ident(.sprintf("%s__size", .string(name))) = size * (count)
+			.ident(.sprintf("%s__count", .string(name))) = count
 		.endif
-
-		.ident(.sprintf("%s__type", .string(name))) := type
-
-		.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
-			.if ::__MODULE_ZEROPAGE
-				.exportzp .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
-			.else
-				.export .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
-			.endif
-		.else
-			.if ::__MODULE_ZEROPAGE
-				.exportzp name
-			.else
-				.export name
-			.endif
-		.endif
-	.endif
-
-	.if ::__MODULE_TYPE = __MODULE_TYPE_IMPORT
-		.ifblank count
-			.ident(.sprintf("%s__size", .string(name))) .set size
-		.else
-			.ident(.sprintf("%s__elsize", .string(name))) .set size
-			.ident(.sprintf("%s__size", .string(name))) .set size * count
-			.ident(.sprintf("%s__count", .string(name))) .set count
-		.endif
-
-		.ident(.sprintf("%s__type", .string(name))) := type
 
 		.if ::__MODULE_ZEROPAGE
-			.globalzp .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name)))
+			.exportzp name
 		.else
-			.global .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name)))
+			.export name
 		.endif
-		name := .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name)))
+
+	.elseif ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
+		.ident(.sprintf("%s__type", .string(name))) = type
+
+		.ifblank count
+			name:	.res size
+			.ident(.sprintf("%s__size", .string(name))) = size
+		.else
+			name:	.res size * (count)
+			.ident(.sprintf("%s__elsize", .string(name))) = size
+			.ident(.sprintf("%s__size", .string(name))) = size * (count)
+			.ident(.sprintf("%s__count", .string(name))) = count
+		.endif
+
+		.if ::__MODULE_ZEROPAGE
+			.exportzp .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name))) := name
+		.else
+			.export .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name))) := name
+		.endif
+
+	.elseif ::__MODULE_TYPE = __MODULE_TYPE_IMPORT
+		.ident(.sprintf("%s__%s__type", __MODULE_NAME, .string(name))) = type
+
+		.ifblank count
+			.ident(.sprintf("%s__%s__size", __MODULE_NAME, .string(name))) = size
+		.else
+			.ident(.sprintf("%s__%s__elsize", __MODULE_NAME, .string(name))) = size
+			.ident(.sprintf("%s__%s__size", __MODULE_NAME, .string(name))) = size * count
+			.ident(.sprintf("%s__%s__count", __MODULE_NAME, .string(name))) = count
+		.endif
+
+		.if ::__MODULE_ZEROPAGE
+			.globalzp .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name)))
+		.else
+			.global .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name)))
+		.endif
 	.endif
 .endmacro
 
 
 .macro _SYMBOL_HELPER name, type
-	.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT .or ::__MODULE_TYPE = __MODULE_TYPE_NONE
+	.if ::__MODULE_TYPE = __MODULE_TYPE_NONE
 		.ident(.sprintf("%s__type", .string(name))) = type
-
-		.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
-			.export .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name))) := name
-		.else
-				.export name
-		.endif
+		.global name
 		name:
-	.endif
 
-	.if ::__MODULE_TYPE = __MODULE_TYPE_IMPORT
-		.ident(.sprintf("%s__type", .string(name))) := type
+	.elseif ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
+		.ident(.sprintf("%s__type", .string(name))) = type
+		.export .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name))) := name
+		name:
 
-		.global .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name)))
-		name := .ident(.sprintf("_%s__%s", __MODULE_NAME, .string(name)))
+	.elseif ::__MODULE_TYPE = __MODULE_TYPE_IMPORT
+		.ident(.sprintf("%s__%s__type", __MODULE_NAME, .string(name))) = type
+		.global .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name)))
+
 	.endif
 .endmacro
 
 .macro _IMPORT_SYMBOL_HELPER name, type
-	.ident(.sprintf("%s__type", .string(name))) := type
+	.ident(.sprintf("%s__type", .string(name))) = type
 
-	.global .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name)))
+	.global .ident(.sprintf("%s", .string(name)))
 .endmacro
 
 .macro CONST name, value
 	.if ::__MODULE_TYPE = __MODULE_TYPE_NONE
 		.fatal "Require MODULE or IMPORT_MODULE"
-	.endif
 
-	.if ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
-		.ident(.sprintf("%s__type", .string(name))) = TYPE_CONST
-		name := value
-	.endif
+	.elseif ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
+		.ident(.sprintf("%s__type", .string(name))) .set TYPE_CONST
+		name = value
 
-	.if ::__MODULE_TYPE = __MODULE_TYPE_IMPORT
-		.ident(.sprintf("%s__type", .string(name))) := TYPE_CONST
-		name := value
+	.elseif ::__MODULE_TYPE = __MODULE_TYPE_IMPORT
+		.ident(.sprintf("%s__%s__type", __MODULE_NAME, .string(name))) := TYPE_CONST
+		.ident(.sprintf("%s__%s", __MODULE_NAME, .string(name))) = value
 	.endif
 .endmacro
+
+;; Allows for two variables (with different name) to
+;; contain the same memory location, size and type.
+.macro SAME_VARIABLE name, dup
+	.if ::__MODULE_TYPE = __MODULE_TYPE_NONE
+		name := dup
+		
+		.ident(.sprintf("%s__type", .string(name))) = .ident(.sprintf("%s__type", .string(dup)))
+
+		.if ::__MODULE_ZEROPAGE
+			.exportzp name
+		.else
+			.export name
+		.endif
+
+	.elseif ::__MODULE_TYPE = __MODULE_TYPE_EXPORT
+		name := dup
+		
+		.ident(.sprintf("%s__type", .string(name))) = .ident(.sprintf("%s__type", .string(dup)))
+
+		.if ::__MODULE_ZEROPAGE
+			.exportzp .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name))) := name
+		.else
+			.export .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name))) := name
+		.endif
+
+	.elseif ::__MODULE_TYPE = __MODULE_TYPE_IMPORT
+		.ident(.sprintf("%s__%s__type", __MODULE_NAME, .string(name))) = .ident(.sprintf("%s__%s__type", __MODULE_NAME, .string(dup)))
+
+		.if ::__MODULE_ZEROPAGE
+			.globalzp .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name))) 
+		.else
+			.global .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name)))
+		.endif
+
+	.endif
+.endmacro
+
 
 
 .macro STRUCT name, struct, count

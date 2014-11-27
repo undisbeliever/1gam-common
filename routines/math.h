@@ -13,9 +13,7 @@ IMPORT_MODULE Math
 	UINT32 dividend32
 	UINT32 divisor32
 	UINT32 remainder32
-
-	result32 := dividend32
-	result32__type := TYPE_UINT32
+	SAME_VARIABLE result32, dividend32
 
 
 	;; Optimised Unsigned 16 / 16 bit Integer Division.
