@@ -41,27 +41,32 @@ BG1_Tiles		= $1000
 
 
 .zeropage
-tmp:			.res 2
-tmp1:			.res 2
-tmp2:			.res 2
-tmp3:			.res 2		; Temporary storage
+	WORD	tmp
+	WORD	tmp1
+	WORD	tmp2
+	WORD	rmp3
 
 .define	GAME_HEIGHT 28
 .define GAME_WIDTH  30
 .define CELLS_WIDTH 32
 
 .segment "SHADOW"
-cell_before_padding:	.res CELLS_WIDTH
-cells:			.res CELLS_WIDTH * GAME_HEIGHT
-cell_after_padding:	.res CELLS_WIDTH
-prev_cells:		.res CELLS_WIDTH * GAME_HEIGHT
+	BYTE	cellsPaddingBefore, 	CELLS_WIDTH
+	BYTE	cells,			CELLS_WIDTH * GAME_HEIGHT
+	BYTE	cellsPaddingAfter,	CELLS_WIDTH
+	BYTE	prevCells,		CELLS_WIDTH * GAME_HEIGHT
 
-frames_left:		.res 2		; Number of frames before refesh
+	;; Number of frames before refesh
+	UINT16	framesLeft
 
-update_tilemap:		.res 1		; If set then upate tilemap on VBlank
-tilemap_buffer:		.res 32 * 32	; The low bytes of the tilemap
+	;; If set then upate tilemap on VBlank
+	BYTE	updateTilemap
 
-game_number:		.res 1		; The current game number
+	;; The low bytes of the tilemap
+	BYTE	tilemapBuffer, 	32 * 32
+
+	;; The current game number
+	BYTE	gameNumber
 
 
 ; -----------------------------------------------------------------------------
@@ -73,7 +78,7 @@ ROUTINE Main
 	SEP	#$20
 .A8
 .I16
-	JSR	CPU_Usage__Calc_Reference
+	JSR	CpuUsage::CalcReference
 
 	JSR	SetupPPU
 	JSR	LoadTiles
@@ -85,39 +90,36 @@ ROUTINE Main
 	LDA	#$08
 	STA	INIDISP
 
-	STZ	game_number
+	STZ	gameNumber
 
 
 	REPEAT
-		JSR	Load_Game
+		JSR	LoadGame
 
 		; Wait a second
 		; ::SHOULDDO use symbol (FRAMES_PER_SECOND) instead of hard numbers::
-		FOR_X	#60, DEC, #0
-			JSR	CPU_Usage__Wait_Frame
-		NEXT
+		LDA	#60
+		JSR	CpuUsage::WaitLimited
 
 		LDA	#$0F
 		STA	INIDISP
 
-		JSR	Play_Game
+		JSR	PlayGame
 
 		; Dull the screen and wait a bit
 		LDA	#$08
 		STA	INIDISP
 
-		FOR_X	#10, DEC, #0
-			JSR	CPU_Usage__Wait_Frame
-		NEXT
+		LDA	#10
+		JSR	CpuUsage::WaitLimited
 
 		; Increment to the next game
-		LDA	game_number
+		LDA	gameNumber
 		CMP	#NUM_GAMES - 1
 		IF_GE
-			STZ	game_number
+			STZ	gameNumber
 		ELSE
-			INC
-			STA	game_number
+			INC	gameNumber
 		ENDIF
 		
 	FOREVER
@@ -126,17 +128,17 @@ ROUTINE Main
 ;; Play game
 .A8
 .I16
-ROUTINE Play_Game
+ROUTINE PlayGame
 	REPEAT
-		JSR	Process_Frame
+		JSR	ProcessFrame
 
 		; Clip the framerate (to known worst case)
 		LDA	#3
-		JSR	CPU_Usage__Wait_Limited
+		JSR	CpuUsage::WaitLimited
 
-		LDX	frames_left
+		LDX	framesLeft
 		DEX
-		STX	frames_left
+		STX	framesLeft
 	UNTIL_ZERO
 
 	RTS
@@ -145,7 +147,7 @@ ROUTINE Play_Game
 ; Helper macro to unroll the Process Frame Loop
 ; REQUIRE: 8 bit A, 16 bit Index
 ; X = Current position in `cells` array
-.macro _Process_Frame_Unroll_Loop cell, prev_cell, buffer
+.macro _ProcessFrame_UnrollLoop cell, prev_cell, buffer
 	.local continue 
 
 	; Get and check cell's new state
@@ -214,18 +216,16 @@ continue:
 ;;
 ;; INPUT: long of data in in rlepos
 ;;
-ROUTINE Process_Frame
+ROUTINE ProcessFrame
 	REP	#$30
 .I16
 .A16
-	; Copy cells to prev_cells
+	; Copy cells to prevCells
 	LDA	#.sizeof(cells) - 1
 	LDX	#.loword(cells)
-	LDY	#.loword(prev_cells)
-	MVN	.bankbyte(cells), .bankbyte(prev_cells)
+	LDY	#.loword(prevCells)
+	MVN	.bankbyte(cells), .bankbyte(prevCells)
 
-.export endcopy
-endcopy:
 	SEP	#$20
 .A8
 
@@ -249,7 +249,7 @@ endcopy:
 		.repeat UNROLL, H
 			.repeat GAME_WIDTH, V
 				delta .set H * CELLS_WIDTH + V + 1 ; +1 to remove left padding
-				_Process_Frame_Unroll_Loop cells + delta, prev_cells + delta, tilemap_buffer + delta
+				_ProcessFrame_UnrollLoop cells + delta, prevCells + delta, tilemapBuffer + delta
 			.endrepeat
 		.endrepeat
 
@@ -265,12 +265,12 @@ endcopy:
 	UNTIL_EQ
 
 	LDA	#1
-	STA	update_tilemap
+	STA	updateTilemap
 
 	RTS
 
 
-;; Loads the game specified by `game_number`.
+;; Loads the game specified by `gameNumber`.
 ;;
 ;; REQUIRES 8 bit A, 16 bit Index.
 ;;
@@ -291,30 +291,31 @@ endcopy:
 ;;	it must be done manually
 .A8
 .I16
-ROUTINE Load_Game
+ROUTINE LoadGame
 
-.proc Load_Game_tmp
+.scope 
 
-startx   = tmp
+startX   = tmp
 
 
 	; Clear the CellMap
 	FOR_X #0, INC, #GAME_WIDTH
-		STZ	cell_before_padding, X
+		STZ	cellsPaddingBefore, X
 	NEXT
 	FOR_X #0, INC, #.sizeof(cells) + GAME_WIDTH
 		STZ	cells, X
 	NEXT
 
 	; Clear the Tilemap
-	FOR_X #0, INC, #.sizeof(tilemap_buffer)
-		STZ	tilemap_buffer, X
+	FOR_X #0, INC, #.sizeof(tilemapBuffer)
+		STZ	tilemapBuffer, X
 	NEXT
 
 	; Get the address of the game
 	REP	#$30
 .A16
-	LDA	game_number
+	LDA	gameNumber
+	AND	#$00FF
 	ASL
 	TAX
 
@@ -325,14 +326,14 @@ startx   = tmp
 	; Byte 2     = Start X position
 	; Byte 3     = Starting Y Position
 	;
-	; startx = Starting X + 1
-	; position = Starting Y * 32 + startx
+	; startX = Starting X + 1
+	; position = Starting Y * 32 + startX
 
 	; Index X = Cells Position
 	; Index Y = game file position
 
 	LDA	0, Y
-	STA	frames_left
+	STA	framesLeft
 
 	INY
 	INY
@@ -340,14 +341,14 @@ startx   = tmp
 	LDA	0, Y
 	AND	#$00FF
 	INC
-	STA	startx
+	STA	startX
 
 	LDA	0, Y
 	AND	#$FF00
 	LSR		; 128
 	LSR		; 64
 	LSR		; 32
-	ADD	startx
+	ADD	startX
 	TAX
 
 	INY
@@ -364,13 +365,13 @@ startx   = tmp
 
 		CMP	#EOL
 		IF_EQ
-			; pos = (pos & ~$1F) + 32 + startx
+			; pos = (pos & ~$1F) + 32 + startX
 			REP	#$30
 .A16
 			TXA
 			AND	#.loword(~$1F)
 			ADD	#32
-			ADC	startx
+			ADC	startX
 			TAX
 
 			SEP	#$20
@@ -386,7 +387,7 @@ startx   = tmp
 
 				; Show in buffer
 				LDA	#1
-				STA	tilemap_buffer, X
+				STA	tilemapBuffer, X
 
 				; Increment its neighbours
 				INC	cells - 1, X
@@ -410,9 +411,9 @@ startx   = tmp
 	LDX #0
 	REPEAT
 		LDA #PADDING_TILE
-		STA tilemap_buffer, X
+		STA tilemapBuffer, X
 		INC
-		STA tilemap_buffer + CELLS_WIDTH - 1, X
+		STA tilemapBuffer + CELLS_WIDTH - 1, X
 
 		REP #$20
 .A16
@@ -423,20 +424,20 @@ startx   = tmp
 		SEP #$20
 .A8
 
-		CPX #.sizeof(::tilemap_buffer)
+		CPX #.sizeof(::tilemapBuffer)
 	UNTIL_EQ
 
 	LDA	#1
-	STA	update_tilemap
+	STA	updateTilemap
 
 	RTS
-.endproc
+.endscope
 
 
 
 ;; VBlank Handler
 ;; 
-;; Copies `tilemap_buffer` to VRAM when `update_tilemap` is set
+;; Copies `tilemapBuffer` to VRAM when `updateTilemap` is set
 .export VBlank
 VBlank:
 	; Save state
@@ -450,12 +451,12 @@ VBlank:
 	SEP #$20
 .A8
 .I16
-	CPU_Usage__NMI
+	CpuUsage_NMI
 
-	; If update_tilemap is set then load buffer into VRAM
-	; Remember that tilemap_buffer only stores the low byte of the tilemap
+	; If updateTilemap is set then load buffer into VRAM
+	; Remember that tilemapBuffer only stores the low byte of the tilemap
 	; Thus we use VMAIN_INCREMENT_LOW and 1 Register Transfer
-	LDA update_tilemap
+	LDA updateTilemap
 	IF_NOT_ZERO
 		LDA	#VMAIN_INCREMENT_LOW | VMAIN_INCREMENT_1
 		STA	VMAIN
@@ -471,12 +472,12 @@ VBlank:
 		LDA	#.lobyte(VMDATAL)
 		STA	BBAD0
 
-		LDX	#.sizeof(tilemap_buffer)
+		LDX	#.sizeof(tilemapBuffer)
 		STX	DAS0
 
-		LDX	#tilemap_buffer
+		LDX	#tilemapBuffer
 		STX	A1T0
-		LDA	#.bankbyte(tilemap_buffer)
+		LDA	#.bankbyte(tilemapBuffer)
 		STA	A1B0
 
 		LDA	#MDMAEN_DMA0

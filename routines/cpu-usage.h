@@ -1,4 +1,4 @@
-;;
+
 ;; CPU Usage calculator.
 ;;
 ;; This module allows for an estimation of the CPU usage.
@@ -31,73 +31,75 @@
 ::__CPU_USAGE_H_ = 1
 
 .setcpu "65816"
+.include "includes/import_export.inc"
 
-;; Number of frames that were missed inbetween `Wait_Frame`s
-;; (byte)
-.global CPU_Usage__MissedFrames
+IMPORT_MODULE CpuUsage
 
-;; Number of VBlanks passed 
-;; (byte)
-.global CPU_Usage__VBlankCounter
+	;; Number of frames that were missed inbetween `Wait_Frame`s
+	UINT8 missedFrames
 
-;; Reference Bogo taken from an empty frame, used
-;; for calculations
-;; (word)
-.global CPU_Usage__ReferenceBogo
+	;; Number of VBlanks passed since last `WaitFrame` or `WaitLimited` 
+	;; (byte)
+	UINT8 vBlankCounter
 
-;; Current Bogo for previous frame
-;; (word)
-.global CPU_Usage__CurrentBogo
+	;; Reference Bogo taken from an empty frame, used
+	;; for calculations
+	UINT16 referenceBogo
 
-
-;; Calculate `CPU_Usage__ReferenceBogo`
-;;
-;; REQUIRES: 8 bit A, 16 bit Index, DB Access Shadow RAM
-;;
-;; This routine will disable Inturrputs and must be called:
-;;   * staright after Initialisation.
-;;   * After FASTROM is set (if using FASTROM)
-;;   * When VBlank is not doing anything
-.global CPU_Usage__Calc_Reference
+	;; Current Bogo for previous frame
+	UINT16 currentBogo
 
 
-;; Wait until the next frame, calculating the number of bogos to the
-;; start of the next frame.
-;;
-;; REQUIRES: DB Access Shadow RAM
-;;
-;; This routine calculates:
-;;    * `CPU_Usage__FramesMised`
-;;    * `CPU_Usage__CurrentBogo`
-;;
-;; This routine saves the CPU state.
-.global CPU_Usage__Wait_Frame
+	;; Calculate `ReferenceBogo`
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index, DB Access Shadow RAM
+	;;
+	;; This routine will disable Inturrputs and must be called:
+	;;   * stright after Initialisation.
+	;;   * After FASTROM is set (if using FASTROM)
+	;;   * When VBlank is not doing anything
+	ROUTINE CalcReference
 
 
-;; Wait until a given number of frames has passed since the last
-;; `CPU_Usage__Wait_Frame` or `CPU_Usage__Wait_Limited` call.
-;;
-;; REQUIRES: DB Access Shadow RAM
-;;
-;; INPUT: A = number of frames to wait
-;;
-;; MODIFIES: Decrements A by one
-;;
-;; This routine calculates:
-;;    * `CPU_Usage__FramesMised`
-;;    * `CPU_Usage__CurrentBogo`
-;;
-;; This routine saves the CPU state.
-; ::SHOULDDO think of better name::
-.global CPU_Usage__Wait_Limited
+	;; Wait until the next frame, calculating the number of bogos to the
+	;; start of the next frame.
+	;;
+	;; REQUIRES: DB Access Shadow RAM
+	;;
+	;; This routine calculates:
+	;;    * `FramesMised`
+	;;    * `CurrentBogo`
+	;;
+	;; This routine saves the CPU state.
+	ROUTINE WaitFrame
 
 
-;; Sets Frame Increment Counter
-;;
-;; REQUIRE 8 bit A
-.macro CPU_Usage__NMI
-	INC CPU_Usage__VBlankCounter
-.endmacro
+	;; Wait until a given number of frames has passed since the last
+	;; `CPU_Usage__Wait_Frame` or `CPU_Usage__Wait_Limited` call.
+	;;
+	;; REQUIRES: 8 bit A, DB Access Shadow RAM
+	;;
+	;; INPUT: A = number of frames to wait
+	;;
+	;; MODIFIES: Decrements A by one
+	;;
+	;; This routine calculates:
+	;;    * `FramesMised`
+	;;    * `CurrentBogo`
+	;;
+	;; This routine saves the CPU state.
+	; ::SHOULDDO think of better name::
+	ROUTINE WaitLimited
+
+
+	;; Sets Frame Increment Counter
+	;;
+	;; REQUIRE 8 bit A
+	.macro CpuUsage_NMI
+		INC ::CpuUsage::vBlankCounter
+	.endmacro
+
+ENDMODULE
 
 .endif ; __CPU_USAGE_H_
 

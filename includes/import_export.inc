@@ -214,6 +214,11 @@
 	.endif
 .endmacro
 
+.macro _IMPORT_SYMBOL_HELPER name, type
+	.ident(.sprintf("%s__type", .string(name))) := type
+
+	.global .ident(.sprintf("%s__%s", __MODULE_NAME, .string(name)))
+.endmacro
 
 .macro CONST name, value
 	.if ::__MODULE_TYPE = __MODULE_TYPE_NONE
@@ -282,6 +287,14 @@
 
 .macro LABEL name
 	_SYMBOL_HELPER name, TYPE_LABEL
+.endmacro
+
+.macro IMPORT_ROUTINE name
+	_IMPORT_SYMBOL_HELPER name, TYPE_ROUTINE
+.endmacro
+
+.macro IMPORT_LABEL name
+	_IMPORT_SYMBOL_HELPER name, TYPE_LABEL
 .endmacro
 
 .macro BREAKPOINT

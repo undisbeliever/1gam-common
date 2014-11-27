@@ -84,7 +84,7 @@
 	.addr 0					; $FFF6
 	.addr EmptyHandler			; $FFF8 - Emu ABORT
 	.addr EmptyHandler			; $FFFA - Emu NMI
-	.addr Reset				; $FFFC - Emu RESET
+	.addr ResetHandler			; $FFFC - Emu RESET
 	.addr 0					; $FFFE - Emu IRQ
 
 .code

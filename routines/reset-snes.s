@@ -9,6 +9,9 @@
 .import Main
 .import __STACK_TOP
 
+
+MODULE Reset
+
 ;; Memory location contains a zero word.
 ;; From SNES Header (which has 7 consecutive zero bytes)
 ZeroWord = $00FFB6
@@ -16,7 +19,8 @@ ZeroWord = $00FFB6
 .code
 
 ; ROUTINE Reset Handler
-Reset:
+ResetHandler:
+ROUTINE ResetSNES
 	SEI
 	CLC
 	XCE				; Switch to native mode
@@ -64,12 +68,13 @@ Reset:
 	JSR	ClearVRAM
 	JSR	ClearOAM
 	JSR	ClearCGRAM
-	JSR	Reset_Registers
+	JSR	ResetRegisters
 	JML	Main
 
 
+
 ; ROUTINE Resets most of the Registers in the SNES to their reccomended defaults.
-Reset_Registers:
+ROUTINE ResetRegisters
 	PHP
 	SEP	#$30
 .A8
@@ -124,10 +129,11 @@ Reset_Registers:
 	RTS
 
 
+
 ; ROUTINE Transfers 0x10000 0 bytes to VRAM
 .A8
 .I16
-ClearVRAM:
+ROUTINE ClearVRAM
 	LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
 	STA	VMAIN
 
@@ -156,7 +162,7 @@ ClearVRAM:
 
 
 ; ROUTINE Clears the Sprites off the screen.
-ClearOAM:
+ROUTINE ClearOAM
 	PHP
 	SEP	#$30
 .A8
@@ -188,7 +194,7 @@ ClearOAM:
 ; ROUTINE Clears the CGRAM
 .A8
 .I16
-ClearCGRAM:
+ROUTINE ClearCGRAM
 	STZ	CGADD
 
 	FOR_X	#512, DEC, #0
@@ -197,4 +203,5 @@ ClearCGRAM:
 
 	RTS
 
+ENDMODULE
 

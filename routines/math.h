@@ -2,6 +2,7 @@
 .ifndef ::_MATH_H_
 ::_MATH_H_ = 1
 
+.setcpu "65816"
 .include "includes/import_export.inc"
 
 IMPORT_MODULE Math

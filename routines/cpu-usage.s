@@ -5,48 +5,37 @@
 .include "includes/registers.inc"
 
 
-;; ::TODO helper function to clean these variables up::
-
-
-.proc CPU_Usage
+MODULE CpuUsage
 
 
 .segment "SHADOW"
-	VBlankCounter:	.res 1
-	MissedFrames:	.res 1
-	ReferenceBogo:	.res 2
-	CurrentBogo:	.res 2
-
-; Variables accessable outside this file
-::CPU_Usage__MissedFrames = MissedFrames
-::CPU_Usage__VBlankCounter = VBlankCounter
-::CPU_Usage__ReferenceBogo = ReferenceBogo
-::CPU_Usage__CurrentBogo = CurrentBogo
+	UINT8 vBlankCounter
+	UINT8 missedFrames
+	UINT16 referenceBogo
+	UINT16 currentBogo
 
 .code
 
-; ROUTINE Calculate `CPU_Usage__ReferenceBogo` 
 .A8
 .I16
-Calc_Reference:
-::CPU_Usage__Calc_Reference:
-	; Enable VBlank
+ROUTINE CalcReference
+	; Enable VBlank, Disable IRQ
 	LDA	#NMITIMEN_VBLANK_FLAG
 	STA	NMITIMEN
 
 	; Wait until the start of the frame
-	STZ	VBlankCounter
+	STZ	vBlankCounter
 	REPEAT
 		WAI
-		LDA VBlankCounter
+		LDA	vBlankCounter
 	UNTIL_NOT_ZERO
 
-	STZ	MissedFrames
+	STZ	missedFrames
 
-	JSR	Wait_Frame
+	JSR	WaitFrame
 
-	LDY	CurrentBogo
-	STY	ReferenceBogo
+	LDY	currentBogo
+	STY	referenceBogo
 
 	; Disable VBlank
 	STZ	NMITIMEN	
@@ -54,10 +43,7 @@ Calc_Reference:
 	RTS
 
 
-; ROUTINE Wait until the next frame, calculating the number of bogos to the
-; start of the next frame.
-Wait_Frame:
-::CPU_Usage__Wait_Frame:
+ROUTINE WaitFrame
 	; Save state
 	PHP
 	REP	#$30
@@ -68,20 +54,20 @@ Wait_Frame:
 .A8
 .I16
 
-	LDA	VBlankCounter
-	STA	MissedFrames
+	LDA	vBlankCounter
+	STA	missedFrames
 
 	LDX	#0
 	REPEAT
 		INX
-		LDA	VBlankCounter
-		CMP	MissedFrames
+		LDA	vBlankCounter
+		CMP	missedFrames
 	UNTIL_NE
 
-	STX	CurrentBogo
+	STX	currentBogo
 
 	; Reset the counter
-	STZ	VBlankCounter
+	STZ	vBlankCounter
 
 	; Load State
 	REP	#$30
@@ -92,45 +78,44 @@ Wait_Frame:
 	RTS
 
 
-; ROUTUNE  Wait until a given number of frames has passed since the last
-; `CPU_Usage__Wait_Frame` or `CPU_Usage__Wait_Limited` call.
-Wait_Limited:
-::CPU_Usage__Wait_Limited:
-	; A contains the number of frames since the last
-	; `CPU_Usage_Wait_Clipped` or `CPU_Usage__Wait_Frame` call.
-
+.A8
+ROUTINE WaitLimited
 	DEC
-	JSR	Wait_Frame
-	CMP	MissedFrames
-	IF_GT
-		PHY
-		PHA			; Save MissedFrames
-		LDY	CurrentBogo
+	JSR	WaitFrame
+	CMP	missedFrames
+	IF_GE
+		; Save MissedFrames
+		PHA
+		PHX
+		PHP
 
-		SUB	MissedFrames
+		SEP	#$30
+.I8
+		SUB	missedFrames
+		TAX
+
+		REP	#$20
+.A16
+		LDA	currentBogo
+
 		REPEAT
-			JSR	Wait_Frame
+			JSR	WaitFrame
 
 			; Increment CurrentBogo to handle next frames
-			PHA
-			REP	#$20
-				TYA
-				ADD	CurrentBogo
-				TYA
-			SEP	#$20
-			PLA
+			ADD	currentBogo
 
-			DEC
+			DEX
 		UNTIL_ZERO
+		
+		STA	currentBogo
 
+		PLP
+		PLX
 		PLA
-		STA	MissedFrames
-
-		STY	CurrentBogo
-		PLY
+		STA	missedFrames
 	ENDIF
 
 	RTS
 
-.endproc
+ENDMODULE
 
