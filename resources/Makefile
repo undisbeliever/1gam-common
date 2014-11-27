@@ -1,5 +1,5 @@
 
-IMAGES = font8x8-bold.2bpp font8x8-bold-transparent.2bpp font8x16-bold-transparent.2bpp
+IMAGES = font8x8-bold.2bpp font8x16-bold.2bpp font8x8-bold-transparent.2bpp font8x16-bold-transparent.2bpp
 PALETTES =  $(patsubst %.2bpp,%.clr,$(patsubst %.4bpp,%.clr,$(SOURCES)))
 
 .PHONY: ALL

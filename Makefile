@@ -13,10 +13,24 @@ CONFIG = config/LOROM_1MBit.cfg
 .PHONY: all
 all: resources $(BINARIES)
 
-$(BINARIES): $(CONFIG) $(OBJECTS)
+# Dependancy modules for each binary.
+# $^ will include all of them in linker
+examples/bin/flashing_colors.sfc: obj/reset-snes.o
+examples/bin/game_of_life.sfc: obj/reset-snes.o obj/cpu-usage.o
+examples/bin/math_test.sfc: obj/reset-snes.o obj/math.o obj/text.o obj/text8x8.o obj/text8x16.o
+examples/bin/print_test.sfc: obj/reset-snes.o obj/math.o obj/text.o obj/text8x8.o 
+examples/bin/timer.sfc: obj/reset-snes.o obj/math.o obj/text.o obj/text8x8.o obj/text8x16.o 
 
-examples/bin/%.sfc: examples/obj/%.o $(OBJECTS)
-	ld65 -vm -m $(@:.sfc=.memlog) -C $(CONFIG) -o $@ $< $(OBJECTS)
+# Resources used in .o files
+examples/obj/math_test.o: resources/font8x8-bold-transparent.2bpp resources/font8x16-bold-transparent.2bpp
+examples/obj/print_test.o: resources/font8x8-bold.2bpp
+examples/obj/timer.o: resources/font8x8-bold-transparent.2bpp resources/font8x16-bold-transparent.2bpp
+
+# Maths is split up
+obj/math.o: $(wildcard routines/math/*.asm) 
+
+examples/bin/%.sfc: examples/obj/%.o
+	ld65 -vm -m $(@:.sfc=.memlog) -C $(CONFIG) -o $@ $^
 
 examples/obj/%.o: examples/%.s
 	ca65 -I . -o $@ $<
@@ -24,8 +38,8 @@ examples/obj/%.o: examples/%.s
 obj/%.o: routines/%.s
 	ca65 -I . -o $@ $<
 
-$(OBJECTS) : $(HEADERS)
-$(EXAMPLE_OBJECTS) : $(HEADERS)
+$(OBJECTS) : $(HEADERS) $(CONFIG)
+$(EXAMPLE_OBJECTS) : $(HEADERS) $(CONFIG)
 
 .PHONY: resources
 resources:
