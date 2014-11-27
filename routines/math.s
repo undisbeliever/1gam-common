@@ -16,6 +16,13 @@ MODULE Math
 	BYTE	mathTmp3
 	BYTE	mathTmp4
 
+	UINT32 dividend32
+	UINT32 divisor32
+	UINT32 remainder32
+	; major optimisation in Division routines
+	; Allows me to ASL both dividend and result together
+	SAME_VARIABLE result32, dividend32
+
 .code
 
 .include "routines/math/division.asm"

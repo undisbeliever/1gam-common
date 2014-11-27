@@ -3,23 +3,15 @@
 ;;
 ;; included by `routines/math.s`
 
-
-.segment "SHADOW"
-	UINT32 dividend32
-	UINT32 divisor32
-	UINT32 remainder32
-	SAME_VARIABLE result32, dividend32
-
-
 .code
 
 ; INPUT:
-;	X: 16 bit unsigned Dividend
-;	Y: 16 bit unsigned Divisor
+;	Y: 16 bit unsigned Dividend
+;	X: 16 bit unsigned Divisor
 ;
 ; OUTPUT:
-;	X: 16 bit unsigned Result
-;	Y: 16 bit unsigned Remainder
+;	Y: 16 bit unsigned Result
+;	X: 16 bit unsigned Remainder
 ;
 ; Timings:
 ;  Y < 256:   44 cycles 
@@ -41,33 +33,33 @@
 ;			result++
 
 .I16
-ROUTINE DIVIDE_U16X_U16Y
+ROUTINE DIVIDE_U16Y_U16X
 .scope
 counter := mathTmp1
 divisor := mathTmp3
 
 	PHP
-	CPY	#$0100
+	CPX	#$0100
 	IF_GE
 		REP	#$20
 .A16
-		STY	divisor
-		LDY	#0			; Remainder
+		STX	divisor
+		LDX	#0			; Remainder
 		LDA	#16
 		STA	counter
 
 		REPEAT
-			TXA			; Dividend / result
+			TYA			; Dividend / result
 			ASL A
-			TAX
-			TYA 			; Remainder
-			ROL A
 			TAY
+			TXA 			; Remainder
+			ROL A
+			TAX
 
 			SUB	divisor
 			IF_C_SET		; C set if positive
-				TAY
-				INX 		; Result
+				TAX
+				INY 		; Result
 			ENDIF
 
 			DEC	counter
@@ -78,11 +70,11 @@ divisor := mathTmp3
 	ENDIF
 
 	; Otherwise Use registers instead
-		STX	WRDIV
+		STY	WRDIV
 		SEP	#$30			; 8 bit Index
 .A8
 .I8
-		STY	WRDIVB
+		STX	WRDIVB
 
 		; Wait 16 Cycles
 		PHD				; 4
@@ -97,17 +89,17 @@ divisor := mathTmp3
 
 
 ; INPUT:
-;	X: 16 bit unsigned Dividend
+;	Y: 16 bit unsigned Dividend
 ;	A: 8 bit unsigned Divisor
 ;
 ; OUTPUT:
-;	X: 16 bit unsigned Result
-;	Y: 16 bit unsigned Remainder
+;	Y: 16 bit unsigned Result
+;	X: 16 bit unsigned Remainder
 .A8
 .I16
-ROUTINE DIVIDE_U16X_U8A
+ROUTINE DIVIDE_U16Y_U8A
 
-	STX	WRDIV
+	STY	WRDIV
 	STA	WRDIVB			; Load to SNES division registers
 
 	; Wait 16 Cycles
@@ -118,8 +110,8 @@ ROUTINE DIVIDE_U16X_U8A
 
 DIVIDE_U16X_U8A_Result:
 
-	LDX	RDDIV			; result
-	LDY	RDMPY			; remainder
+	LDY	RDDIV			; result
+	LDX	RDMPY			; remainder
 
 	RTS
 

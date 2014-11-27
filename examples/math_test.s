@@ -152,32 +152,26 @@ ROUTINE SignedPrintingPage
 ROUTINE DivisionPage
 	Text_PrintStringLn "DIVIDE_U16X_U16Y"
 	Text_PrintString "  12345 / 678   = "
-	LDX	#12345
-	LDY	#678
-	JSR	Math__DIVIDE_U16X_U16Y
+	LDY	#12345
+	LDX	#678
+	JSR	Math__DIVIDE_U16Y_U16X
 
-	STY	tmpWord
-	TXY
+	STX	tmpWord
 	JSR	Text__PrintDecimal_U16Y
-
 	Text_PrintString " r "
-
 	Text_PrintDecimal tmpWord
 
 	Text_NewLine
 
 	; Divisor is one byte test.
 	Text_PrintString "  12345 / 67    = "
-	LDX	#12345
-	LDY	#67
-	JSR	Math__DIVIDE_U16X_U16Y
+	LDY	#12345
+	LDX	#67
+	JSR	Math__DIVIDE_U16Y_U16X
 
-	STY	tmpWord
-	TXY
+	STX	tmpWord
 	JSR	Text__PrintDecimal_U16Y
-
 	Text_PrintString " r "
-
 	Text_PrintDecimal tmpWord
 	
 	Text_NewLine
@@ -185,18 +179,15 @@ ROUTINE DivisionPage
 
 	Text_PrintStringLn "DIVIDE_U16X_U8A"
 	Text_PrintString "  9876 / 54     = "
-	LDX	#9876
+	LDY	#9876
 	LDA	#54
-	JSR	Math__DIVIDE_U16X_U8A
+	JSR	Math__DIVIDE_U16Y_U8A
 
-	STY	tmpWord
-	TXY
+	STX	tmpWord
 	JSR	Text__PrintDecimal_U16Y
-
 	Text_PrintString " r "
-
 	Text_PrintDecimal tmpWord
-	
+
 	Text_NewLine
 	Text_NewLine
 

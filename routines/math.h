@@ -15,7 +15,6 @@ IMPORT_MODULE Math
 	UINT32 remainder32
 	SAME_VARIABLE result32, dividend32
 
-
 	;; Optimised Unsigned 16 / 16 bit Integer Division.
 	;;
 	;; Inspiration: <http://codebase64.org/doku.php?id=base:16bit_division_16-bit_result>
@@ -23,12 +22,12 @@ IMPORT_MODULE Math
 	;; REQUIRES: 16 bit Index
 	;;
 	;; INPUT:
-	;;	X: 16 bit unsigned Dividend
-	;;	Y: 16 bit unsigned Divisor
+	;;	Y: 16 bit unsigned Dividend
+	;;	X: 16 bit unsigned Divisor
 	;;
 	;; OUTPUT:
-	;;	X: 16 bit unsigned Result
-	;;	Y: 16 bit unsigned Remainder
+	;;	Y: 16 bit unsigned Result
+	;;	X: 16 bit unsigned Remainder
 	;;
 	;;
 	;; Uses SNES Registers if Y < 256.
@@ -37,20 +36,20 @@ IMPORT_MODULE Math
 	;; Uses 4 bytes of temporary variables.
 	;;   * uint16 divisor
 	;;   * uint16 counter
-	ROUTINE DIVIDE_U16X_U16Y
+	ROUTINE DIVIDE_U16Y_U16X
 
 	;; Unsigned 16 / 8 bit Integer Division
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT:
-	;;	X: 16 bit unsigned Dividend
+	;;	Y: 16 bit unsigned Dividend
 	;;	A: 8 bit unsigned Divisor
 	;;
 	;; OUTPUT:
-	;;	X: 16 bit unsigned Result
-	;;	Y: 16 bit unsigned Remainder
-	ROUTINE DIVIDE_U16X_U8A
+	;;	Y: 16 bit unsigned Result
+	;;	X: 16 bit unsigned Remainder
+	ROUTINE DIVIDE_U16Y_U8A
 
 	;; Unsigned 32 / 32 bit Integer Division
 	;;
