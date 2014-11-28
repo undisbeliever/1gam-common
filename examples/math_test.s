@@ -20,13 +20,8 @@
 BG1_MAP			= $0400
 BG1_TILES		= $1000
 
-.zeropage
-	BYTE	tmpByte
-	WORD	tmpWord
-
 .segment "SHADOW"
 	ADDR	pageIndex
-
 
 .code
 ROUTINE Main
@@ -76,72 +71,215 @@ ROUTINE Main
 
 LABEL PageRoutines
 	.addr	SignedPrintingPage
-	.addr	DivisionPage
+	.addr	MultiplicationPage1
+	.addr	MultiplicationPage2
+	.addr	MultiplicationPage3
+	.addr	DivisionPage1
 
 PageRoutinesEnd:
+
+
+; Sets color red if Y is wrong, otherwise green.
+.macro Check_U16Y expected
+	PHA
+	PHY
+	PHX
+		CPY	#expected
+		IF_NE
+			Text_SetColor	#1
+		ELSE
+			Text_SetColor	#2
+		ENDIF
+	PLX
+	PLY
+	PLA
+.endmacro
+
+; Sets color red if X is wrong, otherwise green.
+.macro Check_U16X expected
+	PHA
+	PHY
+	PHX
+		CPX	#expected
+		IF_NE
+			Text_SetColor	#1
+		ELSE
+			Text_SetColor	#2
+		ENDIF
+	PLX
+	PLY
+	PLA
+.endmacro
+
+; Sets color red if XY is wrong, otherwise green.
+.macro Check_U32XY expected
+	PHA
+	PHX
+	PHY
+		CPX	#.hiword(expected)
+		IF_NE
+			Text_SetColor	#1
+		ELSE
+			CPY	#.loword(expected)
+			IF_NE
+				Text_SetColor	#1
+			ELSE
+				Text_SetColor	#2
+			ENDIF
+		ENDIF
+	PLY
+	PLX
+	PLA
+.endmacro
+
+; Sets color red if A is wrong, otherwise green.
+.macro Check_U8A expectedA
+	PHA
+	PHX
+	PHY
+		CMP	#expectedA
+		IF_NE
+			Text_SetColor	#1
+		ELSE
+			Text_SetColor	#2
+		ENDIF
+	PLY
+	PLX
+	PLA
+.endmacro
 
 
 .A8
 .I16
 ROUTINE SignedPrintingPage
+	Text_SetColor	#4
 	Text_PrintStringLn "Signed Printing Page"
-	Text_PrintStringLn "--------------------"
 
+	Text_SetColor	#0
 	Text_NewLine
 
-	Text_PrintString "S8A   Minus 33     "
+	Text_PrintString " S8A   Minus 33     = "
 	LDA	#.lobyte(-33)
 	JSR	Text__PrintDecimal_S8A
 
 	Text_NewLine
 
-	Text_PrintString "S16Y  Minus 1      "
+	Text_PrintString " S16Y  Minus 1      = "
 	LDY	#.loword(-1)
 	JSR	Text__PrintDecimal_S16Y
 
 	Text_NewLine
 
-	Text_PrintString "S32XY Minus 123456 "
+	Text_PrintString " S32XY Minus 123456 = "
 	LDXY	#-123456
 	JSR	Text__PrintDecimal_S32XY
 
 	Text_NewLine
 	Text_NewLine
 
-	Text_PrintString "S8A   Plus 33      "
+	Text_PrintString " S8A   Plus 33      = "
 	LDA	#.lobyte(33)
 	JSR	Text__PrintDecimal_S8A
 
 	Text_NewLine
 
-	Text_PrintString "S16Y  Plus 1       "
+	Text_PrintString " S16Y  Plus 1       = "
 	LDA	#6
 	LDY	#.loword(1)
 	JSR	Text__PrintDecimalPadded_S16Y
 
 	Text_NewLine
 
-	Text_PrintString "S32XY Plus 123456  "
+	Text_PrintString " S32XY Plus 123456  = "
 	LDA	#8
 	LDXY	#123456
 	JSR	Text__PrintDecimalPadded_S32XY
 
 	Text_NewLine
-	Text_NewLine
 
-	Text_PrintString "S16Y  Minus 1      "
+	Text_PrintString " S16Y  Minus 1      = "
 	LDA	#6
 	LDY	#.loword(-1)
 	JSR	Text__PrintDecimalPadded_S16Y
 
 	Text_NewLine
 
-	Text_PrintString "S32XY Minus 123456 "
+	Text_PrintString " S32XY Minus 123456 = "
 	LDA	#8
 	LDXY	#-123456
 	JSR	Text__PrintDecimalPadded_S32XY
 
+	RTS
+
+
+.A8
+.I16
+ROUTINE MultiplicationPage1
+	Text_SetColor	#4
+	Text_PrintString "Multiply_U8Y_U8X"
+	
+	.macro Test_Multiply_U8Y_U8X factorY, factorX
+		Text_NewLine
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorX)
+
+		LDY	#factorY
+		LDX	#factorX
+		JSR	Math__Multiply_U8Y_U8X
+
+		Check_U16Y (factorY * factorX)
+		JSR	Text__PrintDecimal_U16Y
+	.endmacro
+
+	Test_Multiply_U8Y_U8X	2, 2
+	Test_Multiply_U8Y_U8X	123, 56
+
+	Text_SetColor	#4
 	Text_NewLine
+	Text_NewLine
+	Text_PrintString "Multiply_U16Y_U8A"
+
+	.macro Test_Multiply_U16Y_U8A factorY, factorA
+		Text_NewLine
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorA)
+
+		LDY	#factorY
+		LDA	#factorA
+		JSR	Math__Multiply_U16Y_U8A
+		LDXY	Math__product32
+
+		Check_U32XY (factorY * factorA)
+		JSR	Text__PrintDecimal_U32XY
+	.endmacro
+
+	Test_Multiply_U16Y_U8A	12345, 67
+	Test_Multiply_U16Y_U8A	$FEFE, $FE
+
+
+
+	Text_SetColor	#4
+	Text_NewLine
+	Text_NewLine
+	Text_PrintString "Multiply_U32XY_U8A"
+
+	.macro Test_Multiply_U32XY_U8A factor32, factorA
+		Text_NewLine
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%10u * %3u = ", factor32, factorA)
+
+		LDXY	#factor32
+		LDA	#factorA
+		JSR	Math__Multiply_U32XY_U8A
+
+		Check_U32XY (factor32 * factorA)
+		JSR	Text__PrintDecimal_U32XY
+	.endmacro
+
+	Test_Multiply_U32XY_U8A	1234567, 89
+	Test_Multiply_U32XY_U8A	9876543, 21
+	Test_Multiply_U32XY_U8A	1984, 0
+	Test_Multiply_U32XY_U8A	$FEFEFEFE, $FE
 
 	RTS
 
@@ -149,94 +287,189 @@ ROUTINE SignedPrintingPage
 
 .A8
 .I16
-ROUTINE DivisionPage
-	Text_PrintStringLn "DIVIDE_U16X_U16Y"
-	Text_PrintString "  12345 / 678   = "
-	LDY	#12345
-	LDX	#678
-	JSR	Math__DIVIDE_U16Y_U16X
+ROUTINE MultiplicationPage2
+	Text_SetColor	#4
+	Text_PrintString "Multiply_U16Y_U16X"
 
-	STX	tmpWord
-	JSR	Text__PrintDecimal_U16Y
-	Text_PrintString " r "
-	Text_PrintDecimal tmpWord
+	.macro Test_Multiply_U16Y_U16X factorY, factorX
+		Text_NewLine
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%7u * %6u = ", factorY, factorX)
 
+		LDY	#factorY
+		LDX	#factorX
+		JSR	Math__Multiply_U16Y_U16X
+
+		Check_U32XY (factorY * factorX)
+		JSR	Text__PrintDecimal_U32XY
+	.endmacro
+
+	Test_Multiply_U16Y_U16X	123, 456
+	Test_Multiply_U16Y_U16X	9876, 54321
+	Test_Multiply_U16Y_U16X	393, 28966
+	Test_Multiply_U16Y_U16X	10776, 9568
+	Test_Multiply_U16Y_U16X	$FEFE, $FEFE
+
+
+	Text_SetColor	#4
+	Text_NewLine
+	Text_NewLine
+	Text_PrintString "Multiply_U32_U16Y"
+
+	.macro Test_Multiply_U32_U16Y factor32, factorY
+		Text_NewLine
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%8u * %5u = ", factor32, factorY)
+
+		LDXY	#factor32
+		STXY	Math__factor32
+		LDY	#factorY
+		JSR	Math__Multiply_U32_U16Y
+
+		Check_U32XY (factor32 * factorY)
+		JSR	Text__PrintDecimal_U32XY
+	.endmacro
+
+	Test_Multiply_U32_U16Y	123, 456
+	Test_Multiply_U32_U16Y	9876, 54321
+	Test_Multiply_U32_U16Y	393, 28966
+	Test_Multiply_U32_U16Y	$FEFE, $FEFE
+	Test_Multiply_U32_U16Y	$FEFEFE, $FEFE
+
+	RTS
+
+
+
+.A8
+.I16
+ROUTINE MultiplicationPage3
+	Text_SetColor	#4
+	Text_PrintStringLn "Multiply_U32_U32XY (hex)"
 	Text_NewLine
 
+	.macro Test_Multiply_U32_U32XY factor32, factorXY
+		; no new line, because of text overflow
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%8X * %8X = ", factor32, factorXY)
+
+		LDXY	#factor32
+		STXY	Math__factor32
+		LDXY	#factorXY
+		JSR	Math__Multiply_U32_U32XY
+
+		Check_U32XY (factor32 * factorXY)
+		Text_PrintHex	Math__product32
+	.endmacro
+
+	Test_Multiply_U32_U32XY	$01234567, $89ABCDEF
+	Test_Multiply_U32_U32XY	$FEDCBA98, $76543210
+	Test_Multiply_U32_U32XY	$0, $1234567
+	Test_Multiply_U32_U32XY	$12343457, 0
+	Test_Multiply_U32_U32XY	$FEFEFE, $FEFEFE
+	Test_Multiply_U32_U32XY	$FEFEFEFE, $FEFEFEFE
+
+
+
+
+	RTS
+
+
+
+.A8
+.I16
+ROUTINE DivisionPage1
+	Text_SetColor	#4
+	Text_PrintString "Divide_U16Y_U16X"
+
+	.macro Test_Divide_U16Y_U16X dividend, divisor
+		Text_NewLine
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%8u / %3u = ", dividend, divisor)
+
+		LDY	#dividend
+		LDX	#divisor
+		JSR	Math__Divide_U16Y_U16X
+
+		PHX
+		Check_U16Y (dividend / divisor)
+		JSR	Text__PrintDecimal_U16Y
+
+		Text_SetColor	#0
+		Text_PrintString " r "
+
+		PLY
+		Check_U16Y (dividend .mod divisor)
+		JSR	Text__PrintDecimal_U16Y
+	.endmacro
+
+
+	Test_Divide_U16Y_U16X 12345, 678
 	; Divisor is one byte test.
-	Text_PrintString "  12345 / 67    = "
-	LDY	#12345
-	LDX	#67
-	JSR	Math__DIVIDE_U16Y_U16X
+	Test_Divide_U16Y_U16X 9876, 5
+	Test_Divide_U16Y_U16X 12345, 67
 
-	STX	tmpWord
-	JSR	Text__PrintDecimal_U16Y
-	Text_PrintString " r "
-	Text_PrintDecimal tmpWord
-	
+	Text_SetColor	#4
 	Text_NewLine
 	Text_NewLine
+	Text_PrintString "Divide_U32XY_U8A"
 
-	Text_PrintStringLn "DIVIDE_U16X_U8A"
-	Text_PrintString "  9876 / 54     = "
-	LDY	#9876
-	LDA	#54
-	JSR	Math__DIVIDE_U16Y_U8A
+	.macro Test_Divide_U32_U8A dividend, divisor
+		Text_NewLine
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%8u / %3u = ", dividend, divisor)
 
-	STX	tmpWord
-	JSR	Text__PrintDecimal_U16Y
-	Text_PrintString " r "
-	Text_PrintDecimal tmpWord
+		LDXY	#dividend
+		STXY	Math__dividend32
+		LDA	#divisor
+		JSR	Math__Divide_U32_U8A
 
-	Text_NewLine
-	Text_NewLine
+		PHA
+		LDXY	Math__result32
+		Check_U32XY (dividend / divisor)
+		JSR	Text__PrintDecimal_U32XY
 
-	Text_PrintStringLn "DIVIDE_U32_U32"
-	Text_PrintString "  123456 / 789  = "
+		Text_SetColor #0
+		Text_PrintString " r "
 
-	LDXY	#123456
-	STXY	Math__dividend32
-	LDXY	#789
-	STXY	Math__divisor32
+		PLA
+		Check_U8A (dividend .mod divisor)
+		JSR	Text__PrintDecimal_U8A
+	.endmacro
 
-	JSR	Math__DIVIDE_U32_U32
+	Test_Divide_U32_U8A 9876, 54
+	Test_Divide_U32_U8A 9876543, 21
 
-	Text_PrintDecimal Math__result32
-	Text_PrintString " r "
-	Text_PrintDecimal Math__remainder32
-
-	Text_NewLine
-
-	Text_PrintString "  987 / 654321  = "
-
-	LDXY	#987
-	STXY	Math__dividend32
-	LDXY	#654321
-	STXY	Math__divisor32
-
-	JSR	Math__DIVIDE_U32_U32
-
-	Text_PrintDecimal Math__result32
-	Text_PrintString " r "
-	Text_PrintDecimal Math__remainder32
 
 	Text_NewLine
 	Text_NewLine
+	Text_SetColor	#4
+	Text_PrintString "Divide_U32_U32"
+	.macro Test_Divide_U32_U32 dividend, divisor
+		Text_NewLine
+		Text_SetColor	#0
+		Text_PrintString .sprintf("%6u / %6u = ", dividend, divisor)
 
-	Text_PrintStringLn "DIVIDE_U32_U8A"
-	Text_PrintString "  12345678 / 9  = "
+		LDXY	#dividend
+		STXY	Math__dividend32
+		LDXY	#divisor
+		STXY	Math__divisor32
+		JSR	Math__Divide_U32_U32
 
-	LDXY	#12345678
-	STXY	Math__dividend32
-	LDA	#9
+		LDXY	Math__result32
+		Check_U32XY (dividend / divisor)
+		JSR	Text__PrintDecimal_U32XY
 
-	JSR	Math__DIVIDE_U32_U8A
+		Text_SetColor #0
+		Text_PrintString " r "
 
-	STA	tmpByte
+		LDXY	Math__remainder32
+		Check_U32XY (dividend .mod divisor)
+		JSR	Text__PrintDecimal_U32XY
+	.endmacro
 
-	Text_PrintDecimal Math__result32
-	Text_PrintString " r "
-	Text_PrintDecimal tmpByte
+	Test_Divide_U32_U32 123456, 789
+	Test_Divide_U32_U32 987654, 321
+	Test_Divide_U32_U32 987, 654321
 
 	RTS
 

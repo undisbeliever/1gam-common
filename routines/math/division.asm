@@ -33,7 +33,7 @@
 ;			result++
 
 .I16
-ROUTINE DIVIDE_U16Y_U16X
+ROUTINE Divide_U16Y_U16X
 .scope
 counter := mathTmp1
 divisor := mathTmp3
@@ -81,7 +81,7 @@ divisor := mathTmp3
 		PLD				; 5
 		PLP				; 4
 .I16
-		BRA	DIVIDE_U16X_U8A_Result  ; 3
+		BRA	Divide_U16X_U8A_Result  ; 3
 
 	; Endif
 .endscope
@@ -97,7 +97,7 @@ divisor := mathTmp3
 ;	X: 16 bit unsigned Remainder
 .A8
 .I16
-ROUTINE DIVIDE_U16Y_U8A
+ROUTINE Divide_U16Y_U8A
 
 	STY	WRDIV
 	STA	WRDIVB			; Load to SNES division registers
@@ -108,7 +108,7 @@ ROUTINE DIVIDE_U16Y_U8A
 	PHB				; 3
 	PLB				; 4
 
-DIVIDE_U16X_U8A_Result:
+Divide_U16X_U8A_Result:
 
 	LDY	RDDIV			; result
 	LDX	RDMPY			; remainder
@@ -126,7 +126,7 @@ DIVIDE_U16X_U8A_Result:
 ;		result++
 .A16
 .I16
-ROUTINE DIVIDE_U32_U32
+ROUTINE Divide_U32_U32
 	PHP
 	REP	#$30
 .A16
@@ -166,7 +166,7 @@ ROUTINE DIVIDE_U32_U32
 ; OUTPUT:
 ;	result32: uint32 result
 ;       A: uint8 remainder
-ROUTINE DIVIDE_U32_U8A
+ROUTINE Divide_U32_U8A
 	PHP
 	SEP	#$30			; 8 bit A, 8 bit Index
 .A8

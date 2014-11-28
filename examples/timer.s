@@ -137,20 +137,20 @@ ROUTINE CalculateTime
 	STX	Math__dividend32 + 2
 
 	LDA	#FPS
-	JSR	Math__DIVIDE_U32_U8A
+	JSR	Math__Divide_U32_U8A
 
 	STA	fractionOfSeconds ; A = remainder
 
 	; result32 and dividend32 share memory location
 
 	LDA	#60
-	JSR	Math__DIVIDE_U32_U8A
+	JSR	Math__Divide_U32_U8A
 
 	STA	seconds
 
 	; result32 and dividend32 share memory location
 	LDA	#60
-	JSR	Math__DIVIDE_U32_U8A
+	JSR	Math__Divide_U32_U8A
 
 	STA	minutes
 

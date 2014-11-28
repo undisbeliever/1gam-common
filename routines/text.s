@@ -1050,7 +1050,7 @@ _ConvertDecimalStringPadded_U32XY_AfterVarStore:
 
 	REPEAT
 		LDA	#10
-		JSR	Math__DIVIDE_U32_U8A
+		JSR	Math__Divide_U32_U8A
 
 		LDX	position
 
