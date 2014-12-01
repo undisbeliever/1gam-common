@@ -5,6 +5,122 @@
 
 .code
 
+.I16
+ROUTINE Divide_S16Y_U16X
+	CPY	#$8000
+	IF_GE
+		PHP
+		REP	#$30
+.A16
+
+		TYA
+		NEG16
+		TAY
+
+		JSR	Divide_U16Y_U16X
+
+		; Result is negative
+		TYA
+		NEG16
+		TAY
+
+		PLP
+		RTS		
+	ENDIF
+
+	BRA	Divide_U16Y_U16X
+
+
+.I16
+ROUTINE Divide_U16Y_S16X
+	CPX	#$8000
+	IF_GE
+		PHP
+		REP	#$30
+.A16
+
+		TXA
+		NEG16
+		TAX
+
+		JSR	Divide_U16Y_U16X
+
+		; Result is negative
+		TYA
+		NEG16
+		TAY
+
+		PLP
+		RTS		
+	ENDIF
+
+	BRA	Divide_U16Y_U16X
+
+
+
+.I16
+ROUTINE Divide_S16Y_S16X
+	CPY	#$8000
+	IF_GE
+		PHP
+		REP	#$30
+.A16
+		; dividend Negative
+		TYA
+		NEG16
+		TAY
+		
+		CPX	#$8000
+		IF_GE
+			; divisor Negative
+			TXA
+			NEG16
+			TAX
+
+			JSR	Divide_U16Y_U16X
+			
+			; Result is positive
+			PLP
+			RTS
+		ENDIF
+
+		; Else - divisor is positive
+		JSR	Divide_U16Y_U16X
+		
+		; Result is negative
+		TYA
+		NEG16
+		TAY
+
+		PLP
+		RTS
+	ENDIF
+	; Else - dividend is positive
+
+	CPX	#$8000
+	IF_GE
+		PHP
+		REP	#$30
+.A16
+
+		TXA
+		NEG16
+		TAX
+
+		JSR	Divide_U16Y_U16X
+
+		; Result is negative
+		TYA
+		NEG16
+		TAY
+
+		PLP
+		RTS		
+	ENDIF
+
+	.assert * = Divide_U16Y_U16X, lderror, "Bad Flow"
+
+
 ; INPUT:
 ;	Y: 16 bit unsigned Dividend
 ;	X: 16 bit unsigned Divisor
@@ -87,7 +203,6 @@ divisor := mathTmp3
 .endscope
 
 
-
 ; INPUT:
 ;	Y: 16 bit unsigned Dividend
 ;	A: 8 bit unsigned Divisor
@@ -98,7 +213,6 @@ divisor := mathTmp3
 .A8
 .I16
 ROUTINE Divide_U16Y_U8A
-
 	STY	WRDIV
 	STA	WRDIVB			; Load to SNES division registers
 
@@ -117,6 +231,75 @@ Divide_U16X_U8A_Result:
 
 
 
+ROUTINE Divide_S32_S32
+	PHP
+	REP	#$30
+.A16
+.I16
+	LDA	dividend32 + 2
+	IF_MINUS
+		EOR	#$FFFF
+		STA	dividend32 + 2
+
+		LDA	dividend32
+		EOR	#$FFFF
+		STA	dividend32
+
+		INC32	dividend32
+
+		LDA	divisor32 + 2
+		IF_MINUS
+		; divisor is negative
+			EOR	#$FFFF
+			STA	divisor32 + 2
+
+			LDA	divisor32
+			EOR	#$FFFF
+			STA	divisor32
+
+			INC32	divisor32
+
+			BRA	_Divide_U32_U32_AfterPHP
+		ENDIF
+
+		; Else, divisor is positive
+
+		JSR	Divide_U32_U32
+
+		; only 1 negative, result negative
+		NEG32	result32
+
+		PLP
+		RTS
+	ENDIF
+
+	; dividend is positive
+
+	LDA	divisor32 + 2
+	IF_MINUS
+	; divisor is negative
+		EOR	#$FFFF
+		STA	divisor32 + 2
+
+		LDA	divisor32
+		EOR	#$FFFF
+		STA	divisor32
+
+		INC32	divisor32
+
+		JSR	Divide_U32_U32
+
+		; only 1 negative, result negative
+		NEG32 result32
+
+		PLP
+		RTS
+	ENDIF
+
+	BRA	_Divide_U32_U32_AfterPHP
+
+
+
 ; remainder = 0
 ; Repeat 32 times:
 ; 	remainder << 1 | MSB(dividend)
@@ -124,14 +307,13 @@ Divide_U16X_U8A_Result:
 ; 	if (remainder >= divisor)
 ;		remainder -= divisor
 ;		result++
-.A16
-.I16
 ROUTINE Divide_U32_U32
 	PHP
 	REP	#$30
 .A16
 .I16
 
+_Divide_U32_U32_AfterPHP:
 	STZ	remainder32
 	STZ	remainder32 + 2
 

@@ -864,7 +864,7 @@ ROUTINE ConvertDecimalString_S16Y
 
 		SEP	#$20
 .A8
-		JSR	ConvertDecimalStringPadded_U16Y
+		JSR	ConvertDecimalString_U16Y
 
 		; Draw negative sign.
 		DEX
@@ -1000,7 +1000,7 @@ ROUTINE ConvertDecimalString_S32XY
 	IF_MINUS
 		EOR	#$FFFF
 		STA	Math__dividend32 + 2
-		
+
 		TYA
 		EOR	#$FFFF
 		STA	Math__dividend32

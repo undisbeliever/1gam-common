@@ -87,6 +87,7 @@
 	TYPE_WORD
 	TYPE_ADDR
 	TYPE_LONG
+	TYPE_DWORD
 	TYPE_UINT8
 	TYPE_SINT8
 	TYPE_UINT16
@@ -293,6 +294,10 @@
 
 .macro LONG name, count
 	_VARIABLE_HELPER name, TYPE_LONG, 3, count
+.endmacro
+
+.macro DWORD name, count
+	_VARIABLE_HELPER name, TYPE_DWORD, 4, count
 .endmacro
 
 .macro UINT8 name, count

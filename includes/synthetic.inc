@@ -101,6 +101,36 @@
 	INC
 .endmacro
 
+;; Negates a 32 bit variable.
+;;
+;; var can be XY
+;;
+;; REQUIRE: 16 bit A
+.macro NEG32 var
+	; ::TODO enforce 16 bit A::
+	.if .xmatch({var}, XY)
+		TYA
+		EOR	#$FFFF
+		CLC
+		ADC	#1
+		TAY
+		TXA
+		EOR	#$FFFF
+		ADD	#0
+		TAX
+	.else
+		LDA	var
+		EOR	#$FFFF
+		CLC
+		ADC	#1
+		STA	var
+		LDA	2 + (var)
+		EOR	#$FFFF
+		ADC	#0
+		STA	2 + (var)
+	.endif
+.endmacro
+
 ;; 32 bit increment
 ;;
 ;; REQUIRES: 16 bit A

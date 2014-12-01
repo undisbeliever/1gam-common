@@ -755,7 +755,7 @@ ENDMODULE
 		JSR	::Text__PrintHex_8A
 		LDY	var
 		JSR	::Text__PrintHex_16Y
-	.elseif type = ::TYPE_UINT32 .or type = ::TYPE_SINT32
+	.elseif type = ::TYPE_DWORD .or type = ::TYPE_UINT32 .or type = ::TYPE_SINT32
 		; ::MAYDO replace with dedicated routine::
 		LDY	var + 2
 		JSR	::Text__PrintHex_16Y
@@ -821,13 +821,21 @@ ENDMODULE
 		.else
 			.error "Padding not supported"
 		.endif
-	.elseif type = ::TYPE_UINT32
+	.elseif type = ::TYPE_UINT32 .or type = ::TYPE_DWORD
 		LDXY	var
 		.ifblank padding
 			JSR	::Text__PrintDecimal_U32XY
 		.else
 			LDA	padding
 			JSR	::Text__PrintDecimalPadded_U32XY
+		.endif	
+	.elseif type = ::TYPE_SINT32
+		LDXY	var
+		.ifblank padding
+			JSR	::Text__PrintDecimal_S32XY
+		.else
+			LDA	padding
+			JSR	::Text__PrintDecimalPadded_S32XY
 		.endif	
 	.else
 		.error .sprintf("variable %s type (%d) not supported", .string(var), type)

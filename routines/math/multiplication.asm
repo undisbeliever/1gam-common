@@ -7,7 +7,7 @@
 
 .A8
 .A16
-ROUTINE Multiply_U8Y_U8X
+ROUTINE Multiply_U8Y_U8X_UY
 	PHP
 	SEP	#$30
 .I16
@@ -27,7 +27,9 @@ ROUTINE Multiply_U8Y_U8X
 ; Does not use X
 .A8
 .I16
-ROUTINE Multiply_U16Y_U8A
+ROUTINE Multiply_U16Y_U8A_U16Y
+ROUTINE Multiply_S16Y_U8A_S16Y
+ROUTINE Multiply_U16Y_U8A_U32XY
 	STA	WRMPYA
 
 	TYA
@@ -60,10 +62,12 @@ ROUTINE Multiply_U16Y_U8A
 	RTS
 
 
-
-
 .I16
-ROUTINE Multiply_U16Y_U16X
+ROUTINE Multiply_U16Y_U16X_U16Y
+ROUTINE Multiply_U16Y_U16X_U32XY
+ROUTINE Multiply_U16Y_S16X_16Y
+ROUTINE Multiply_S16Y_U16X_16Y
+ROUTINE Multiply_S16Y_S16X_S16Y
 	;       Y y
 	;   *   X x
 	; -----------
@@ -146,7 +150,48 @@ ROUTINE Multiply_U16Y_U16X
 
 .A8
 .I16
-ROUTINE Multiply_U32_U16Y
+ROUTINE Multiply_S16Y_S16X_S32XY
+	CPY	#$8000
+	IF_LT
+		; Y is Positive
+
+		CPX	#$8000
+		BLT	Multiply_U16Y_U16X_U32XY
+
+		; Y is Positive, X is Negative
+		STX	factor32 + 0
+		LDX	#$FFFF
+		STX	factor32 + 2
+
+		BRA	Multiply_S32_U16Y_S32XY
+	ENDIF
+
+	; Y is Negative
+	STY	factor32 + 0
+	LDY	#$FFFF
+	STY	factor32 + 2
+
+	TXY
+
+	.assert * = Multiply_S32_S16Y_S32XY, lderror, "Bad Flow"
+
+
+.A8
+.I16
+ROUTINE Multiply_U32_S16Y_32XY
+ROUTINE Multiply_S32_S16Y_S32XY
+	CPY	#$8000
+	IF_GE
+		LDX	#$FFFF
+		BRA	Multiply_S32_S32XY_S32XY
+	ENDIF
+
+	.assert * = Multiply_U32_U16Y_U32XY, lderror, "Bad Flow"
+
+.A8
+.I16
+ROUTINE Multiply_U32_U16Y_U32XY
+ROUTINE Multiply_S32_U16Y_S32XY
 	;      f3 f2 f1 f0
 	;  *         Yh Yl
 	; ------------------
@@ -164,13 +209,13 @@ ROUTINE Multiply_U32_U16Y
 
 	LDXY	factor32
 	PLA				; Yl
-	JSR	Multiply_U32XY_U8A
+	JSR	Multiply_U32XY_U8A_U32XY
 
 	STXY	mathTmp1		; not used by Multiply_U16Y_U8A
 
 	LDY	factor32 + 0
 	PLA				; Yh
-	JSR	Multiply_U16Y_U8A
+	JSR	Multiply_U16Y_U8A_U32XY
 	LDX	product32 + 2
 
 	LDA	factor32 + 2
@@ -201,8 +246,10 @@ ROUTINE Multiply_U32_U16Y
 
 .A8
 .I16
-ROUTINE Multiply_U32_U32XY
-
+ROUTINE Multiply_U32_U32XY_U32XY
+ROUTINE Multiply_U32_S32XY_32XY
+ROUTINE Multiply_S32_U32XY_32XY
+ROUTINE Multiply_S32_S32XY_S32XY
 	;      f3 f2 f1 f0
 	;  *   Xh Xl Yh Yl
 	; ------------------
@@ -221,20 +268,20 @@ ROUTINE Multiply_U32_U32XY
 	; product  = tmp + (factor * Xl << 16) + (factor * Xh << 24)
 
 	CPX	#0
-	BEQ	Multiply_U32_U16Y
+	BEQ	Multiply_U32_U16Y_U32XY
 
 	PHX
 	PHY
 	; first line
 	LDXY	factor32
 	PLA				; Yl
-	JSR	Multiply_U32XY_U8A
+	JSR	Multiply_U32XY_U8A_U32XY
 
 	STXY	mathTmp1		; not used by Multiply_U16Y_U8A
 
 	LDY	factor32 + 0
 	PLA				; Yh
-	JSR	Multiply_U16Y_U8A
+	JSR	Multiply_U16Y_U8A_U32XY
 	LDX	product32 + 2
 
 	LDA	factor32 + 2
@@ -258,7 +305,7 @@ ROUTINE Multiply_U32_U32XY
 	; product  = tmp + (factor * Xl << 16) + (factor * Xh << 24)
 	PLA				; Xl
 	LDY	factor32
-	JSR	Multiply_U16Y_U8A	; Does not use mathTmp
+	JSR	Multiply_U16Y_U8A_U32XY	; Does not use mathTmp
 
 	REP	#$31
 .A16	; c clear
@@ -290,7 +337,8 @@ ROUTINE Multiply_U32_U32XY
 
 .A8
 .I16
-ROUTINE Multiply_U32XY_U8A
+ROUTINE Multiply_U32XY_U8A_U32XY
+ROUTINE Multiply_S32XY_U8A_S32XY
 	STA	WRMPYA
 
 	; Low Word
