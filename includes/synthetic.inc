@@ -131,6 +131,19 @@
 	.endif
 .endmacro
 
+;; 16 bit increment on 8 bit A
+;;
+;; REQUIRES: 8 bit A
+.macro INC16 param
+	; ::TODO enforce 8 bit A::
+	.local skip
+
+	INC	param
+	BNE	skip
+	INC	param + 1
+skip:
+.endmacro
+
 ;; 32 bit increment
 ;;
 ;; REQUIRES: 16 bit A

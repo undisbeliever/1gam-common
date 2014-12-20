@@ -57,6 +57,8 @@
 .ifndef ::_STRUCTURE_INC_
 ::_STRUCTURE_INC_ = 1
 
+.include "includes/synthetic.inc"
+
 ; ::SHOULDDO FUNCION, ENDFUNCION ::
 ; http://mynesdev.blogspot.ca/2013/09/getting-most-out-of-ca65-part-1.html
 ;  * Ensures that stack is empty

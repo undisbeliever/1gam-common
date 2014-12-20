@@ -44,24 +44,24 @@ ROUTINE Main
 
 	Text_SetupWindow 2, 2, 29, 25, Text__WINDOW_BORDER
 
-	Text_SetColor #4
+	Text_SetColor 4
 	Text_PrintStringLn "The quick brown fox jumped over the lazy dog."
 
 	Text_SetStringWordWrapping
 
-	Text_SetColor #5
+	Text_SetColor 5
 	Text_PrintStringLn "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG."
 
 	JSR	Text__NewLine
 
 	Text_SetStringBasic
 
-	Text_SetColor #4
+	Text_SetColor 4
 	Text_PrintString StringFromLabel
 
 	Text_SetStringWordWrapping
 
-	Text_SetColor #5
+	Text_SetColor 5
 	Text_PrintString StringFromLabel
 
 	REPEAT

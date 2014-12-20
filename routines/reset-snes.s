@@ -14,7 +14,7 @@ MODULE Reset
 
 ;; Memory location contains a zero word.
 ;; From SNES Header (which has 7 consecutive zero bytes)
-ZeroWord = $00FFB6
+zeroWord = $00FFB6
 
 .code
 
@@ -40,7 +40,7 @@ ROUTINE ResetSNES
 	; Clear the WRAM
 	; Setup DMA Channel 0 for WRAM
 	LDX	#0
-	STX	WMADD
+	STX	WMADDL
 	STZ	WMADDH
 
 	LDA	#DMAP_DIRECTION_TO_PPU | DMAP_ADDRESS_FIXED | DMAP_TRANSFER_1REG
@@ -49,19 +49,19 @@ ROUTINE ResetSNES
 	LDA	#.lobyte(WMDATA)
 	STA	BBAD0
 
-	LDX	#ZeroWord
-	STX	A1T0
-	LDA	#.bankbyte(ZeroWord)
-	STA	A1B0
-
-	LDX	#0
+	; X = 0
 	STX	DAS0
+
+	LDX	#zeroWord
+	STX	A1T0
+	STZ	A1B0
+
+	.assert .bankbyte(zeroWord) = 0, error, "Bad zeroWord"
 
 	LDA	#MDMAEN_DMA0
 	STA	MDMAEN
 
 	; DSA0 is 0, no need to set it again
-	LDA	#MDMAEN_DMA0
 	STA	MDMAEN
 
 
@@ -149,9 +149,9 @@ ROUTINE ClearVRAM
 	LDX	#0
 	STX	DAS0
 
-	LDX	#ZeroWord
+	LDX	#zeroWord
 	STX	A1T0
-	LDA	#.bankbyte(ZeroWord)
+	LDA	#.bankbyte(zeroWord)
 	STA	A1B0
 
 	LDA	#MDMAEN_DMA0

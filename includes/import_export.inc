@@ -131,11 +131,13 @@
 
 
 .macro ZEROPAGE
+	.zeropage
 	::__MODULE_ZEROPAGE .set 1
 .endmacro
 
 .macro ENDZEROPAGE
 	::__MODULE_ZEROPAGE .set 0
+	.code
 .endmacro
 
 

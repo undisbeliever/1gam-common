@@ -1200,6 +1200,7 @@ DMAP7 = $4370
 .define DMAP_TRANSFER_1REG              %000
 .define DMAP_TRANSFER_2REGS             %001
 .define DMAP_TRANSFER_WRITE_TWICE       %010
+.define DMAP_TRANSFER_READ_TWICE        %010
 .define DMAP_TRANSFER_2REGS_WRITE_TWICE %011
 .define DMAP_TRANSFER_4REGS             %100
 

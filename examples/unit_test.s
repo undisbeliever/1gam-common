@@ -2,7 +2,7 @@
 
 .define VERSION 1
 .define REGION NTSC
-.define ROM_NAME "MATH TEST"
+.define ROM_NAME "SNESDEV-COMMON TESTS"
 
 
 .include "includes/sfc_header.inc"
@@ -11,6 +11,7 @@
 .include "includes/registers.inc"
 .include "includes/structure.inc"
 
+.include "routines/block.h"
 .include "routines/math.h"
 .include "routines/reset-snes.h"
 .include "routines/text.h"
@@ -19,6 +20,13 @@
 
 BG1_MAP			= $0400
 BG1_TILES		= $1000
+
+N_PAGES			= 11
+
+.segment "SHADOW"
+	BYTE	noErrors		; If true then there are no errors.
+	WORD	passNumber
+	ADDR	pageNumber
 
 
 .code
@@ -30,17 +38,94 @@ ROUTINE Main
 
 	JSR	SetupPPU
 
+	; Copies the palette to CGRAM
+	TransferToCgramLocation FontBoldTransparentPalette, 0
+
 	Text_LoadFont Font8x16BoldTransparent, BG1_TILES, BG1_MAP
 
-	JSR	LoadPalette
-
-	Text_SelectWindow #0
+	Text_SelectWindow 0
 	Text_SetStringBasic
 	Text_SetInterface Text8x16__Interface, 0
 	Text_SetupWindow 1, 1, 30, 26, Text__WINDOW_NO_BORDER
 
 	LDA	#$0F
 	STA	INIDISP
+
+	LDA	#1
+	STA	noErrors
+
+	LDX	#0
+	STX	passNumber
+
+	REPEAT
+		LDX	#0
+		STX	pageNumber
+
+		REPEAT
+			LDX	pageNumber
+			JSR	(.loword(PageTable), X)
+
+			JSR	NewPage
+
+			LDX	pageNumber
+			INX
+			INX
+			STX	pageNumber
+
+			CPX	#N_PAGES * 2
+		UNTIL_GE
+
+		INC16	passNumber
+
+		LDA	noErrors
+		IF_NOT_ZERO
+			Text_SetColor	2 
+
+			Text_SetCursor	5, 12
+			Text_PrintString "All Tests Completed"
+			Text_SetCursor	10, 14
+			Text_PrintString "No Errors"
+			JSR	NewPage
+		ENDIF
+	FOREVER
+
+
+PageTable:
+	.repeat N_PAGES, n
+		.addr .ident(.sprintf("Page%02d", n + 1))
+	.endrepeat
+
+
+;; For the first pass just go through all the pages as fast as possible.
+;;
+;; Waits for a keypress, then until keys released.
+;;
+;; REQUIRES: 8 bit A, 16 bit Index
+.I16
+ROUTINE NewPage
+	; If on first pass and there are no errors.
+	LDA	noErrors
+	IF_NOT_ZERO
+		LDX	passNumber
+		IF_ZERO
+			WAI
+			JMP	Text__ClearWindow
+		ENDIF
+	ENDIF
+
+	; Wait until button pressed
+	REPEAT
+		WAI
+		LDY	JOY1
+	UNTIL_NOT_ZERO
+
+	; Wait until button released
+	REPEAT
+		WAI
+		LDY	JOY1
+	UNTIL_ZERO
+	
+	JMP	Text__ClearWindow
 
 
 
@@ -51,9 +136,10 @@ ROUTINE Main
 	PHX
 		CPY	#.loword(expected)
 		IF_NE
-			Text_SetColor	#1
+			Text_SetColor	1
+			STZ	noErrors
 		ELSE
-			Text_SetColor	#2
+			Text_SetColor	2
 		ENDIF
 	PLX
 	PLY
@@ -67,9 +153,10 @@ ROUTINE Main
 	PHX
 		CPX	#.loword(expected)
 		IF_NE
-			Text_SetColor	#1
+			Text_SetColor	1
+			STZ	noErrors
 		ELSE
-			Text_SetColor	#2
+			Text_SetColor	2
 		ENDIF
 	PLX
 	PLY
@@ -83,13 +170,15 @@ ROUTINE Main
 	PHY
 		CPX	#.hiword(expected)
 		IF_NE
-			Text_SetColor	#1
+			Text_SetColor	1
+			STZ	noErrors
 		ELSE
 			CPY	#.loword(expected)
 			IF_NE
-				Text_SetColor	#1
+				Text_SetColor	1
+				STZ	noErrors
 			ELSE
-				Text_SetColor	#2
+				Text_SetColor	2
 			ENDIF
 		ENDIF
 	PLY
@@ -104,9 +193,10 @@ ROUTINE Main
 	PHY
 		CMP	#expectedA
 		IF_NE
-			Text_SetColor	#1
+			Text_SetColor	1
+			STZ	noErrors
 		ELSE
-			Text_SetColor	#2
+			Text_SetColor	2
 		ENDIF
 	PLY
 	PLX
@@ -114,12 +204,12 @@ ROUTINE Main
 .endmacro
 
 
-FirstPage:
 
-	Text_SetColor	#4
+ROUTINE Page01
+	Text_SetColor	4
 	Text_PrintStringLn "Signed Printing Page"
 
-	Text_SetColor	#0
+	Text_SetColor	0
 	Text_NewLine
 
 	Text_PrintString " S8A   Minus 33     = "
@@ -173,16 +263,17 @@ FirstPage:
 	LDXY	#-123456
 	JSR	Text__PrintDecimalPadded_S32XY
 
+	RTS
 
-	JSR	WaitForKeypress
-	; ----------------------------------------------
 
-	Text_SetColor	#4
+
+ROUTINE Page02
+	Text_SetColor	4
 	Text_PrintString "Multiply_U8Y_U8X_UY"
 	
 	.macro Test_Multiply_U8Y_U8X_UY factorY, factorX
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorX)
 
 		LDY	#factorY
@@ -196,14 +287,14 @@ FirstPage:
 	Test_Multiply_U8Y_U8X_UY	2, 2
 	Test_Multiply_U8Y_U8X_UY	123, 56
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_U16Y_U8A_U16Y"
 
 	.macro Test_Multiply_U16Y_U8A_U16Y factorY, factorA
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorA)
 
 		LDY	#factorY
@@ -219,14 +310,14 @@ FirstPage:
 	Test_Multiply_U16Y_U8A_U16Y	$FEFE, $FE
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_S16Y_U8A_S16Y"
 
 	.macro Test_Multiply_S16Y_U8A_S16Y factorY, factorA
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorA)
 
 		LDY	#.loword(factorY)
@@ -241,17 +332,17 @@ FirstPage:
 	Test_Multiply_S16Y_U8A_S16Y	12345, 67
 	Test_Multiply_S16Y_U8A_S16Y	-12345, 67
 
+	RTS
 
 
-	JSR	WaitForKeypress
-	; ----------------------------------------------
 
-	Text_SetColor	#4
+ROUTINE Page03
+	Text_SetColor	4
 	Text_PrintString "Multiply_U16Y_U8A_U32XY"
 
 	.macro Test_Multiply_U16Y_U8A_U32XY factorY, factorA
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorA)
 
 		LDY	#factorY
@@ -268,14 +359,14 @@ FirstPage:
 
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_U16Y_U16X_U16Y"
 
 	.macro Test_Multiply_U16Y_U16X_U16Y factorY, factorX
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%7i * %6i = ", factorY, factorX)
 
 		LDY	#.loword(factorY)
@@ -290,14 +381,14 @@ FirstPage:
 	Test_Multiply_U16Y_U16X_U16Y	987, 654
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_U16Y_U16X_U32XY"
 
 	.macro Test_Multiply_U16Y_U16X_U32XY factorY, factorX
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%7u * %6u = ", factorY, factorX)
 
 		LDY	#factorY
@@ -313,17 +404,17 @@ FirstPage:
 	Test_Multiply_U16Y_U16X_U32XY	12345, 6789
 	Test_Multiply_U16Y_U16X_U32XY	$FEFE, $FEFE
 
-
-	JSR	WaitForKeypress
-	; ----------------------------------------------
+	RTS
 
 
-	Text_SetColor	#4
+
+ROUTINE Page04
+	Text_SetColor	4
 	Text_PrintString "Multiply_S16Y_S16X_S16Y"
 
 	.macro Test_Multiply_S16Y_S16X_S16Y factorY, factorX
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%7i * %6i = ", factorY, factorX)
 
 		LDY	#.loword(factorY)
@@ -339,14 +430,14 @@ FirstPage:
 	Test_Multiply_S16Y_S16X_S16Y	987, -6
 	Test_Multiply_S16Y_S16X_S16Y	-987, -6
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_S16Y_S16X_S32XY"
 
 	.macro Test_Multiply_S16Y_S16X_S32XY factorY, factorX
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%7i * %6i = ", factorY, factorX)
 
 		LDY	#.loword(factorY)
@@ -362,17 +453,17 @@ FirstPage:
 	Test_Multiply_S16Y_S16X_S32XY	9876, -5432
 	Test_Multiply_S16Y_S16X_S32XY	-9876, -5432
 
-
-	JSR	WaitForKeypress
-	; ----------------------------------------------
+	RTS
 
 
-	Text_SetColor	#4
+
+ROUTINE Page05
+	Text_SetColor	4
 	Text_PrintString "Multiply_U32XY_U8A_U32XY"
 
 	.macro Test_Multiply_U32XY_U8A_U32XY factor32, factorA
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factor32, factorA)
 
 		LDXY	#factor32
@@ -389,14 +480,14 @@ FirstPage:
 	Test_Multiply_U32XY_U8A_U32XY	$FEFEFEFE, $FE
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_S32XY_U8A_S32XY"
 
 	.macro Test_Multiply_S32XY_U8A_S32XY factor32, factorA
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%10i * %3u = ", factor32, factorA)
 
 		LDXY	#factor32
@@ -413,17 +504,16 @@ FirstPage:
 	Test_Multiply_S32XY_U8A_S32XY	-9876543, 21
 	Test_Multiply_S32XY_U8A_S32XY	$FEFEFEFE, $FE
 
-
-	JSR	WaitForKeypress
-	; ----------------------------------------------
+	RTS
 
 
-	Text_SetColor	#4
+ROUTINE Page06
+	Text_SetColor	4
 	Text_PrintString "Multiply_U32_U16Y_U32XY"
 
 	.macro Test_Multiply_U32_U16Y_U32XY factor32, factorY
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8u * %5u = ", factor32, factorY)
 
 		LDXY	#factor32
@@ -441,14 +531,14 @@ FirstPage:
 	Test_Multiply_U32_U16Y_U32XY	$FEFEFE, $FEFE
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_S32_U16Y_S32XY"
 
 	.macro Test_Multiply_S32_U16Y_S32XY factor32, factorY
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8i * %5i = ", factor32, factorY)
 
 		LDXY	#factor32
@@ -463,16 +553,16 @@ FirstPage:
 	Test_Multiply_S32_U16Y_S32XY	98765, 4321
 	Test_Multiply_S32_U16Y_S32XY	-98765, 4321
 
+	RTS
 
-	JSR	WaitForKeypress
-	; ----------------------------------------------
 
-	Text_SetColor	#4
+ROUTINE Page07
+	Text_SetColor	4
 	Text_PrintString "Multiply_U32_S16Y_32XY"
 
 	.macro Test_Multiply_U32_S16Y_32XY factor32, factorY
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8i * %5i = ", factor32, factorY)
 
 		LDXY	#factor32
@@ -488,14 +578,14 @@ FirstPage:
 	Test_Multiply_U32_S16Y_32XY	1234567, -890
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_S32_S16Y_S32XY"
 
 	.macro Test_Multiply_S32_S16Y_S32XY factor32, factorY
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8i * %5i = ", factor32, factorY)
 
 		LDXY	#factor32
@@ -512,16 +602,17 @@ FirstPage:
 	Test_Multiply_S32_S16Y_S32XY	987654, -321
 	Test_Multiply_S32_S16Y_S32XY	-987654, -321
 
+	RTS
 
-	JSR	WaitForKeypress
-	; ----------------------------------------------
 
-	Text_SetColor	#4
+
+ROUTINE Page08
+	Text_SetColor	4
 	Text_PrintString "Multiply_U32_U32XY_U32XY (hex)"
 
 	.macro Test_Multiply_U32_U32XY_U32XY factor32, factorXY
 		; no new line, due to overflow.
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8X * %8X = ", factor32, factorXY)
 
 		LDXY	#factor32
@@ -540,14 +631,14 @@ FirstPage:
 	Test_Multiply_U32_U32XY_U32XY	$FEFEFEFE, $FEFEFEFE
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_S32_S32XY_S32XY"
 
 	.macro Test_Multiply_S32_S32XY_S32XY factor32, factorXY
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8i * %8i = ", factor32, factorXY)
 
 		LDXY	#factor32
@@ -565,17 +656,17 @@ FirstPage:
 	Test_Multiply_S32_S32XY_S32XY	-987, 654 
 	Test_Multiply_S32_S32XY_S32XY	-2014, -1201
 
-
-	JSR	WaitForKeypress
-	; ----------------------------------------------
+	RTS
 
 
-	Text_SetColor	#4
+
+ROUTINE Page09
+	Text_SetColor	4
 	Text_PrintString "Divide_U16Y_U16X"
 
 	.macro Test_Divide_U16Y_U16X dividend, divisor
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8u / %5u = ", dividend, divisor)
 
 		LDY	#dividend
@@ -586,7 +677,7 @@ FirstPage:
 		Check_16Y (dividend / divisor)
 		JSR	Text__PrintDecimal_U16Y
 
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString " r "
 
 		PLY
@@ -602,14 +693,14 @@ FirstPage:
 	Test_Divide_U16Y_U16X 9876, 5
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Divide_S16Y_U16X"
 
 	.macro Test_Divide_S16Y_U16X dividend, divisor
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8i / %5i = ", dividend, divisor)
 
 		LDY	#.loword(dividend)
@@ -620,7 +711,7 @@ FirstPage:
 		Check_16Y (dividend / divisor)
 		JSR	Text__PrintDecimal_S16Y
 
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString " r "
 
 		PLY
@@ -636,14 +727,14 @@ FirstPage:
 	Test_Divide_S16Y_U16X -12345, 6789
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Divide_U16Y_S16X"
 
 	.macro Test_Divide_U16Y_S16X dividend, divisor
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8i / %5i = ", dividend, divisor)
 
 		LDY	#.loword(dividend)
@@ -654,7 +745,7 @@ FirstPage:
 		Check_16Y (dividend / divisor)
 		JSR	Text__PrintDecimal_S16Y
 
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString " r "
 
 		PLY
@@ -670,17 +761,16 @@ FirstPage:
 	Test_Divide_U16Y_S16X 12345, 678
 	Test_Divide_U16Y_S16X 12345, -678
 
-
-	JSR	WaitForKeypress
-	; ----------------------------------------------
+	RTS
 
 
-	Text_SetColor	#4
+ROUTINE Page10
+	Text_SetColor	4
 	Text_PrintString "Divide_S16Y_S16X"
 
 	.macro Test_Divide_S16Y_S16X dividend, divisor
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8i /%5i = ", dividend, divisor)
 
 		LDY	#.loword(dividend)
@@ -691,7 +781,7 @@ FirstPage:
 		Check_16Y (dividend / divisor)
 		JSR	Text__PrintDecimal_S16Y
 
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString " r "
 
 		PLY
@@ -711,14 +801,14 @@ FirstPage:
 
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Divide_U16Y_U8A"
 
 	.macro Test_Divide_U16Y_U8A dividend, divisor
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8u / %4u = ", dividend, divisor)
 
 		LDY	#dividend
@@ -729,7 +819,7 @@ FirstPage:
 		Check_16Y (dividend / divisor)
 		JSR	Text__PrintDecimal_U16Y
 
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString " r "
 
 		PLY
@@ -741,14 +831,14 @@ FirstPage:
 	Test_Divide_U16Y_U8A 12345, 67
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Divide_U32_U8A"
 
 	.macro Test_Divide_U32_U8A dividend, divisor
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%8u / %4u = ", dividend, divisor)
 
 		LDXY	#dividend
@@ -761,7 +851,7 @@ FirstPage:
 		Check_32XY (dividend / divisor)
 		JSR	Text__PrintDecimal_U32XY
 
-		Text_SetColor #0
+		Text_SetColor	0
 		Text_PrintString " r "
 
 		PLA
@@ -772,16 +862,15 @@ FirstPage:
 	Test_Divide_U32_U8A 9876543, 21
 	Test_Divide_U32_U8A 12345678, 90
 
-
-	JSR	WaitForKeypress
-	; ----------------------------------------------
+	RTS
 
 
-	Text_SetColor	#4
+ROUTINE Page11
+	Text_SetColor	4
 	Text_PrintString "Divide_U32_U32"
 	.macro Test_Divide_U32_U32 dividend, divisor
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%7u / %6u = ", dividend, divisor)
 
 		LDXY	#dividend
@@ -794,7 +883,7 @@ FirstPage:
 		Check_32XY (dividend / divisor)
 		JSR	Text__PrintDecimal_U32XY
 
-		Text_SetColor #0
+		Text_SetColor	0
 		Text_PrintString " r "
 
 		LDXY	Math__remainder32
@@ -808,13 +897,13 @@ FirstPage:
 	Test_Divide_U32_U32 0, 123456
 
 
-	Text_SetColor	#4
+	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Divide_S32_S32"
 	.macro Test_Divide_S32_S32 dividend, divisor
 		Text_NewLine
-		Text_SetColor	#0
+		Text_SetColor	0
 		Text_PrintString .sprintf("%7i / %6i = ", dividend, divisor)
 
 		LDXY	#dividend
@@ -827,7 +916,7 @@ FirstPage:
 		Check_32XY (dividend / divisor)
 		JSR	Text__PrintDecimal_S32XY
 
-		Text_SetColor #0
+		Text_SetColor	0
 		Text_PrintString " r "
 
 		LDXY	Math__remainder32
@@ -844,32 +933,9 @@ FirstPage:
 	Test_Divide_S32_S32 -987, 654321
 	Test_Divide_S32_S32 -123456, -789
 
-
-	JSR	WaitForKeypress
-	; ----------------------------------------------
-
-	JMP	FirstPage
+	RTS
 
 
-
-;; Waits for a keypress, then until keys released.
-;;
-;; REQUIRES: 16 bit Index
-.I16
-ROUTINE WaitForKeypress
-	; Wait until button pressed
-	REPEAT
-		WAI
-		LDY	JOY1
-	UNTIL_NOT_ZERO
-
-	; Wait until button released
-	REPEAT
-		WAI
-		LDY	JOY1
-	UNTIL_ZERO
-	
-	JMP	Text__ClearWindow
 
 
 
@@ -928,36 +994,6 @@ ROUTINE SetupPPU
 	RTS
 
 
-
-;; Copies the palette to CGRAM
-;;
-;; REQUIRES 8 bit A, 16 bit Index, Forced Blank
-.A8
-.I16
-ROUTINE LoadPalette
-	; ::TODO DMAPalette macro::
-	; Load white to color 1
-	LDA	#0
-	STA	CGADD
-
-	LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_1REG
-	STA	DMAP0
-
-	LDA	#.lobyte(CGDATA)
-	STA	BBAD0
-
-	LDX	#FontBoldTransparentPalette_End - FontBoldTransparentPalette
-	STX	DAS0
-
-	LDX	#.loword(FontBoldTransparentPalette)
-	STX	A1T0
-	LDA	#.bankbyte(FontBoldTransparentPalette)
-	STA	A1B0
-
-	LDA	#MDMAEN_DMA0
-	STA	MDMAEN
-	
-	RTS
 
 
 

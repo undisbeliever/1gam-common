@@ -10,6 +10,7 @@
 ::_TEXT_H_ = 1
 
 .include "includes/import_export.inc"
+.include "routines/block.h"
 
 .ifndef N_TEXT_WINDOWS
 	.define N_TEXT_WINDOWS 4
@@ -510,9 +511,9 @@ ENDMODULE
 .if N_TEXT_WINDOWS > 1
 ;; Selects the given window
 ;;
-;; INPUT: win - the window number, if const then
+;; INPUT: win - the window number
 .macro Text_SelectWindow win
-	LDA	win
+	LDA	#win
 	JSR	::Text__SelectWindow
 .endmacro
 .endif
@@ -557,7 +558,7 @@ ENDMODULE
 ;;
 ;; REQUIRES: 8 bit A, 16 bit Index
 .macro Text_SetColor color
-	LDA	color
+	LDA	#color
 	JSR	::Text__SetColor
 .endmacro
 
@@ -576,31 +577,7 @@ ENDMODULE
 	LDX	#mapAddr
 	STX	::Text__vramMapAddr
 
-; ::TODO VRAM DMA macro::
-
-	LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
-	STA	VMAIN
-
-	LDX	#vramTilesetAddr
-	STX	VMADD
-
-	LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS
-	STA	DMAP0
-
-	LDA	#.lobyte(VMDATA)
-	STA	BBAD0
-
-	LDX	#.ident(.sprintf("%s_End", .string(tileset))) - tileset
-	STX	DAS0
-
-	LDX	#.loword(tileset)
-	STX	A1T0
-	LDA	#.bankbyte(tileset)
-	STA	A1B0
-
-	LDA	#MDMAEN_DMA0
-	STA	MDMAEN
-
+	TransferToVramLocation tileset, vramTilesetAddr
 .endmacro
 
 
@@ -789,14 +766,14 @@ ENDMODULE
 		.ifblank padding
 			JSR	::Text__PrintDecimal_U8A
 		.else
-			.if .xmatch(padding, #1)
+			.if padding = 1
 				JSR	::Text__PrintDecimalPadded_U8A_1
-			.elseif .xmatch(padding, #2)
+			.elseif padding = 2
 				JSR	::Text__PrintDecimalPadded_U8A_2
-			.elseif .xmatch(padding, #3)
+			.elseif padding = 3
 				JSR	::Text__PrintDecimalPadded_U8A_3
 			.else
-				.error "Unknown padding (only allow #1, #2, #3)"
+				.error "Unknown padding (only allow 1, 2, or 3)"
 			.endif
 		.endif
 	.elseif type = ::TYPE_SINT8
@@ -811,7 +788,7 @@ ENDMODULE
 		.ifblank padding
 			JSR	::Text__PrintDecimal_U16Y
 		.else
-			LDA	padding
+			LDA	#padding
 			JSR	::Text__PrintDecimalPadded_U16Y
 		.endif
 	.elseif type = ::TYPE_SINT16
@@ -826,7 +803,7 @@ ENDMODULE
 		.ifblank padding
 			JSR	::Text__PrintDecimal_U32XY
 		.else
-			LDA	padding
+			LDA	#padding
 			JSR	::Text__PrintDecimalPadded_U32XY
 		.endif	
 	.elseif type = ::TYPE_SINT32
@@ -834,7 +811,7 @@ ENDMODULE
 		.ifblank padding
 			JSR	::Text__PrintDecimal_S32XY
 		.else
-			LDA	padding
+			LDA	#padding
 			JSR	::Text__PrintDecimalPadded_S32XY
 		.endif	
 	.else
@@ -845,12 +822,10 @@ ENDMODULE
 
 ;; Sets the cursor to a given xpos and ypos.
 ;;
-;; INPUT: xpos and ypos can be const, or a label
-;;
 ;; REQUIRE: 8 bit A, 16 bit Index
 .macro Text_SetCursor xpos, ypos
-	LDX	xpos
-	LDY	ypos
+	LDX	#xpos
+	LDY	#ypos
 	JSR	::Text__SetCursor
 .endmacro
 

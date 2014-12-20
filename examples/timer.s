@@ -54,14 +54,14 @@ ROUTINE Main
 	LDA	#$0F
 	STA	INIDISP
 
-	Text_SelectWindow #0
+	Text_SelectWindow 0
 	Text_SetStringBasic
 	Text_SetInterface Text8x8__SingleSpacingInterface, 0
-	Text_SetColor #7
+	Text_SetColor 7
 	Text_SetupWindow 16, 3, 28, 4, Text__WINDOW_BORDER
-	Text_SetColor #6
+	Text_SetColor 6
 
-	Text_SelectWindow #1
+	Text_SelectWindow 1
 	Text_SetStringBasic
 	Text_SetInterface Text8x16__Interface, LARGE_FONT_OFFSET
 	Text_SetupWindow 3, 19, 28, 24, Text__WINDOW_BORDER
@@ -81,9 +81,9 @@ ROUTINE Main
 .A8
 .I16
 ROUTINE DisplayTimeHex
-	Text_SelectWindow #0
+	Text_SelectWindow 0
 
-	Text_SetCursor #5, #0
+	Text_SetCursor 5, 0
 
 	Text_PrintHex frameCounter
 
@@ -106,21 +106,21 @@ ROUTINE DisplayTimeHex
 .A8
 .I16
 ROUTINE DisplayTimeDecimal
-	Text_SelectWindow #1
+	Text_SelectWindow 1
 
-	Text_SetCursor #8, #1
+	Text_SetCursor 8, 1
 
-	Text_PrintDecimal frameCounter, #10
+	Text_PrintDecimal frameCounter, 10
 
-	Text_SetCursor #8, #3
+	Text_SetCursor 8, 3
 
 	Text_PrintDecimal hours
 	Text_PrintChar ':'
-	Text_PrintDecimal minutes, #2
+	Text_PrintDecimal minutes, 2
 	Text_PrintChar ':'
-	Text_PrintDecimal seconds, #2
+	Text_PrintDecimal seconds, 2
 	Text_PrintChar ':'
-	Text_PrintDecimal fractionOfSeconds, #2
+	Text_PrintDecimal fractionOfSeconds, 2
 
 	RTS
 

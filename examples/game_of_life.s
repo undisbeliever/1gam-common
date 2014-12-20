@@ -14,6 +14,7 @@
 
 .include "routines/reset-snes.h"
 .include "routines/cpu-usage.h"
+.include "routines/block.h"
 
 ; Ignore interrupts
 IrqHandler	= EmptyHandler
@@ -36,8 +37,8 @@ CopHandler	= EmptyHandler
 
 .define	EOL		$0A
 
-BG1_Tilemap		= $0400
-BG1_Tiles		= $1000
+BG1_MAP			= $0400
+BG1_TILES		= $1000
 
 
 .zeropage
@@ -455,33 +456,9 @@ VBlank:
 
 	; If updateTilemap is set then load buffer into VRAM
 	; Remember that tilemapBuffer only stores the low byte of the tilemap
-	; Thus we use VMAIN_INCREMENT_LOW and 1 Register Transfer
 	LDA updateTilemap
 	IF_NOT_ZERO
-		LDA	#VMAIN_INCREMENT_LOW | VMAIN_INCREMENT_1
-		STA	VMAIN
-
-		LDX	#BG1_Tilemap
-		STX	VMADD
-
-		STZ	VMDATAH
-
-		LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_1REG
-		STA	DMAP0
-
-		LDA	#.lobyte(VMDATAL)
-		STA	BBAD0
-
-		LDX	#.sizeof(tilemapBuffer)
-		STX	DAS0
-
-		LDX	#tilemapBuffer
-		STX	A1T0
-		LDA	#.bankbyte(tilemapBuffer)
-		STA	A1B0
-
-		LDA	#MDMAEN_DMA0
-		STA	MDMAEN
+		TransferToVramLocationDataLow	tilemapBuffer, BG1_MAP
 	ENDIF
 
 
@@ -509,10 +486,10 @@ ROUTINE SetupPPU
 	LDA	#BGMODE_MODE0
 	STA	BGMODE
 
-	LDA	#(BG1_Tilemap / BGXSC_BASE_WALIGN) << 2
+	LDA	#(BG1_MAP / BGXSC_BASE_WALIGN) << 2
 	STA	BG1SC
 
-	LDA	#BG1_Tiles / BG12NBA_BASE_WALIGN
+	LDA	#BG1_TILES / BG12NBA_BASE_WALIGN
 	STA	BG12NBA
 
 	LDA	#TM_BG1
@@ -528,45 +505,8 @@ ROUTINE SetupPPU
 .A8
 .I16
 ROUTINE LoadTiles
-	; Load tiles to BG1 VRAM
-	LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
-	STA	VMAIN
-
-	LDX	#BG1_Tiles
-	STX	VMADD
-
-	LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS
-	STA	DMAP0
-
-	LDA	#.lobyte(VMDATA)
-	STA	BBAD0
-
-	LDX	#EndTiles - Tiles
-	STX	DAS0
-
-	LDX	#.loword(Tiles)
-	STX	A1T0
-	LDA	#.bankbyte(Tiles)
-	STA	A1B0
-
-	LDA	#MDMAEN_DMA0
-	STA	MDMAEN
-
-
-	; Load white to color 1
-	LDA	#1
-	STA	CGADD
-
-	LDA	#$FF
-	STA	CGDATA
-	LDA	#$7F
-	STA	CGDATA
-
-	; Load blue/gray to color 2 (border color)
-	LDA	#$EF
-	STA	CGDATA
-	LDA	#$4D
-	STA	CGDATA
+	TransferToVramLocation Tiles, BG1_TILES
+	TransferToCgramLocation Palette, 0
 
 	RTS
 
@@ -593,7 +533,11 @@ Tiles:
 	; Padding Right
 	.byte $00, $80, $00, $80, $00, $80, $00, $80
 	.byte $00, $80, $00, $80, $00, $80, $00, $80
-EndTiles:
+Tiles_End:
+
+Palette:
+	.word	$0000, $7FFF, $4DEF
+Palette_End:
 
 .proc Games
 
