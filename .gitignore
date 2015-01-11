@@ -4,6 +4,7 @@
 obj
 examples/bin
 examples/obj
+unit_tests/bin
 resources/*.xcf
 resources/*.2bpp
 resources/*.4bpp

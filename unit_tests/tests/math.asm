@@ -1,273 +1,8 @@
-;; Routine that tests the Math Routines for correctness.
-
-.define VERSION 1
-.define REGION NTSC
-.define ROM_NAME "SNESDEV-COMMON TESTS"
-
-
-.include "includes/sfc_header.inc"
-.include "includes/import_export.inc"
-.include "includes/synthetic.inc"
-.include "includes/registers.inc"
-.include "includes/structure.inc"
-
-.include "routines/block.h"
+; Test of Math routines
 .include "routines/math.h"
-.include "routines/reset-snes.h"
-.include "routines/text.h"
-.include "routines/text8x8.h"
-.include "routines/text8x16.h"
-
-BG1_MAP			= $0400
-BG1_TILES		= $1000
-
-N_PAGES			= 11
-
-.segment "SHADOW"
-	BYTE	noErrors		; If true then there are no errors.
-	WORD	passNumber
-	ADDR	pageNumber
 
 
-.code
-ROUTINE Main
-	REP	#$10        ; X/Y 16-bit
-	SEP	#$20        ; A 8-bit
-.A8
-.I16
-
-	JSR	SetupPPU
-
-	; Copies the palette to CGRAM
-	TransferToCgramLocation FontBoldTransparentPalette, 0
-
-	Text_LoadFont Font8x16BoldTransparent, BG1_TILES, BG1_MAP
-
-	Text_SelectWindow 0
-	Text_SetStringBasic
-	Text_SetInterface Text8x16__Interface, 0
-	Text_SetupWindow 1, 1, 30, 26, Text__WINDOW_NO_BORDER
-
-	LDA	#$0F
-	STA	INIDISP
-
-	LDA	#1
-	STA	noErrors
-
-	LDX	#0
-	STX	passNumber
-
-	REPEAT
-		LDX	#0
-		STX	pageNumber
-
-		REPEAT
-			LDX	pageNumber
-			JSR	(.loword(PageTable), X)
-
-			JSR	NewPage
-
-			LDX	pageNumber
-			INX
-			INX
-			STX	pageNumber
-
-			CPX	#N_PAGES * 2
-		UNTIL_GE
-
-		INC16	passNumber
-
-		LDA	noErrors
-		IF_NOT_ZERO
-			Text_SetColor	2 
-
-			Text_SetCursor	5, 12
-			Text_PrintString "All Tests Completed"
-			Text_SetCursor	10, 14
-			Text_PrintString "No Errors"
-			JSR	NewPage
-		ENDIF
-	FOREVER
-
-
-PageTable:
-	.repeat N_PAGES, n
-		.addr .ident(.sprintf("Page%02d", n + 1))
-	.endrepeat
-
-
-;; For the first pass just go through all the pages as fast as possible.
-;;
-;; Waits for a keypress, then until keys released.
-;;
-;; REQUIRES: 8 bit A, 16 bit Index
-.I16
-ROUTINE NewPage
-	; If on first pass and there are no errors.
-	LDA	noErrors
-	IF_NOT_ZERO
-		LDX	passNumber
-		IF_ZERO
-			WAI
-			JMP	Text__ClearWindow
-		ENDIF
-	ENDIF
-
-	; Wait until button pressed
-	REPEAT
-		WAI
-		LDY	JOY1
-	UNTIL_NOT_ZERO
-
-	; Wait until button released
-	REPEAT
-		WAI
-		LDY	JOY1
-	UNTIL_ZERO
-	
-	JMP	Text__ClearWindow
-
-
-
-; Sets color red if Y is wrong, otherwise green.
-.macro Check_16Y expected
-	PHA
-	PHY
-	PHX
-		CPY	#.loword(expected)
-		IF_NE
-			Text_SetColor	1
-			STZ	noErrors
-		ELSE
-			Text_SetColor	2
-		ENDIF
-	PLX
-	PLY
-	PLA
-.endmacro
-
-; Sets color red if X is wrong, otherwise green.
-.macro Check_16X expected
-	PHA
-	PHY
-	PHX
-		CPX	#.loword(expected)
-		IF_NE
-			Text_SetColor	1
-			STZ	noErrors
-		ELSE
-			Text_SetColor	2
-		ENDIF
-	PLX
-	PLY
-	PLA
-.endmacro
-
-; Sets color red if XY is wrong, otherwise green.
-.macro Check_32XY expected
-	PHA
-	PHX
-	PHY
-		CPX	#.hiword(expected)
-		IF_NE
-			Text_SetColor	1
-			STZ	noErrors
-		ELSE
-			CPY	#.loword(expected)
-			IF_NE
-				Text_SetColor	1
-				STZ	noErrors
-			ELSE
-				Text_SetColor	2
-			ENDIF
-		ENDIF
-	PLY
-	PLX
-	PLA
-.endmacro
-
-; Sets color red if A is wrong, otherwise green.
-.macro Check_U8A expectedA
-	PHA
-	PHX
-	PHY
-		CMP	#expectedA
-		IF_NE
-			Text_SetColor	1
-			STZ	noErrors
-		ELSE
-			Text_SetColor	2
-		ENDIF
-	PLY
-	PLX
-	PLA
-.endmacro
-
-
-
-ROUTINE Page01
-	Text_SetColor	4
-	Text_PrintStringLn "Signed Printing Page"
-
-	Text_SetColor	0
-	Text_NewLine
-
-	Text_PrintString " S8A   Minus 33     = "
-	LDA	#.lobyte(-33)
-	JSR	Text__PrintDecimal_S8A
-
-	Text_NewLine
-
-	Text_PrintString " S16Y  Minus 1      = "
-	LDY	#.loword(-1)
-	JSR	Text__PrintDecimal_S16Y
-
-	Text_NewLine
-
-	Text_PrintString " S32XY Minus 123456 = "
-	LDXY	#-123456
-	JSR	Text__PrintDecimal_S32XY
-
-	Text_NewLine
-	Text_NewLine
-
-	Text_PrintString " S8A   Plus 33      = "
-	LDA	#.lobyte(33)
-	JSR	Text__PrintDecimal_S8A
-
-	Text_NewLine
-
-	Text_PrintString " S16Y  Plus 1       = "
-	LDA	#6
-	LDY	#.loword(1)
-	JSR	Text__PrintDecimalPadded_S16Y
-
-	Text_NewLine
-
-	Text_PrintString " S32XY Plus 123456  = "
-	LDA	#8
-	LDXY	#123456
-	JSR	Text__PrintDecimalPadded_S32XY
-
-	Text_NewLine
-
-	Text_PrintString " S16Y  Minus 1      = "
-	LDA	#6
-	LDY	#.loword(-1)
-	JSR	Text__PrintDecimalPadded_S16Y
-
-	Text_NewLine
-
-	Text_PrintString " S32XY Minus 123456 = "
-	LDA	#8
-	LDXY	#-123456
-	JSR	Text__PrintDecimalPadded_S32XY
-
-	RTS
-
-
-
-ROUTINE Page02
+PAGE_ROUTINE Math_Multiply_1
 	Text_SetColor	4
 	Text_PrintString "Multiply_U8Y_U8X_UY"
 	
@@ -336,7 +71,7 @@ ROUTINE Page02
 
 
 
-ROUTINE Page03
+PAGE_ROUTINE Math_Multiply_2
 	Text_SetColor	4
 	Text_PrintString "Multiply_U16Y_U8A_U32XY"
 
@@ -408,7 +143,7 @@ ROUTINE Page03
 
 
 
-ROUTINE Page04
+PAGE_ROUTINE Math_Multiply_3
 	Text_SetColor	4
 	Text_PrintString "Multiply_S16Y_S16X_S16Y"
 
@@ -457,7 +192,7 @@ ROUTINE Page04
 
 
 
-ROUTINE Page05
+PAGE_ROUTINE Math_Multiply_4
 	Text_SetColor	4
 	Text_PrintString "Multiply_U32XY_U8A_U32XY"
 
@@ -507,7 +242,7 @@ ROUTINE Page05
 	RTS
 
 
-ROUTINE Page06
+PAGE_ROUTINE Math_Multiply_5
 	Text_SetColor	4
 	Text_PrintString "Multiply_U32_U16Y_U32XY"
 
@@ -556,7 +291,7 @@ ROUTINE Page06
 	RTS
 
 
-ROUTINE Page07
+PAGE_ROUTINE Math_Multiply_6
 	Text_SetColor	4
 	Text_PrintString "Multiply_U32_S16Y_32XY"
 
@@ -606,7 +341,7 @@ ROUTINE Page07
 
 
 
-ROUTINE Page08
+PAGE_ROUTINE Math_Multiply_7
 	Text_SetColor	4
 	Text_PrintString "Multiply_U32_U32XY_U32XY (hex)"
 
@@ -660,7 +395,7 @@ ROUTINE Page08
 
 
 
-ROUTINE Page09
+PAGE_ROUTINE Math_Divide_1
 	Text_SetColor	4
 	Text_PrintString "Divide_U16Y_U16X"
 
@@ -764,7 +499,7 @@ ROUTINE Page09
 	RTS
 
 
-ROUTINE Page10
+PAGE_ROUTINE Math_Divide_2
 	Text_SetColor	4
 	Text_PrintString "Divide_S16Y_S16X"
 
@@ -865,7 +600,7 @@ ROUTINE Page10
 	RTS
 
 
-ROUTINE Page11
+PAGE_ROUTINE Math_Divide_3
 	Text_SetColor	4
 	Text_PrintString "Divide_U32_U32"
 	.macro Test_Divide_U32_U32 dividend, divisor
@@ -934,87 +669,4 @@ ROUTINE Page11
 	Test_Divide_S32_S32 -123456, -789
 
 	RTS
-
-
-
-
-
-;; Blank Handlers
-IrqHandler:
-CopHandler:
-	RTI
-
-
-VBlank:
-	; Save state
-	REP	#$30
-	PHA
-	PHX
-	PHY
-
-	SEP	#$20
-.A8
-.I16
-	Text_VBlank
-
-	; restore state
-	REP	#$30
-	PLY
-	PLX
-	PLA
-	RTI
-
-
-
-;; Sets up the screen base addresses and mode.
-;;
-;; Mode 0, BG1 enabled, BG1 tilepos set by BG1_Tilemap and BG1_Tiles, and VBlank enabled
-; ::TODO write macro::
-.A8
-.I16
-ROUTINE SetupPPU
-	LDA	#INIDISP_FORCE
-	STA	INIDISP
-
-	LDA	#BGMODE_MODE0
-	STA	BGMODE
-
-	LDA	#(BG1_MAP / BGXSC_BASE_WALIGN) << 2
-	STA	BG1SC
-
-	LDA	#BG1_TILES / BG12NBA_BASE_WALIGN
-	STA	BG12NBA
-
-	LDA	#TM_BG1
-	STA	TM
-
-	LDA	#NMITIMEN_VBLANK_FLAG | NMITIMEN_AUTOJOY_FLAG
-	STA	NMITIMEN
-
-	RTS
-
-
-
-
-
-.rodata
-
-Font8x8BoldTransparent:
-	.incbin "../resources/font8x8-bold-transparent.2bpp"
-Font8x8BoldTransparent_End:
-
-Font8x16BoldTransparent:
-	.incbin "../resources/font8x16-bold-transparent.2bpp"
-Font8x16BoldTransparent_End:
-
-FontBoldTransparentPalette:                ; ANSI Colors
-	.word	$7FFF, $0000, $4e73, $6b3a ; Black   (0)
-	.word	$7FFF, $001F, $4e73, $6b3a ; Red     (1)
-	.word	$7FFF, $02E0, $4e73, $6b3a ; Green   (2)
-	.word	$7FFF, $02FF, $4e73, $6b3a ; Yellow  (3)
-	.word	$7FFF, $7C00, $4e73, $6b3a ; Blue    (4)
-	.word	$7FFF, $3C0F, $4e73, $6b3a ; Magenta (5)
-	.word	$7FFF, $3DE0, $4e73, $6b3a ; Cyan    (6)
-	.word	$7FFF, $3DEF, $4e73, $6b3a ; Gray    (7)
-FontBoldTransparentPalette_End:
 

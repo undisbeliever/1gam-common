@@ -31,7 +31,7 @@ The following naming conventons are used.
         * Labels within a routine should start with routine name, then `_`, then name
           ie, `_ClearWindow_skip_php`
     * Variables are lowerCamerCase
-    * Macros are in ALL_CAPS
+    * Defines are in ALL_CAPS
         * Internal macros start with `_`
     * Constants are in ALL_CAPS
 
