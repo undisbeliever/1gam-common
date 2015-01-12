@@ -108,6 +108,7 @@
 ::N_PAGES .set 0
 
 .macro PAGE_ROUTINE name
+.code
 	.ifnblank name
 		ROUTINE name
 	.endif

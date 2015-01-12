@@ -34,6 +34,7 @@ BG1_TILES		= $1000
 .include "macros.inc"
 .include "tests/text.asm"
 .include "tests/math.asm"
+.include "tests/metasprite.asm"
 
 BuildPageTable
 

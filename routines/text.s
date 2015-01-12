@@ -57,7 +57,7 @@ MODULE Text
 	BYTE decimalString, 11
 
 .zeropage
-	; Temporry values used by3this module
+	; Temporry values used by this module
 	WORD	tmp
 	WORD	tmp2
 	WORD	tmp3

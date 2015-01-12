@@ -10,8 +10,79 @@
 .ifndef _REGISTERS_INC_
 _REGISTERS_INC_ = 1
 
-; ::TODO Sprite Format::
-; ::TODO Character Format::
+;; Tile Map Format
+;;
+;; cccccccc
+;; vhopppcc
+;;
+;; cccccccccc = character of tile
+;; ppp        = palette
+;; o          = order
+;; h          = horizontal flip
+;; v          = vertical flip
+
+;;; Flags and Masks
+.define TILEMAP_CHAR_MASK    %0000001111111111
+.define TILEMAP_PALETTE_MASK %0001110000000000
+.define TILEMAP_ORDER_FLAG   %0010000000000000
+.define TILEMAP_H_FLIP_FLAG  %0100000000000000
+.define TILEMAP_V_FLIP_FLAG  %1000000000000000
+
+;;; Flags and Masks (high byte only)
+.define TILEMAP_HIGH_CHAR_MASK    %00000011
+.define TILEMAP_HIGH_PALETTE_MASK %00011100
+.define TILEMAP_HIGH_ORDER_FLAG   %00100000
+.define TILEMAP_HIGH_H_FLIP_FLAG  %01000000
+.define TILEMAP_HIGH_V_FLIP_FLAG  %10000000
+
+;;; Shifts
+.define TILEMAP_HIGH_PALETTE_SHIFT  2
+.define TILEMAP_PALETTE_SHIFT      10
+
+
+
+;; OAM Table 0 Format
+;;
+;; xxxxxxxx
+;; yyyyyyyy
+;; cccccccc
+;; vhoopppN
+;;
+;; xxxxxxxx = lower 8 bits of x position of object
+;; yyyyyyyy = y position of object
+;; cccccccc = character of object
+;; N        = Character Table to use (equivalent to 9th bit of c)
+;; ppp      = palette
+;; oo       = order
+;; h        = horizontal flip
+;; v        = vertical flip
+.struct OamFormat
+	xPos	.byte
+	yPos	.byte
+	char	.byte
+	attr	.byte
+.endstruct
+
+;;; Flags and Masks
+.define OAM_ATTR_TABLE_FLAG   %00000001
+.define OAM_ATTR_PALETTE_MASK %00001110
+.define OAM_ATTR_ORDER_MASK   %00110000
+.define OAM_ATTR_H_FLIP_FLAG  %01000000
+.define OAM_ATTR_V_FLIP_FLAG  %10000000
+
+.define OAM_CHARATTR_TABLE_FLAG   %0000000100000000
+.define OAM_CHARATTR_PALETTE_MASK %0000111000000000
+.define OAM_CHARATTR_ORDER_MASK   %0011000000000000
+.define OAM_CHARATTR_H_FLIP_FLAG  %0100000000000000
+.define OAM_CHARATTR_V_FLIP_FLAG  %1000000000000000
+
+;;; Shifts
+.define OAM_ATTR_PALETTE_SHIFT   1
+.define OAM_ATTR_ORDER_SHIFT     4
+
+.define OAM_CHARATTR_PALETTE_SHIFT   9
+.define OAM_CHARATTR_ORDER_SHIFT     12
+
 
 ;; Screen Display
 ;; (write, any)
