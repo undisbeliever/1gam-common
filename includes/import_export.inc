@@ -203,7 +203,11 @@
 
 .macro _SYMBOL_HELPER name, type
 	.if ::__MODULE_TYPE = __MODULE_TYPE_NONE
-		.ident(.sprintf("%s__type", .string(name))) = type
+		.ifndef .ident(.sprintf("%s__type", .string(name)))
+			.ident(.sprintf("%s__type", .string(name))) = type
+		.elseif .ident(.sprintf("%s__type", .string(name))) <> type
+			.fatal .sprintf("Error: %s type mismatch", .string(name))
+		.endif
 		.global name
 		name:
 
@@ -220,7 +224,11 @@
 .endmacro
 
 .macro _IMPORT_SYMBOL_HELPER name, type
-	.ident(.sprintf("%s__type", .string(name))) = type
+	.ifndef .ident(.sprintf("%s__type", .string(name)))
+		.ident(.sprintf("%s__type", .string(name))) = type
+	.elseif .ident(.sprintf("%s__type", .string(name))) <> type
+		.fatal .sprintf("Error: %s type mismatch", .string(name))
+	.endif
 
 	.global .ident(.sprintf("%s", .string(name)))
 .endmacro
@@ -276,6 +284,32 @@
 	.endif
 .endmacro
 
+
+;; Loads a binary file into a label.
+;;
+;; This Macro can be used in a header if the filename is missing.
+;;
+;; This macro also exports the label and creates the {label}End label used by the block module.
+.macro INCLUDE_BINARY label, filename
+	LABEL label
+
+	.if ::__MODULE_TYPE <> __MODULE_TYPE_IMPORT .or .blank(filename)
+		.incbin filename
+	.endif
+
+	LABEL .ident(.sprintf("%s_End", .string(label)))
+.endmacro
+
+
+;; Imports a binarys labels Loads a binary file into a label.
+;;
+;; This Macro can be used in a header even if there is no module.
+;;
+;; This macro also imports the {label}End label.
+.macro IMPORT_BINARY label
+	IMPORT_LABEL label
+	IMPORT_LABEL .ident(.sprintf("%s_End", .string(label)))
+.endmacro
 
 
 .macro STRUCT name, struct, count
