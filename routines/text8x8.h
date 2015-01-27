@@ -25,3 +25,5 @@ ENDMODULE
 
 .endif ; ::_TEXT_H_
 
+; vim: ft=asm:
+

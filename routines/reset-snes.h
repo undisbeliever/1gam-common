@@ -80,3 +80,6 @@ IMPORT_MODULE Reset
 ENDMODULE
 
 .endif
+
+; vim: ft=asm:
+

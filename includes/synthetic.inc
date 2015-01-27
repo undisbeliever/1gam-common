@@ -501,3 +501,5 @@ skip:
 
 .endif ; ::_SYNTHETIC_INC_
 
+; vim: ft=asm:
+

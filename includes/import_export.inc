@@ -384,3 +384,5 @@
 
 .endif ; ::_IMPORT_EXPORT_H_
 
+; vim: ft=asm:
+

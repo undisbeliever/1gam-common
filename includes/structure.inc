@@ -1131,3 +1131,5 @@ BREAK_LABEL:
 
 .endif ; ::_STRUCTURE_INC_
 
+; vim: ft=asm:
+

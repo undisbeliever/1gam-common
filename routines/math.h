@@ -304,3 +304,5 @@ ENDMODULE
 
 .endif ; ::_MATH_H_
 
+; vim: ft=asm:
+

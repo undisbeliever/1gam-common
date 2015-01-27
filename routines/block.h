@@ -297,3 +297,6 @@ ENDMODULE
 
 
 .endif ; __BLOCK_H_
+
+; vim: set ft=asm:
+

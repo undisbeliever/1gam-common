@@ -103,3 +103,5 @@ ENDMODULE
 
 .endif ; __CPU_USAGE_H_
 
+; vim: ft=asm:
+

@@ -17,10 +17,10 @@
 
 .import Reset
 
-.interruptor CopHandler
-.interruptor VBlank
-.interruptor IrqHandler
-.interruptor EmptyHandler
+.global CopHandler
+.global VBlank
+.global IrqHandler
+.global EmptyHandler
 
 ; 65816 processor
 .setcpu "65816"
@@ -91,4 +91,6 @@
 
 EmptyHandler:
 	RTI
+
+; vim: ft=asm:
 

@@ -115,6 +115,7 @@ OBSEL = $2101
 .define OBSEL_BASE_MASK        %00000111
 
 ;; Shifts
+.define OBSEL_SIZE_SHIFT 5
 .define OBSEL_NAME_SHIFT 3
 
 ;;; Object Sizes.
@@ -1457,4 +1458,6 @@ NLTR7 = $437A
 .define NTLR_COUNT_MASK  %01111111
 
 .endif ; _REGISTERS_INC_
+
+; vim: ft=asm:
 
