@@ -619,7 +619,7 @@ TM = $212C
 .define TM_BG2 %00000010
 .define TM_BG3 %00000100
 .define TM_BG4 %00001000
-.define TM_OAM %00010000
+.define TM_OBJ %00010000
 
 
 ;; Sub Screen Designation
@@ -635,7 +635,7 @@ TS = $212D
 .define TS_BG2 %00000010
 .define TS_BG3 %00000100
 .define TS_BG4 %00001000
-.define TS_OAM %00010000
+.define TS_OAJ %00010000
 
 ;; Window Mask Designation for the Main Screen
 ;; (write, h-blank, v-blank)
@@ -1222,6 +1222,18 @@ JOY4H = $421F
 .define JOY_L      %0000000000100000
 .define JOY_R      %0000000000010000
 
+.define JOYH_B      %10000000
+.define JOYH_Y      %01000000
+.define JOYH_SELECT %00100000
+.define JOYH_START  %00010000
+.define JOYH_UP     %00001000
+.define JOYH_DOWN   %00000100
+.define JOYH_LEFT   %00000010
+.define JOYH_RIGHT  %00000001
+.define JOYL_A      %10000000
+.define JOYL_X      %01000000
+.define JOYL_L      %00100000
+.define JOYL_R      %00010000
 
 
 ;; DMA Control For Channel 0

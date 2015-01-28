@@ -15,8 +15,7 @@
 .import __ROMHEADER_ROM_SIZE
 .import __ROMHEADER_SRAM_SIZE
 
-.import Reset
-
+.global ResetHandler
 .global CopHandler
 .global VBlank
 .global IrqHandler
