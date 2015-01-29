@@ -26,7 +26,7 @@ IMPORT_MODULE Block
 	;;	* the label {source}End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro MemClear ptr, size
-		_Block_Addr_Size_Helper source, size, Block__MemClear
+		_Block_Addr_Size_Helper ptr, size, Block__MemClear
 	.endmacro
 
 	;; Copies a block of memory

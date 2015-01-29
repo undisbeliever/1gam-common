@@ -21,6 +21,8 @@
 ;; The following structures are supported:
 ;;        * IF_CONDITION ... [ ELSE ... ] ENDIF
 ;;        * IFL_CONDITION ... [ ELSEL ... ] ENDIF
+;;	  * IF_BIT arg ... [ ELSE_BIT arg ] ... [ ELSE ... ] ENDIF
+;;	  * IF_NOT_BIT arg ... [ ELSE_BIT arg ] ... [ ELSE ... ] ENDIF
 ;;        * REPEAT ... FOREVER
 ;;        * REPEAT ... UNTIL_CONDITION
 ;;        * REPEAT ... WHILE_CONDITION ... WEND
@@ -31,7 +33,7 @@
 ;; These macros provide the following functionaity:
 ;;
 ;;   * An 8 level stack. Up to 8 IFs and REPEATs can be nested in one code.
-;;     An.fatal will be emmited if the stack is overrun or underrun.
+;;     A .fatal will be emmited if the stack is overrun or underrun.
 ;;
 ;;   * A fatal will be emmited if a ENDIF / ELSE / UNTIL / NEXT
 ;;	 is used without the matching IF / REPEAT / FOR on the stack.
@@ -68,7 +70,8 @@
 ;  * Check that Bank is correct
 
 
-.define __STRUCTURE_TYPE_IF	 2
+.define __STRUCTURE_TYPE_IF	 1
+.define __STRUCTURE_TYPE_IF_BIT	 2
 .define __STRUCTURE_TYPE_REPEAT  3
 .define __STRUCTURE_TYPE_WHILE   4
 .define __STRUCTURE_TYPE_FOR     5
@@ -101,6 +104,9 @@
 ::__STRUCTURE_STACK_ID_02 .set 0
 ::__STRUCTURE_STACK_ID_01 .set 0
 
+::__STRUCTURE_STACK_BIT_01 .set 0
+::__STRUCTURE_STACK_BIT_02 .set 0
+
 ::__STRUCTURE_STACK_PREV  .set 0
 
 ::__STRUCTURE_STACK_COUNT .set 0
@@ -111,6 +117,7 @@
 
 .define __STRUCTURE_STACK_LABEL .ident(.sprintf("__STRUCTURE_%04X", ::__STRUCTURE_STACK_ID_01))
 .define __STRUCTURE_STACK_PREV_LABEL .ident(.sprintf("__STRUCTURE_%04X", ::__STRUCTURE_STACK_PREV))
+.define __STRUCTURE_END_IF_BIT_LABEL .ident(.sprintf("__STRUCTURE_IF_BIT_%04X", ::__STRUCTURE_STACK_BIT_01))
 .define BREAK_LABEL .ident(.sprintf("__STRUCTURE_BREAK_%04X", ::__STRUCTURE_STACK_LOOP_01))
 .define CONTINUE_LABEL .ident(.sprintf("__STRUCTURE_CONTINUE_%04X", ::__STRUCTURE_STACK_LOOP_01))
 
@@ -119,12 +126,12 @@
 .macro __STRUCTURE_STACK_PUSH_NEW type
 	::__STRUCTURE_STACK_COUNT .set ::__STRUCTURE_STACK_COUNT + 1
 
-	.if (::__STRUCTURE_STACK_TYPE_08 <> 0)
+	.if ::__STRUCTURE_STACK_TYPE_08 <> 0
 		.fatal "Too many structures"
 	.endif
 
 	; Push to loop stack only if it is a looping structure
-	.if (type = __STRUCTURE_TYPE_REPEAT .or type = __STRUCTURE_TYPE_FOR)
+	.if type = __STRUCTURE_TYPE_REPEAT .or type = __STRUCTURE_TYPE_FOR
 		::__STRUCTURE_STACK_LOOP_08 .set ::__STRUCTURE_STACK_LOOP_07
 		::__STRUCTURE_STACK_LOOP_07 .set ::__STRUCTURE_STACK_LOOP_06
 		::__STRUCTURE_STACK_LOOP_06 .set ::__STRUCTURE_STACK_LOOP_05
@@ -133,6 +140,15 @@
 		::__STRUCTURE_STACK_LOOP_03 .set ::__STRUCTURE_STACK_LOOP_02
 		::__STRUCTURE_STACK_LOOP_02 .set ::__STRUCTURE_STACK_LOOP_01
 		::__STRUCTURE_STACK_LOOP_01 .set ::__STRUCTURE_STACK_COUNT 
+	.endif
+
+	; Stack for the IF_BIT code
+	.if type = __STRUCTURE_TYPE_IF_BIT
+		.if ::__STRUCTURE_STACK_BIT_02 <> 0
+			.fatal "Too many structures"
+		.endif
+		::__STRUCTURE_STACK_BIT_02 .set ::__STRUCTURE_STACK_BIT_01
+		::__STRUCTURE_STACK_BIT_01 .set __STRUCTURE_STACK_COUNT
 	.endif
 
 	::__STRUCTURE_STACK_TYPE_08 .set ::__STRUCTURE_STACK_TYPE_07
@@ -155,13 +171,22 @@
 	::__STRUCTURE_STACK_ID_01 .set ::__STRUCTURE_STACK_COUNT
 .endmacro
 
-; emits the current name as a label and removes it from the stack
-; also checks to ensure this is the proper type
-.macro __STRUCTURE_STACK_POP_CHECK type
-	; Ensure current label is of type
-	.if ::__STRUCTURE_STACK_TYPE_01 <> type
-		.if type = __STRUCTURE_TYPE_IF
+.macro __STRUCTURE_STACK_NEW_ID
+	::__STRUCTURE_STACK_PREV  .set ::__STRUCTURE_STACK_ID_01
+
+	::__STRUCTURE_STACK_COUNT .set ::__STRUCTURE_STACK_COUNT + 1
+	::__STRUCTURE_STACK_ID_01 .set ::__STRUCTURE_STACK_COUNT
+.endmacro
+
+;; Ensure current structure is of type
+.macro __STRUCTURE_STACK_CHECK type
+	.if type <> ::__STRUCTURE_STACK_TYPE_01
+		.if ::__STRUCTURE_STACK_TYPE_01 = __STRUCTURE_TYPE_IF_BIT .and type = __STRUCTURE_TYPE_IF
+			; ::HACK let IF_BIT be treated as IF::
+		.elseif type = __STRUCTURE_TYPE_IF
 			.fatal "Missing IF"
+		.elseif type = __STRUCTURE_TYPE_IF_BIT
+			.fatal "Missing IF_BIT or IF_NOT_BIT"
 		.elseif type = __STRUCTURE_TYPE_REPEAT
 			.fatal "Missing REPEAT"
 		.elseif type = __STRUCTURE_TYPE_FOR
@@ -170,9 +195,15 @@
 			.fatal "Missing statement of unkown type"
 		.endif
 	.endif
+.endmacro
+
+; emits the current name as a label and removes it from the stack
+; also checks to ensure this is the proper type
+.macro __STRUCTURE_STACK_POP_CHECK type
+	__STRUCTURE_STACK_CHECK type
 
 	; Pop from loop stack only if it is a looping structure
-	.if (type = __STRUCTURE_TYPE_REPEAT .or type = __STRUCTURE_TYPE_WHILE .or type = __STRUCTURE_TYPE_FOR)
+	.if type = __STRUCTURE_TYPE_REPEAT .or type = __STRUCTURE_TYPE_WHILE .or type = __STRUCTURE_TYPE_FOR
 		::__STRUCTURE_STACK_LOOP_01 .set ::__STRUCTURE_STACK_LOOP_02
 		::__STRUCTURE_STACK_LOOP_02 .set ::__STRUCTURE_STACK_LOOP_03
 		::__STRUCTURE_STACK_LOOP_03 .set ::__STRUCTURE_STACK_LOOP_04
@@ -181,6 +212,12 @@
 		::__STRUCTURE_STACK_LOOP_06 .set ::__STRUCTURE_STACK_LOOP_07
 		::__STRUCTURE_STACK_LOOP_07 .set ::__STRUCTURE_STACK_LOOP_08
 		::__STRUCTURE_STACK_LOOP_08 .set 0
+	.endif
+
+	; Stack for the IF_BIT code
+	.if ::__STRUCTURE_STACK_TYPE_01 = __STRUCTURE_TYPE_IF_BIT
+		::__STRUCTURE_STACK_BIT_01 .set ::__STRUCTURE_STACK_BIT_02
+		::__STRUCTURE_STACK_BIT_02 .set 0
 	.endif
 
 	; ELSE statements need this after pop&push.
@@ -208,17 +245,18 @@
 
 
 ;; IF
-;;; Tests a single BIT, barnches if (A & param == 0)
+;;; Tests A bits, branches if A & param == 0
 .macro IF_BIT param
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF_BIT
 
 	BIT	param
 	BEQ __STRUCTURE_STACK_LABEL
 .endmacro
 
-;;; Tests a single BIT, barnches if (A & param != 0)
+
+;;; Tests A bits, barnches if A & param != 0
 .macro IF_NOT_BIT param
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF_BIT
 
 	BIT	param
 	BEQ __STRUCTURE_STACK_LABEL
@@ -538,18 +576,17 @@
 
 ;; Else
 .macro ELSE
-	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_IF
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+	__STRUCTURE_STACK_CHECK __STRUCTURE_TYPE_IF
+	__STRUCTURE_STACK_NEW_ID
 
 	BRA __STRUCTURE_STACK_LABEL
-
 __STRUCTURE_STACK_PREV_LABEL:
 .endmacro
 
 ;; Else Long Branch
 .macro ELSEL
-	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_IF
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
+	__STRUCTURE_STACK_CHECK __STRUCTURE_TYPE_IF
+	__STRUCTURE_STACK_NEW_ID
 
 	JRA __STRUCTURE_STACK_LABEL
 
@@ -557,8 +594,41 @@ __STRUCTURE_STACK_PREV_LABEL:
 .endmacro
 
 
+;; Else BIT test, branch if A & param == 0
+.macro ELSE_BIT param
+	__STRUCTURE_STACK_CHECK __STRUCTURE_TYPE_IF
+
+	__STRUCTURE_STACK_NEW_ID
+
+	BRA	__STRUCTURE_END_IF_BIT_LABEL
+
+__STRUCTURE_STACK_PREV_LABEL:
+
+	BIT	param
+	BEQ __STRUCTURE_STACK_LABEL
+.endmacro
+
+;; Else not BIT test, branch if A & param != 0
+.macro ELSE_NOT_BIT param
+	__STRUCTURE_STACK_CHECK __STRUCTURE_TYPE_IF
+
+	__STRUCTURE_STACK_NEW_ID
+
+	BRA	__STRUCTURE_END_IF_BIT_LABEL
+
+__STRUCTURE_STACK_PREV_LABEL:
+
+	BIT	param
+	BNE __STRUCTURE_STACK_LABEL
+.endmacro
+
+
 ;; End if
 .macro ENDIF
+	.if ::__STRUCTURE_STACK_TYPE_01 = __STRUCTURE_TYPE_IF_BIT
+__STRUCTURE_END_IF_BIT_LABEL:
+	.endif
+
 __STRUCTURE_STACK_LABEL:
 
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_IF
