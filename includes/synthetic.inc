@@ -8,49 +8,83 @@
 ;; Add to accumulator
 ;;
 ;; CLC : ADC
-.macro ADD param
-	CLC
-	ADC	param
+.macro ADD param, index
+	.ifblank index
+		CLC
+		ADC	param
+	.else
+		CLC
+		ADC	param, index
+	.endif
 .endmacro
 
 ;; Subtract from accumulator
 ;;
 ;; SEC : SBC
-.macro SUB param
-	SEC
-	SBC	param
+.macro SUB param, index
+	.ifblank index
+		SEC
+		SBC	param
+	.else
+		SEC
+		SBC	param, index
+	.endif
 .endmacro
 
 ;; Reverse Subract
 ;;
 ;; REQUIRES: 8 bit A
-.macro RSB8 param
+.macro RSB8 param, index
 	; ::TODO test 8/16 bit A::
-	EOR	#$FF
-	SEC
-	ADC	param
+	.ifblank index
+		EOR	#$FF
+		SEC
+		ADC	param
+	.else
+		EOR	#$FF
+		SEC
+		ADC	param, index
+	.endif
 .endmacro
 
-.macro RSB16 param
-	EOR	#$FFFF
-	SEC
-	ADC	param
+.macro RSB16 param, index
+	.ifblank index
+		EOR	#$FFFF
+		SEC
+		ADC	param
+	.else
+		EOR	#$FFFF
+		SEC
+		ADC	param, index
+	.endif
 .endmacro
 
 ;; Reverse Subract with carry
 ;;
 ;; REQUIRE: 8 bit A
-.macro RSC8 param
+.macro RSC8 param, index
 	; ::TODO test 8/16 bit A::
-	EOR	#$FF
-	SEC
-	ADC	param
+	.ifblank index
+		EOR	#$FF
+		SEC
+		ADC	param
+	.else
+		EOR	#$FF
+		SEC
+		ADC	param, index
+	.endif
 .endmacro
 
 .macro RSC16 param
-	EOR	#$FFFF
-	SEC
-	ADC	param
+	.ifblank index
+		EOR	#$FFFF
+		SEC
+		ADC	param
+	.else
+		EOR	#$FFFF
+		SEC
+		ADC	param, index
+	.endif
 .endmacro
 
 ;; 8 bit Arithmetic Shift Right
@@ -106,71 +140,131 @@
 ;; var can be XY
 ;;
 ;; REQUIRE: 16 bit A
-.macro NEG32 var
+.macro NEG32 var, index
 	; ::TODO enforce 16 bit A::
-	.if .xmatch({var}, XY)
-		TYA
-		EOR	#$FFFF
-		CLC
-		ADC	#1
-		TAY
-		TXA
-		EOR	#$FFFF
-		ADD	#0
-		TAX
+	.ifblank index
+		.if .xmatch({var}, XY)
+			TYA
+			EOR	#$FFFF
+			CLC
+			ADC	#1
+			TAY
+			TXA
+			EOR	#$FFFF
+			ADD	#0
+			TAX
+		.else
+			LDA	var
+			EOR	#$FFFF
+			CLC
+			ADC	#1
+			STA	var
+			LDA	2 + (var)
+			EOR	#$FFFF
+			ADC	#0
+			STA	2 + (var)
+		.endif
 	.else
-		LDA	var
-		EOR	#$FFFF
-		CLC
-		ADC	#1
-		STA	var
-		LDA	2 + (var)
-		EOR	#$FFFF
-		ADC	#0
-		STA	2 + (var)
+		.if .xmatch({var}, XY)
+			.error "invalid addressing mode"
+		.else
+			LDA	var, X
+			EOR	#$FFFF
+			CLC
+			ADC	#1
+			STA	var, X
+			LDA	2 + (var), index
+			EOR	#$FFFF
+			ADC	#0
+			STA	2 + (var), index
+		.endif
 	.endif
 .endmacro
 
-;; 16 bit increment on 8 bit A
+;; 16 bit increment on 8 bit Accumulator
 ;;
 ;; REQUIRES: 8 bit A
-.macro INC16 param
+.macro INC16 param, index
 	; ::TODO enforce 8 bit A::
 	.local skip
-
-	INC	param
-	BNE	skip
-	INC	param + 1
+	.ifblank index
+		INC	param
+		BNE	skip
+		INC	param + 1
+	.else
+		INC	param, index
+		BNE	skip
+		INC	param + 1, index
+	.endif
 skip:
 .endmacro
 
 ;; 32 bit increment
 ;;
+;; param can be XY
+;;
 ;; REQUIRES: 16 bit A
-.macro INC32 param
+.macro INC32 param, index
 	; ::TODO enforce 16 bit A::
 	.local skip
-
-	INC	param
-	BNE	skip
-	INC	param + 2
-skip:
+	.ifblank index
+		.if .xmatch({param}, XY)
+			INY
+			BNE	skip
+			INX
+		.else
+			INC	param
+			BNE	skip
+			INC	param + 1
+		skip:
+		.endif
+	.else
+		.if .xmatch({param}, XY)
+			.error "invalid addressing mode"
+		.else
+			INC	param, index
+			BNE	skip
+			INC	param + 1, index
+		skip:
+		.endif
+	.endif
 .endmacro
 
 
 ;; 32 bit decrement
 ;;
 ;; REQUIRES: 16 bit A
-.macro DEC32 param
+.macro DEC32 param, index
 	; ::TODO enforce 16 bit A::
 	.local skip
 
-	LDA	param
-	BNE	skip
-	DEC	param + 2
-
-skip:
-	DEC	param
+	; ::TODO enforce 16 bit A::
+	.local skip
+	.ifblank index
+		.if .xmatch({param}, XY)
+			CPY	#0
+			BNE	skip
+			DEX
+		skip:
+			DEY
+		.else
+			LDA	param
+			BNE	skip
+			DEC	param + 2
+		skip:
+			DEC	param
+		.endif
+	.else
+		.if .xmatch({param}, XY)
+			.error "invalid addressing mode"
+		.else
+			LDA	param
+			BNE	skip
+			DEC	param + 2, index
+		skip:
+			DEC	param, index
+		.endif
+	.endif
 .endmacro
 
 ;; Loads the 32 bit value into XY
@@ -178,15 +272,25 @@ skip:
 ;; OUTPUT: X/Y the 32 bit value to load (Y = loword)
 ;;
 ;; REQUIRES: 16 bit Index
-.macro LDXY param
-	.if (.match (.left (1, {param}), #))
-		; immediate mode
-		LDY	#.loword(.right (.tcount ({param})-1, {param}))
-		LDX	#.hiword(.right (.tcount ({param})-1, {param}))
+.macro LDXY param, index
+	.ifblank index
+		.if (.match (.left (1, {param}), #))
+			; immediate mode
+			LDY	#.loword(.right (.tcount ({param})-1, {param}))
+			LDX	#.hiword(.right (.tcount ({param})-1, {param}))
+		.else
+			; absolute or zero page
+			LDY	param
+			LDX	2 + (param)
+		.endif
 	.else
-		; absolute or zero page
-		LDY	param
-		LDX	2 + (param)
+		.if (.match (.left (1, {param}), #))
+			.error "invalid addressing mode"
+		.else
+			; absolute or zero page
+			LDY	param, index
+			LDX	2 + (param), index
+		.endif
 	.endif
 .endmacro
 
@@ -195,11 +299,39 @@ skip:
 ;; INPUT: X/Y the 32 bit value to load (Y = loword)
 ;;
 ;; REQUIRES: 16 bit Index
-.macro STXY param
-	STY	param
-	STX	2 + (param)
+.macro STXY param, index
+	.ifblank index
+		; absolute or zero page
+		STY	param
+		STX	2 + (param)
+	.else
+		; absolute or zero page
+		STY	param, index
+		STX	2 + (param), index
+	.endif
 .endmacro
 
+
+;; Pushes the 32 bit XY into the Stack (loword first)
+;;
+;; INPUT: X/Y the 32 bit value to load (Y = loword)
+;;
+;; REQUIRES: 16 bit Index
+.macro PHXY
+	PHX
+	PHY
+.endmacro
+
+
+;; Pulls the 32 bit XY from the Stack
+;;
+;; OUTPUT: X/Y the 32 bit value to load (Y = loword)
+;;
+;; REQUIRES: 16 bit Index
+.macro PLXY
+	PLY
+	PLX
+.endmacro
 
 ;
 ; Branching

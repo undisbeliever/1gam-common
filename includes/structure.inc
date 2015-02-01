@@ -246,19 +246,31 @@
 
 ;; IF
 ;;; Tests A bits, branches if A & param == 0
-.macro IF_BIT param
+;;; Index is optional
+.macro IF_BIT param, index
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF_BIT
 
-	BIT	param
+	.ifblank index
+		BIT	param
+	.else
+		BIT	param, index
+	.endif
+
 	BEQ __STRUCTURE_STACK_LABEL
 .endmacro
 
 
 ;;; Tests A bits, barnches if A & param != 0
-.macro IF_NOT_BIT param
+;;; Index is optional
+.macro IF_NOT_BIT param, index
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF_BIT
 
-	BIT	param
+	.ifblank index
+		BIT	param
+	.else
+		BIT	param, index
+	.endif
+
 	BEQ __STRUCTURE_STACK_LABEL
 .endmacro
 
@@ -595,7 +607,8 @@ __STRUCTURE_STACK_PREV_LABEL:
 
 
 ;; Else BIT test, branch if A & param == 0
-.macro ELSE_BIT param
+;; Index is optional
+.macro ELSE_BIT param, index
 	__STRUCTURE_STACK_CHECK __STRUCTURE_TYPE_IF
 
 	__STRUCTURE_STACK_NEW_ID
@@ -604,12 +617,18 @@ __STRUCTURE_STACK_PREV_LABEL:
 
 __STRUCTURE_STACK_PREV_LABEL:
 
-	BIT	param
+	.ifblank index
+		BIT	param
+	.else
+		BIT	param, index
+	.endif
+
 	BEQ __STRUCTURE_STACK_LABEL
 .endmacro
 
 ;; Else not BIT test, branch if A & param != 0
-.macro ELSE_NOT_BIT param
+;; Index is optional
+.macro ELSE_NOT_BIT param, index
 	__STRUCTURE_STACK_CHECK __STRUCTURE_TYPE_IF
 
 	__STRUCTURE_STACK_NEW_ID
@@ -618,7 +637,12 @@ __STRUCTURE_STACK_PREV_LABEL:
 
 __STRUCTURE_STACK_PREV_LABEL:
 
-	BIT	param
+	.ifblank index
+		BIT	param
+	.else
+		BIT	param, index
+	.endif
+
 	BNE __STRUCTURE_STACK_LABEL
 .endmacro
 
