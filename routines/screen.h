@@ -11,6 +11,55 @@
 
 IMPORT_MODULE Screen
 
+	;; Incremented every Vblankm used as a frame counter
+	UINT16	frameCounter
+
+	;; Pauses execution for one frame
+	;;
+	;; REQUIRES: VBlank enabled
+	ROUTINE	WaitFrame
+
+	;; Starts at Screen brightness 0 and fades in to full brightness
+	;;
+	;; REQUIRES: 8 bit A, VBlank Enabled
+	ROUTINE	FadeIn
+
+	;; Starts at Screen brightness 0 and fades in to full brightness
+	;;
+	;; REQUIRES: 8 bit A, VBlank Enabled
+	;;
+	;; INPUT: A = number of frames per brightness increment (0 = 256 frames)
+	ROUTINE	SlowFadeIn
+
+	;; Starts at full brightness and fades the screen out to Force Blank
+	;;
+	;; REQUIRES: 8 bit A, VBlank Enabled
+	ROUTINE	FadeOut
+
+	;; Starts at full brightness and slowly fades the screen out to Force Blank
+	;;
+	;; REQUIRES: 8 bit A, VBlank Enabled
+	;;
+	;; INPUT: A = number of frames per decrement (0 = 256 frames)
+	ROUTINE	SlowFadeOut
+
+	;; Increments frameCounter, signifying a new frame.
+	;;
+	;; Must be called once during v-blank
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index
+	;; MODIFIES: Y
+	.macro Screen_VBlank
+		.export _Screen_VBlank__Called = 1
+
+		;; ::MAYDO check A size::
+
+		LDY	Screen__frameCounter
+		INY
+		STY	Screen__frameCounter
+	.endmacro
+
+
 	;; Sets the VRAM size and position registers.
 	;;
 	;; The sizes are taken from the variables BGx_MAP (word adress in VRAM), BGx_SIZE (matches the values BGXSC_SIZE_*),
@@ -22,7 +71,7 @@ IMPORT_MODULE Screen
 	;; Where BGx represents the optional BG1 - BG4.
 	;;
 	;; If a BGx_MAP or BGx_TILES is missing then the register will not be set.
-	;; 
+	;;
 	;; As the `BG12NBA` and `BG34NBA` registers handle 2 layers, if one layer's tile address variable is missing its word address is 0.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
@@ -60,8 +109,10 @@ IMPORT_MODULE Screen
 		.endmacro
 
 		.macro _Screen_SetVramBaseAndSize_oam size, name, oamTileWordAddress
-			LDA	#(size << OBSEL_SIZE_SHIFT) | ((name << OBSEL_NAME_SHIFT) & OBSEL_NAME_MASK) | (oamTileWordAddress / OBSEL_BASE_WALIGN) & OBSEL_BASE_MASK
-			STA	OBSEL
+			.ifdef oamTileWordAddress
+				LDA	#(size << OBSEL_SIZE_SHIFT) | ((name << OBSEL_NAME_SHIFT) & OBSEL_NAME_MASK) | (oamTileWordAddress / OBSEL_BASE_WALIGN) & OBSEL_BASE_MASK
+				STA	OBSEL
+			.endif
 		.endmacro
 
 		.macro _Screen_SetVramBaseAndSize_tiles bg1, bg2, bg3, bg4
