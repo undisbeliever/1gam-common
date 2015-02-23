@@ -23,15 +23,58 @@ IMPORT_MODULE Block
 	;; NOTE: This routine uses DMA channel 0 to reset the block.
 	;;
 	;; size can be ommited if:
-	;;	* the label {source}End exists denoting the end of the data
-	;;	* the label {source}__size exists.
+	;;	* the label {ptr}End exists denoting the end of the data
+	;;	* the label {ptr}__size exists.
 	.macro MemClear ptr, size
 		_Block_Addr_Size_Helper ptr, size, Block__MemClear
 	.endmacro
 
-	;; Copies a block of memory
-	;; ::TODO MemCopy::
+	;; Copys a block of memory in ROM to WMDATA register
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index, WMADD set
+	;; NOTE: This routine uses DMA channel 0 to reset the block.
+	;; INPUT: A = bank
+	;;	: X = memory address
+	;;	: Y = size
+	ROUTINE	CopyToWmdata
 
+	;; Copys a block of memory in ROM to WMDATA register
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index, WMADD set
+	;; NOTE: This routine uses DMA channel 0 to reset the block.
+	;;
+	;; size can be ommited if:
+	;;	* the label {source}End exists denoting the end of the data
+	;;	* the label {source}__size exists.
+	.macro MemCopy source, destination, size
+		.assert ((.bankbyte(destination) & $7F < $40 .and .loword(destination) < $2000) .or (.bankbyte(destination) = $7E) .or (.bankbyte(destination) = $7F)), error, "destination must be in RAM"
+
+		LDX	#.loword(destination)
+		LDA	#.bankbyte(destination)
+		STX	WMADD
+		STA	WMADD + 2
+
+		_Block_Addr_Size_Helper source, size, Block__CopyToWmdata
+	.endmacro
+
+	;; Clears a block of VRAM.
+	;;
+	;; REQUIRE: 8 bit A, 16 bit Index, V-Blank or Force Blank
+	;; NOTE: This routine uses DMA channel 0 to reset the block.
+	;; INPUT
+	;;	: X = VRAM word location
+	;;	: Y = size
+	ROUTINE ClearVramLocation
+
+	;; Clears a block of VRAM at a given location.
+	;;
+	;; REQUIRE: 8 bit A, 16 bit Index, V-Blank or Force Blank
+	;; NOTE: This routine uses DMA channel 0 to transfer the data.
+	.macro ClearVramLocation vramWordLocation, size
+		LDX	#vramWordLocation
+		LDY	#size
+		JSR	Block__ClearVramLocation
+	.endmacro
 
 	;; Transfer a block to memory to VRAM.
 	;;

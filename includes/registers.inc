@@ -363,7 +363,7 @@ BG4VOFS = $2114
 ;; ---mmmmm mmmmmmmm
 ;;
 ;; m = Mode 7 BG1 Offset (M7VOFS only)
-M7VOFS = $210D
+M7VOFS = $210E
 
 
 
@@ -465,6 +465,8 @@ M7Y = $2120
 ;; (write, h-blank, v-blank)
 CGADD = $2121
 
+;;; Starting color of the OAM palette
+CGADD_OBJ_PALETTE = 128
 
 
 ;; CGRAM Data Write
