@@ -15,6 +15,7 @@
 .include "routines/block.h"
 .include "routines/reset-snes.h"
 .include "routines/text.h"
+.include "routines/screen.h"
 .include "routines/text8x8.h"
 .include "routines/text8x16.h"
 
@@ -151,6 +152,7 @@ VBlank:
 .A8
 .I16
 	Text_VBlank
+	Screen_VBlank
 
 	; restore state
 	REP	#$30

@@ -42,11 +42,10 @@ IMPORT_MODULE Math
 	;; OUTPUT:
 	;;	Y: 16 bit product
 	;;	product32: 16 bit product
-	;;	XY: 32 bit unsigned product (if inputs are unsigned)
 	;;	product32: 32 bit unsigned product (if inputs are unsigned)
 	ROUTINE Multiply_S16Y_U8A_S16Y
 	ROUTINE Multiply_U16Y_U8A_U16Y
-	ROUTINE Multiply_U16Y_U8A_U32XY
+	ROUTINE Multiply_U16Y_U8A_U32
 
 	;; Multiply two 16 bit integers.
 	;;

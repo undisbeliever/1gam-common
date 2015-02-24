@@ -29,7 +29,7 @@ ROUTINE Multiply_U8Y_U8X_UY
 .I16
 ROUTINE Multiply_U16Y_U8A_U16Y
 ROUTINE Multiply_S16Y_U8A_S16Y
-ROUTINE Multiply_U16Y_U8A_U32XY
+ROUTINE Multiply_U16Y_U8A_U32
 	STA	WRMPYA
 
 	TYA
@@ -215,7 +215,7 @@ ROUTINE Multiply_S32_U16Y_S32XY
 
 	LDY	factor32 + 0
 	PLA				; Yh
-	JSR	Multiply_U16Y_U8A_U32XY
+	JSR	Multiply_U16Y_U8A_U32
 	LDX	product32 + 2
 
 	LDA	factor32 + 2
@@ -281,7 +281,7 @@ ROUTINE Multiply_S32_S32XY_S32XY
 
 	LDY	factor32 + 0
 	PLA				; Yh
-	JSR	Multiply_U16Y_U8A_U32XY
+	JSR	Multiply_U16Y_U8A_U32
 	LDX	product32 + 2
 
 	LDA	factor32 + 2
@@ -305,7 +305,7 @@ ROUTINE Multiply_S32_S32XY_S32XY
 	; product  = tmp + (factor * Xl << 16) + (factor * Xh << 24)
 	PLA				; Xl
 	LDY	factor32
-	JSR	Multiply_U16Y_U8A_U32XY	; Does not use mathTmp
+	JSR	Multiply_U16Y_U8A_U32	; Does not use mathTmp
 
 	REP	#$31
 .A16	; c clear
