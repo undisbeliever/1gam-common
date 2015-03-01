@@ -452,6 +452,9 @@ VBlank:
 	SEP #$20
 .A8
 .I16
+	; Reset NMI Flag.
+	LDA	RDNMI
+
 	CpuUsage_NMI
 
 	; If updateTilemap is set then load buffer into VRAM
