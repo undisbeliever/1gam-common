@@ -16,6 +16,8 @@ all: $(BIN)
 
 $(BIN): $(API_MODULES) $(OBJECTS)
 	ld65 -vm -m $(@:.sfc=.memlog) -C $(CONFIG) -o $@ $^
+	cd bin/ && ucon64 --snes --nhd --chk $(notdir $@)
+
 
 $(OBJECTS) : $(INCLUDES) $(CONFIG) $(API_MODULES) $(RESOURCES) Makefile
 

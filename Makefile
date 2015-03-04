@@ -29,6 +29,8 @@ obj/math.o: $(wildcard routines/math/*.asm)
 
 examples/bin/%.sfc: examples/obj/%.o
 	ld65 -vm -m $(@:.sfc=.memlog) -C $(CONFIG) -o $@ $^
+	cd examples/bin/ && ucon64 --snes --nhd --chk $(notdir $@)
+
 
 examples/obj/%.o: examples/%.s
 	ca65 -I . -o $@ $<
