@@ -71,7 +71,7 @@ IMPORT_MODULE Math
 
 	;; Multiply two signed 16 bit integers resulting in a 32 signed integer.
 	;;
-	;; REQUIRE: 16 bit Index, DB Shadow
+	;; REQUIRE: 8 bit A, 16 bit Index, DB Shadow
 	;; MODIFIES: A, X, Y
 	;;
 	;; INPUT:
