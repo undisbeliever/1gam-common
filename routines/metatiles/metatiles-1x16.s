@@ -8,21 +8,28 @@
 .include "routines/text.h"
 .include "routines/math.h"
 
+.import METATILES_BG1_MAP
 
 MODULE MetaTiles1x16
 
-.segment "SHADOW"
-	UINT16	xPos
-	UINT16	yPos
+;; Ensure MetaTiles1x16_VBlank is used
+.forceimport _MetaTiles1x16_VBlank__Called:zp
 
+
+.segment "SHADOW"
 	UINT16	mapWidth
 	UINT16	mapHeight
+
+	UINT16	xPos
+	UINT16	yPos
 
 	UINT16	displayXoffset
 	UINT16	displayYoffset
 
 	BYTE	updateBgBuffer
 
+	ADDR	bgVerticalBufferVramLocation
+	ADDR	bgHorizontalBufferVramLocation
 
 
 .segment "WRAM7E"
@@ -30,45 +37,65 @@ MODULE MetaTiles1x16
 	WORD	map, METATILES_MAP_TILE_ALLOCATION
 
 	WORD	bgBuffer, 32 * 32
-	WORD	bgColumnBuffer1, 32
-	WORD	bgColumnBuffer2, 32
+	WORD	bgVerticalBufferLeft, 32
+	WORD	bgVerticalBufferRight, 32
 
-	;; Location on the map that represents 0,0 of the tilemap
+	;; Pixel location on the map that represents 0,0 of the tilemap
 	UINT16	displayScreenDeltaX
 	UINT16	displayScreenDeltaY
+
+	;; Number of bytes in a single Map Row.
+	WORD	sizeOfMapRow
+	WORD	sizeOfMapRowTimesFourteen
+
+	;; Tile index within `map` that represents the top left of the visible display.
+	WORD	visibleTopLeftMapIndex
+
+	;; Pixel location of `visibleTopLeftMapIndex`
+	UINT16	visibleTopLeftMapXpos
+	UINT16	visibleTopLeftMapYpos
 
 	;; The ending position of the draw loop.
 	UINT16	endOfLoop
 
-	UINT16	indexNextColumn
-	UINT16	indexNextColumnTimesFourteen
+	;; The topmost tile within `bgVerticalBufferLeft` that is updated within `_ProcessVerticalBuffer`
+	WORD	columnBufferIndex
+	;; The leftmost tile within `bgHorizontalBuffer` that is updated within `_ProcessHorizontalBuffer`
+	WORD	rowBufferIndex
 
+	;; Tile offset for the vertical update address.
+	;; Number of 16x16 tiles in the vertical offset.
+	;; Bitwize math is used to convert this value into `bgVerticalBufferVramLocation`.
+	WORD	columnVramMetaTileOffset
 
 .code
 
 .A8
 .I16
 ROUTINE MapInit
-	; indexNextColumn = mapWidth / 16 * 2
-	; indexNextColumnTimesFourteen = indexNextColumn * 14
+	; sizeOfMapRow = (mapWidth + 15) / 16 * 2
+	; sizeOfMapRowTimesFourteen = sizeOfMapRow * 14
 	; DrawEntireScreen()
 
-	REP	#$30
+	REP	#$31		; also clear carry
 .A16
 
 	LDA	mapWidth
+	ADC	#15		; carry clear from REP
 	LSR
 	LSR
 	LSR
 	AND	#$FFFE
-	STA	f:indexNextColumn
+	STA	f:sizeOfMapRow
 
 	ASL
-	ADD	f:indexNextColumn
 	ASL
-	ADD	f:indexNextColumn
 	ASL
-	STA	f:indexNextColumnTimesFourteen
+	ASL
+	SUB	f:sizeOfMapRow
+	SUB	f:sizeOfMapRow
+
+	STA	f:sizeOfMapRowTimesFourteen
 
 	SEP	#$20
 
@@ -79,9 +106,25 @@ ROUTINE MapInit
 .A8
 .I16
 ROUTINE DrawEntireScreen
+	PHB
+	LDA	#$7E
+	PHA
+	PLB
+
+	REP	#$30
+.A16
+	.assert * = _DrawEntireScreen_Bank7E, lderror, "Bad Flow"
+
+
+;; REQUIRES: DB = $7E, DB on stack, 16 bit A, 16 bit Index
+.A16
+.I16
+ROUTINE _DrawEntireScreen_Bank7E
 	; // Building from bottom-right to top-left because it saves a comparison.
-	; x = (yPos / 16 + 14) * indexNextColumn + xPos / 16 * 2 + 32 - 2
+	; visibleTopLeftMapIndex = (yPos / 16) * sizeOfMapRow + xPos / 16 * 2
+	; x = visibleTopLeftMapIndex + sizeOfMapRowTimesFourteen + 32 - 2
 	; y = 15 * 2 * 64 - 2
+	; mapColumnIndex = (xPos / 16)
 	;
 	; repeat
 	;	endOfLoop = y - 64
@@ -93,7 +136,7 @@ ROUTINE DrawEntireScreen
 	;		x -= 2
 	;		y -= 4
 	;	until y == endOfLoop
-	;	x = x - indexNextColumn - 32	// width of display in metatile * 2
+	;	x = x - sizeOfMapRow - 32	// width of display in metatile * 2
 	;	y -= 64
 	; until y < 0
 	;
@@ -102,19 +145,19 @@ ROUTINE DrawEntireScreen
 	; displayScreenDeltaX = xPos & 0xFFF0
 	; displayScreenDeltaY = yPos & 0xFFF0
 	;
+	; visibleTopLeftMapXpos = xPos & 0xFFF0
+	; visibleTopLeftMapYpos = yPos & 0xFFF0
+	;
 	; displayXoffset = xPos & 0x000F
 	; displayYoffset = yPos & 0x000F
 	;
+	; _ProcessVerticalBuffer(visibleTopLeftMapIndex + 16 * 2)
+	; bgVerticalBufferVramLocation = METATILES_BG1_MAP + 32 * 32
+	; columnVramMetaTileOffset = 0
+	;
 	; updateBgBuffer = METATILES_UPDATE_WHOLE_BUFFER
 
-	PHB
-	LDA	#$7E
-	PHA
-
-	REP	#$30
-.A16
-
-	LDA	f:indexNextColumn
+	LDA	a:sizeOfMapRow
 	TAX
 
 	LDA	a:yPos
@@ -122,8 +165,11 @@ ROUTINE DrawEntireScreen
 	LSR
 	LSR
 	LSR
-	ADD	#14
 	TAY
+
+	; ::SHOULDDO have Multiply set DB::
+	PEA	$7E00
+	PLB
 	JSR	Math__Multiply_U16Y_U16X_U16Y
 
 	PLB					; set DB to $7E, from previous 7E, saves a SEP/REP.
@@ -135,6 +181,9 @@ ROUTINE DrawEntireScreen
 	LSR
 	AND	#$FFFE
 	ADD	a:Math__product32
+	STA	a:visibleTopLeftMapIndex
+
+	ADD	a:sizeOfMapRowTimesFourteen
 	ADD	#32 - 2
 	TAX
 
@@ -148,7 +197,6 @@ ROUTINE DrawEntireScreen
 		REPEAT
 			PHX
 
-BREAKPOINT
 			LDA	a:map, X
 			TAX
 
@@ -177,7 +225,7 @@ BREAKPOINT
 		UNTIL_EQ
 
 		TXA
-		SUB	a:indexNextColumn
+		SUB	a:sizeOfMapRow
 		ADD	#32
 		TAX
 
@@ -188,12 +236,12 @@ BREAKPOINT
 	LDA	xPos
 	AND	#$FFF0
 	STA	displayScreenDeltaX
+	STA	visibleTopLeftMapXpos
 
 	LDA	yPos
 	AND	#$FFF0
 	STA	displayScreenDeltaY
-
-	;; ::TODO right column::
+	STA	visibleTopLeftMapYpos
 
 	LDA	xPos
 	AND	#$000F
@@ -203,12 +251,248 @@ BREAKPOINT
 	AND	#$000F
 	STA	displayYoffset
 
+	STZ	columnBufferIndex
+	STZ	rowBufferIndex
+
+	; Do right column
+	
+	LDA	visibleTopLeftMapIndex
+	ADD	#17 * 2
+	JSR	_ProcessVerticalBuffer
+
+	LDA	#METATILES_BG1_MAP + 32 * 32
+	STA	bgVerticalBufferVramLocation
+
+	STZ	columnVramMetaTileOffset
+
 	SEP	#$20
 .A8
 	LDA	#METATILE16_UPDATE_WHOLE_BUFFER
 	STA	updateBgBuffer
 
 	PLB
+	RTS
+
+
+
+.A8
+.I16
+ROUTINE Update
+	; if xPos - visibleTopLeftMapXpos > 0
+	;	if xPos - visibleTopLeftMapXpos > 16
+	;		if xPos - visibleTopLeftMapXpos > 16 * 2
+	;			DrawEntireScreen()
+	;			return
+	; 		visibleTopLeftMapXpos += 16
+	;		visibleTopLeftMapIndex += 2
+	;		_ProcessVerticalBuffer(visibleTopLeftMapIndex + 17 * 2)
+	;
+	;		columnVramMetaTileOffset++
+	;		a = (columnVramMetaTileOffset + 16) & $001F
+	;		if a & $0010
+	;			a ^= $0210 	// (The equivalent of a = a | $0200 & ~$0010)
+	;		bgVerticalBufferVramLocation = METATILES_BG1_MAP + a * 2 
+	;
+	;		updateBgBuffer |= METATILE16_UPDATE_VERTICAL_BUFFER
+	; else
+	;	if xPos - visibleTopLeftMapXpos < -16 * 2
+	;		DrawEntireScreen()
+	;		return
+	; 	visibleTopLeftMapXpos -= 16
+	;	visibleTopLeftMapIndex -= 2
+	;	_ProcessVerticalBuffer(visibleTopLeftMapIndex + 2)
+	;
+	;	columnVramMetaTileOffset--
+	;	a = columnVramMetaTileOffset & $001F
+	;	if a & $0010
+	;		a ^= $0210 	// (The equivalent of a = a | $0200 & ~$0010)
+	;	bgVerticalBufferVramLocation = METATILES_BG1_MAP + a * 2 
+	;
+	;	updateBgBuffer |= METATILE16_UPDATE_VERTICAL_BUFFER
+	;
+	; displayXoffset = xPos - displayScreenDeltaX
+	; updateBgBuffer |= METATILE16_UPDATE_POSITION
+
+	PHB
+
+	LDA	#$7E
+	PHA
+	PLB
+
+	REP	#$30
+.A16
+
+	LDA	xPos
+	SUB	visibleTopLeftMapXpos
+	IF_GE
+		CMP	#16
+		IF_GE
+			CMP	#16 * 2
+			JGE	_DrawEntireScreen_Bank7E
+
+			; ::TODO check to see if yPos is out of scope::
+
+			; c clear from branch.
+			LDA	visibleTopLeftMapXpos
+			ADC	#16
+			STA	visibleTopLeftMapXpos
+
+			LDA	visibleTopLeftMapIndex
+			INC
+			INC
+			STA	visibleTopLeftMapIndex
+			ADD	#17 * 2
+			JSR	_ProcessVerticalBuffer
+
+
+			LDA	columnVramMetaTileOffset
+			INC
+			STA	columnVramMetaTileOffset
+
+			AND	#$001F
+			EOR	#$0010
+			BIT	#$0010
+			IF_NOT_ZERO
+				EOR	#$0210
+			ENDIF
+			ASL
+			ADD	#METATILES_BG1_MAP
+			STA	bgVerticalBufferVramLocation
+
+			SEP	#$20
+.A8
+			LDA	#METATILE16_UPDATE_VERTICAL_BUFFER
+			TSB	updateBgBuffer
+
+			REP	#$20
+		ENDIF
+	ELSE
+.A16
+		; A = xPos - visibleTopLeftMapXpos
+		CMP	#.loword(-16 * 2)
+		JSLT	_DrawEntireScreen_Bank7E
+
+		; ::TODO check to see if yPos is out of scope::
+
+		LDA	visibleTopLeftMapXpos
+		SUB	#16
+		STA	visibleTopLeftMapXpos
+
+		LDA	visibleTopLeftMapIndex
+		DEC
+		DEC
+		STA	visibleTopLeftMapIndex
+		INC
+		INC
+		JSR	_ProcessVerticalBuffer
+
+		LDA	columnVramMetaTileOffset
+		DEC
+		STA	columnVramMetaTileOffset
+
+		AND	#$001F
+
+		BIT	#$0010
+		IF_NOT_ZERO
+			EOR	#$0210
+		ENDIF
+		ASL
+		ADD	#METATILES_BG1_MAP
+		STA	bgVerticalBufferVramLocation
+
+		SEP	#$20
+.A8
+		LDA	#METATILE16_UPDATE_VERTICAL_BUFFER
+		TSB	updateBgBuffer
+
+		REP	#$20
+	ENDIF
+.A16
+
+	LDA	xPos
+	SUB	displayScreenDeltaX
+	STA	displayXoffset
+
+	SEP	#$20
+.A8
+	LDA	#METATILE16_UPDATE_POSITION
+	TSB	updateBgBuffer
+
+	PLB	
+	RTS
+
+
+
+;; Builds bgVerticalBufferLeft and bgVerticalBufferRight depending on the tile selected.
+;; You will need to set `bgVerticalBufferVramLocation` afterwards
+;; REQUIRES: 16 bit A, 16 bit Index, DB = $7E
+;; INPUT: A = tile index of the topmost displayed tile.
+.A16
+.I16
+ROUTINE _ProcessVerticalBuffer
+	; endOfLoop = tileIndex - sizeOfMapRow
+	; x = tileIndex + sizeOfMapRowTimesFourteen - 2
+	; y = (columnBufferIndex + 14 * 2 * 2 - 2) MOD 64
+	;
+	; repeat
+	;	bgVerticalBufferRight[y] = metaTiles[map[x]].bottomRight
+	;	bgVerticalBufferLeft[y] = metaTiles[map[x]].bottomLeft
+	;	bgVerticalBufferRight[y - 2] = metaTiles[map[x]].topRight
+	;	bgVerticalBufferLeft[y - 2] = metaTiles[map[x]].topLeft
+	;	x -= sizeOfMapRow
+	;	y -= 4
+	;	if y < 0
+	;		y = 32 * 2 - 2
+	; until x <= endOfLoop
+
+	TAY
+	SUB	sizeOfMapRow
+	STA	endOfLoop
+	TYA
+
+	ADD	sizeOfMapRowTimesFourteen
+	DEC
+	DEC
+	TAX
+
+	LDA	columnBufferIndex
+	ADD	#15 * 2 * 2 - 2
+	AND	#$3F
+	TAY
+
+	REPEAT
+		PHX
+
+		LDA	map, X
+		TAX
+
+		LDA	a:metaTiles + MetaTile16Struct::bottomRight, X
+		STA	a:bgVerticalBufferRight, Y
+
+		LDA	a:metaTiles + MetaTile16Struct::bottomLeft, X
+		STA	a:bgVerticalBufferLeft, Y
+
+		LDA	a:metaTiles + MetaTile16Struct::topRight, X
+		STA	a:bgVerticalBufferRight - 2, Y
+
+		LDA	a:metaTiles + MetaTile16Struct::topLeft, X
+		STA	a:bgVerticalBufferLeft - 2, Y
+
+		PLA
+		SUB	sizeOfMapRow
+		TAX
+
+		DEY
+		DEY
+		DEY
+		DEY
+		IF_MINUS
+			LDY	#32 * 2 - 2
+		ENDIF
+
+		CPX	endOfLoop
+	UNTIL_SLT
+
 	RTS
 
 ENDMODULE
