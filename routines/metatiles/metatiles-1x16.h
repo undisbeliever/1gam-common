@@ -54,7 +54,10 @@ IMPORT_MODULE MetaTiles1x16
 	WORD	bgVerticalBufferLeft, 32
 	WORD	bgVerticalBufferRight, 32
 	ADDR	bgVerticalBufferVramLocation
-	ADDR	bgHorizontalBufferVramLocation
+
+	WORD	bgHorizontalBuffer, 64 * 2
+	ADDR	bgHorizontalBufferVramLocation1
+	ADDR	bgHorizontalBufferVramLocation2
 
 	BYTE	updateBgBuffer
 
@@ -142,30 +145,45 @@ IMPORT_MODULE MetaTiles1x16
 				LDA	#MDMAEN_DMA0
 				STA	MDMAEN
 			ELSE
-				ASL
+				LSR
 				IF_C_SET
 					; Update Horizontal Buffer
+					; Need to use 2 DMA channels to handle the split tilemap.
+					; ::KUDOS Secret of Mana dynamic tile DMA code::
+
 					LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
 					STA	VMAIN
 
 					LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS
 					STA	DMAP0
+					STA	DMAP1
 
 					LDA	#.lobyte(VMDATA)
 					STA	BBAD0
+					STA	BBAD1
 
-					LDX	#.loword(MetaTiles1x16__bgBuffer)
+					LDX	#.loword(MetaTiles1x16__bgHorizontalBuffer)
 					STX	A1T0
-					LDA	#.bankbyte(MetaTiles1x16__bgBuffer)
+					LDX	#.loword(MetaTiles1x16__bgHorizontalBuffer + 64 * 2)
+					STX	A1T1
+
+					LDA	#.bankbyte(MetaTiles1x16__bgHorizontalBuffer)
 					STA	A1B0
+					STA	A1B1
 
-					LDX	MetaTiles1x16__bgHorizontalBufferVramLocation
+					LDY	#2 * 32
+					LDA	#MDMAEN_DMA0 | MDMAEN_DMA1
+
+					LDX	MetaTiles1x16__bgHorizontalBufferVramLocation1
 					STX	VMADD
-
-					LDY	#2 * 32 * 2
 					STY	DAS0
+					STY	DAS1
+					STA	MDMAEN
 
-					LDA	#MDMAEN_DMA0
+					LDX	MetaTiles1x16__bgHorizontalBufferVramLocation2
+					STX	VMADD
+					STY	DAS0
+					STY	DAS1
 					STA	MDMAEN
 				ENDIF
 			ENDIF
