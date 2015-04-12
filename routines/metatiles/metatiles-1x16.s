@@ -26,29 +26,42 @@ MODULE MetaTiles1x16
 	UINT16	displayXoffset
 	UINT16	displayYoffset
 
+	WORD	sizeOfMapRow
+
+	;; Buffer state.
 	BYTE	updateBgBuffer
 
+	;; VRAM word address to store vertical buffer.
 	ADDR	bgVerticalBufferVramLocation
+	;; VRAM word address to store the horizontal buffer (left tilemap)
 	ADDR	bgHorizontalBufferVramLocation1
+	;; VRAM word address to store the horizontal buffer (right tilemap)
+	;; Equal to bgHorizontalBufferVramLocation1 + 32 * 32.
 	ADDR	bgHorizontalBufferVramLocation2
 
 
 .segment "WRAM7E"
 	STRUCT	metaTiles, MetaTile16Struct, N_METATILES
-	WORD	map, METATILES_MAP_TILE_ALLOCATION
+	ADDR	map, METATILES_MAP_TILE_ALLOCATION
 
+	;; The buffer to use when updating the whole display
 	WORD	bgBuffer, 32 * 32
+
+	;; The left 8x8 tiles of the vertical tile update
 	WORD	bgVerticalBufferLeft, 32
+	;; The right 8x8 tiles of the vertical tile update
 	WORD	bgVerticalBufferRight, 32
 
+	;; The horizonal tiles to update during VRAM
+	;; Uses the same space as bgBuffer because both cannot be used
+	;; at the same time.
 	SAME_VARIABLE	bgHorizontalBuffer, bgBuffer
 
-	;; Pixel location on the map that represents 0,0 of the tilemap
+	;; Pixel location on the map that represents tile 0,0 of the SNES tilemap
 	UINT16	displayScreenDeltaX
 	UINT16	displayScreenDeltaY
 
-	;; Number of bytes in a single Map Row.
-	WORD	sizeOfMapRow
+	;; Number of bytes in a single Map Row * 14
 	WORD	sizeOfMapRowTimesFourteen
 
 	;; Tile index within `map` that represents the top left of the visible display.
@@ -62,8 +75,10 @@ MODULE MetaTiles1x16
 	UINT16	endOfLoop
 
 	;; The topmost tile within `bgVerticalBufferLeft` that is updated within `_ProcessVerticalBuffer`
+	;; Changes with y movement.
 	WORD	columnBufferIndex
 	;; The leftmost tile within `bgHorizontalBuffer` that is updated within `_ProcessHorizontalBuffer`
+	;; Changes with x movement.
 	WORD	rowBufferIndex
 
 	;; Tile offset for the vertical update metatile address.

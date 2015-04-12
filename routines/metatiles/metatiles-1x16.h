@@ -2,7 +2,21 @@
 ;; 1 layer of 16x16 MetaTiles
 ;; ==========================
 ;;
-
+;; This module manages a sigle layer of 16x16 pixel Metatile map
+;; with scroll support.
+;;
+;; In order to simplify the system, both the map and the metatile
+;; set are stored in RAM. This allows the data to be compressed
+;; and loaded by the loading module to save ROM space.
+;;
+;; The map data is stored as the offsets within the metatile table
+;; (that is `tile * 8`). This is done for speed purposes.
+;;
+;; The module is configured by setting the `METATILES_BG1_MAP`
+;; global that indicates the *word* address of the SNES tilemap
+;; within VRAM.
+;;
+;; This module also uses DMA channels 0 and 1 during the VBlank routine.
 
 .ifndef ::_METATILES_1x16_H_
 ::_METATILES_1x16_H_ = 1
@@ -14,7 +28,7 @@
 
 
 ;; Maximum number of tiles in map.
-; Enough to fit one Illusion of Gaia map.
+; Enough to fit a single Illusion of Gaia map.
 ; Uses 12.5 KiB of space.
 METATILES_MAP_TILE_ALLOCATION = 80 * 80
 
@@ -36,32 +50,33 @@ METATILE16_UPDATE_WHOLE_BUFFER		= $FF
 
 
 IMPORT_MODULE MetaTiles1x16
+	;; x Position of the screen
 	UINT16	xPos
+	;; y Position of the screen
 	UINT16	yPos
 
-	;; Buffer of BGxHOFS
-	UINT16	displayXoffset
-	;; Buffer of BGxVOFS
-	UINT16	displayYoffset
-
+	;; Width of the map in pixels
 	UINT16	mapWidth
+
+	;; Height of the map in pixels 
 	UINT16	mapHeight
 
+	;; Number of bytes in a single map row.
+	WORD	sizeOfMapRow
+
+	;; Metatile table, mapping of metatiles to their inner tiles.
 	STRUCT	metaTiles, MetaTile16Struct, N_METATILES
-	WORD	map, METATILES_MAP_TILE_ALLOCATION
 
-	WORD	bgBuffer, 32 * 32
-	WORD	bgVerticalBufferLeft, 32
-	WORD	bgVerticalBufferRight, 32
-	ADDR	bgVerticalBufferVramLocation
-
-	WORD	bgHorizontalBuffer, 64 * 2
-	ADDR	bgHorizontalBufferVramLocation1
-	ADDR	bgHorizontalBufferVramLocation2
-
-	BYTE	updateBgBuffer
+	;; The map data.
+	;; Stored as a multidimensional array[y][x], with a width of
+	;; `mapWidth / 16` and a height of `mapHeight / 16`.
+	;;
+	;; Each cell contains the word address within the metaTile table
+	;; (`tile * 8`), for speed purposes.
+	ADDR	map, METATILES_MAP_TILE_ALLOCATION
 
 
+	;; Initialize the metatile system. 
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT:
 	;;	xPos - screen position
@@ -72,16 +87,41 @@ IMPORT_MODULE MetaTiles1x16
 	;;	map	- the map data to use (loaded into memory)
 	ROUTINE	MapInit
 
-
+	;; Updates the position of the screen, loading new tiles as necessary.
+	;;
+	;; There are 3 types of tile updates.
+	;;	* Horizonatal
+	;;	* Vertical
+	;;	* Whole Screen
+	;;
+	;; And will fill the various buffers as necessary.
+	;;
+	;; So long as the screen only moves < 16 pixels per update only
+	;; horizontal and vertical updates will be preformed.
+	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT:
 	;;	xPos - screen position
 	;;	yPos - screen position
 	ROUTINE	Update
 
+	;; Loads the buffers into VRAM
+	;;
+	;; REQUIRES: 8 bit A, 16 bit Index, DB=0, DMA channels 0 and 1 free.
 	.macro MetaTiles1x16_VBlank
 		.export _MetaTiles1x16_VBlank__Called = 1
 		.import METATILES_BG1_MAP
+
+		.global MetaTiles1x16__displayXoffset
+		.global MetaTiles1x16__displayYoffset
+		.global MetaTiles1x16__bgBuffer
+		.global MetaTiles1x16__bgVerticalBufferLeft
+		.global MetaTiles1x16__bgVerticalBufferRight
+		.global MetaTiles1x16__bgVerticalBufferVramLocation
+		.global MetaTiles1x16__bgHorizontalBuffer
+		.global MetaTiles1x16__bgHorizontalBufferVramLocation1
+		.global MetaTiles1x16__bgHorizontalBufferVramLocation2
+		.global MetaTiles1x16__updateBgBuffer
 
 		LDA	MetaTiles1x16__updateBgBuffer
 		IFL_NOT_ZERO
@@ -102,7 +142,7 @@ IMPORT_MODULE MetaTiles1x16
 				STA	A1B0
 
 				LDX	MetaTiles1x16__bgVerticalBufferVramLocation
-				LDY	#MetaTiles1x16__bgVerticalBufferLeft__size
+				LDY	#32 * 2
 				LDA	#MDMAEN_DMA0
 
 				STX	VMADD
@@ -122,19 +162,13 @@ IMPORT_MODULE MetaTiles1x16
 			CMP	#$FF
 			IF_EQ
 				; Update Whole Buffer
+				; As the vertical buffer is already updated, DMA registers are already set.
+
 				LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
 				STA	VMAIN
 
-				LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS
-				STA	DMAP0
-
-				LDA	#.lobyte(VMDATA)
-				STA	BBAD0
-
 				LDX	#.loword(MetaTiles1x16__bgBuffer)
 				STX	A1T0
-				LDA	#.bankbyte(MetaTiles1x16__bgBuffer)
-				STA	A1B0
 
 				LDX	#METATILES_BG1_MAP
 				STX	VMADD
