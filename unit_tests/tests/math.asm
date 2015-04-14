@@ -35,7 +35,6 @@ PAGE_ROUTINE Math_Multiply_1
 		LDY	#factorY
 		LDA	#factorA
 		JSR	Math__Multiply_U16Y_U8A_U16Y
-		LDXY	Math__product32
 
 		Check_16Y (factorY * factorA)
 		JSR	Text__PrintDecimal_U16Y
@@ -53,12 +52,11 @@ PAGE_ROUTINE Math_Multiply_1
 	.macro Test_Multiply_S16Y_U8A_S16Y factorY, factorA
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorA)
+		Text_PrintString .sprintf("%10i * %3u = ", factorY, factorA)
 
 		LDY	#.loword(factorY)
 		LDA	#factorA
 		JSR	Math__Multiply_S16Y_U8A_S16Y
-		LDXY	Math__product32
 
 		Check_16Y (factorY * factorA)
 		JSR	Text__PrintDecimal_U16Y
@@ -75,22 +73,22 @@ PAGE_ROUTINE Math_Multiply_2
 	Text_SetColor	4
 	Text_PrintString "Multiply_U16Y_U8A_U32XY"
 
-	.macro Test_Multiply_U16Y_U8A_U32XY factorY, factorA
+	.macro Test_Multiply_U16Y_U8A_U32 factorY, factorA
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorA)
 
 		LDY	#factorY
 		LDA	#factorA
-		JSR	Math__Multiply_U16Y_U8A_U16Y
+		JSR	Math__Multiply_U16Y_U8A_U32
 		LDXY	Math__product32
 
 		Check_32XY (factorY * factorA)
 		JSR	Text__PrintDecimal_U32XY
 	.endmacro
 
-	Test_Multiply_U16Y_U8A_U32XY	12345, 67
-	Test_Multiply_U16Y_U8A_U32XY	$FEFE, $FE
+	Test_Multiply_U16Y_U8A_U32	12345, 67
+	Test_Multiply_U16Y_U8A_U32	$FEFE, $FE
 
 
 

@@ -64,10 +64,66 @@ ROUTINE Multiply_U16Y_U8A_U32
 
 .I16
 ROUTINE Multiply_U16Y_U16X_U16Y
-ROUTINE Multiply_U16Y_U16X_U32XY
 ROUTINE Multiply_U16Y_S16X_16Y
 ROUTINE Multiply_S16Y_U16X_16Y
 ROUTINE Multiply_S16Y_S16X_S16Y
+	;     Y y
+	; *   X x
+	; -----------
+	;      y*x
+	; +  Y*x
+	; +  y*X
+
+	PHP
+	SEP	#$20
+.A8
+
+	TXA
+	STA	WRMPYA		; Low byte of x
+
+	TYA
+	STA	WRMPYB		; Low byte of y
+
+				; Wait 8 Cycles
+	STY	mathTmp1  	; 5
+	STX	mathTmp3	; 5
+
+	LDX	RDMPY
+
+	LDA	mathTmp1 + 1	; High byte of Y
+	STA	WRMPYB		; WRMPYA is already Low x
+
+				; Wait 8 Cycles
+	STX	product32	; 5
+	LDA	product32 + 1	; 4
+	CLC
+	ADC	RDMPYL
+	STA	product32 + 1
+
+	LDA	mathTmp3 + 1	; High byte of X
+	STA	WRMPYA
+
+	TYA			; Low byte of Y
+	STA	WRMPYB
+
+				; Wait 8 cycles
+	CLC			; 2
+	LDA	product32 + 1	; 4
+	ADC	RDMPY		; 2 - load address
+	STA	product32 + 1
+
+	LDY	product32
+
+	PLP
+	RTS
+
+
+
+
+.I16
+ROUTINE Multiply_U16Y_U16X_U32XY
+ROUTINE Multiply_U16Y_S16X_32XY
+ROUTINE Multiply_S16Y_U16X_32XY
 	;       Y y
 	;   *   X x
 	; -----------

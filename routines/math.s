@@ -18,6 +18,7 @@ MODULE Math
 
 	DWORD	factor32
 	DWORD	product32
+	SAME_VARIABLE product16, product32
 
 	DWORD	dividend32
 	DWORD	divisor32

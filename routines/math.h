@@ -9,6 +9,7 @@ IMPORT_MODULE Math
 
 	DWORD	factor32
 	DWORD	product32
+	WORD	product16	; uses the same memory address as product32
 
 	DWORD	dividend32
 	DWORD	divisor32
@@ -41,6 +42,7 @@ IMPORT_MODULE Math
 	;;
 	;; OUTPUT:
 	;;	Y: 16 bit product
+	;;	product16: 16 bit product
 	;;	product32: 16 bit product
 	;;	product32: 32 bit unsigned product (if inputs are unsigned)
 	ROUTINE Multiply_S16Y_U8A_S16Y
@@ -60,14 +62,27 @@ IMPORT_MODULE Math
 	;;
 	;; OUTPUT:
 	;;	Y: 16 bit product
-	;;	product32: 16 bit product
-	;;	XY: 32 bit product (if inputs are unsigned)
-	;;	product32: 32 bit product (if inputs are unsigned)
+	;;	product16: 16 bit product
 	ROUTINE Multiply_U16Y_U16X_U16Y
-	ROUTINE Multiply_U16Y_U16X_U32XY
 	ROUTINE Multiply_U16Y_S16X_16Y
 	ROUTINE Multiply_S16Y_U16X_16Y
 	ROUTINE Multiply_S16Y_S16X_S16Y
+
+	;; Multiply two 16 bit integers resulting in a 32 integer.
+	;;
+	;; REQUIRE: 8 bit A, 16 bit Index, DB Shadow
+	;; MODIFIES: A, X, Y
+	;;
+	;; INPUT:
+	;;	Y: signed 16 bit factor
+	;;	X: signed 16 bit factor
+	;;
+	;; OUTPUT:
+	;;	XY: 32 bit signed product
+	;;	product32: 32 bit signed product
+	ROUTINE Multiply_U16Y_U16X_U32XY
+	ROUTINE Multiply_U16Y_S16X_32XY
+	ROUTINE Multiply_S16Y_U16X_32XY
 
 	;; Multiply two signed 16 bit integers resulting in a 32 signed integer.
 	;;
