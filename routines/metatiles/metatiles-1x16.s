@@ -33,6 +33,7 @@ METATILE_DISPLAY_HEIGHT = 14
 	UINT16	displayYoffset
 
 	WORD	sizeOfMapRow
+	WORD	sizeOfMapRowDiviedBy16
 
 	;; Buffer state.
 	BYTE	updateBgBuffer
@@ -104,6 +105,7 @@ METATILE_DISPLAY_HEIGHT = 14
 ROUTINE MapInit
 	; sizeOfMapRow = (mapWidth + METATILE_SIZE) / METATILE_SIZE * 2
 	; sizeOfMapRowDisplayHeight = sizeOfMapRow * METATILE_DISPLAY_HEIGHT
+	; sizeOfMapRowDiviedBy16 = sizeOfMapRow / 16
 	; DrawEntireScreen()
 
 	REP	#$31			; also clear carry
@@ -116,15 +118,23 @@ ROUTINE MapInit
 	LSR
 	LSR
 	AND	#$FFFE
-	STA	f:sizeOfMapRow
+	STA	sizeOfMapRow
 
 	.assert METATILE_DISPLAY_HEIGHT = 14, error, "METATILE_DISPLAY_HEIGHT"
 	ASL
-	ADD	f:sizeOfMapRow
+	ADD	sizeOfMapRow
 	ASL
-	ADD	f:sizeOfMapRow
+	ADD	sizeOfMapRow
 	ASL
 	STA	f:sizeOfMapRowDisplayHeight
+
+	LDA	sizeOfMapRow
+	LSR
+	LSR
+	LSR
+	LSR
+	STA	sizeOfMapRowDiviedBy16
+
 
 	SEP	#$20
 
@@ -150,7 +160,9 @@ ROUTINE DrawEntireScreen
 .I16
 ROUTINE _DrawEntireScreen_Bank7E
 	; // Building from bottom-right to top-left because it saves a comparison.
-	; visibleTopLeftMapIndex = (yPos / METATILE_SIZE) * sizeOfMapRow + xPos / METATILE_SIZE * 2
+	;
+	; tmp = (yPos & 0xFFF0) * sizeOfMapRowDiviedBy16	// equivalent of (yPos / 16) * sizeOfMapRow
+	; visibleTopLeftMapIndex = tmp + xPos / METATILE_SIZE * 2
 	; x = visibleTopLeftMapIndex + sizeOfMapRowDisplayHeight + METATILE_DISPLAY_WIDTH * 2 - 2
 	; y = (METATILE_DISPLAY_HEIGHT + 1) * METATILE_TILES * 32 * 2 - 2
 	; mapColumnIndex = (xPos / 16)
@@ -190,16 +202,11 @@ ROUTINE _DrawEntireScreen_Bank7E
 	;
 	; updateBgBuffer = METATILES_UPDATE_WHOLE_BUFFER
 
-	LDA	a:sizeOfMapRow
-	TAX
-
 	.assert METATILE_SIZE = 16, error, "METATILE_SIZE"
-	LDA	a:yPos
-	LSR
-	LSR
-	LSR
-	LSR
+	LDA	yPos
+	AND	#$FFF0
 	TAY
+	LDX	sizeOfMapRowDiviedBy16
 
 	; ::SHOULDDO have Multiply set DB::
 	PEA	$7E00
@@ -214,8 +221,8 @@ ROUTINE _DrawEntireScreen_Bank7E
 	LSR
 	LSR
 	AND	#$FFFE
-	ADD	a:Math__product32
-	STA	a:visibleTopLeftMapIndex
+	ADD	Math__product16
+	STA	visibleTopLeftMapIndex
 
 	ADD	a:sizeOfMapRowDisplayHeight
 	ADD	#METATILE_DISPLAY_WIDTH * 2 - 2

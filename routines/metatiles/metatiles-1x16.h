@@ -56,6 +56,7 @@ IMPORT_MODULE MetaTiles1x16
 	UINT16	yPos
 
 	;; Width of the map in pixels
+	;; Must be a multiple of 256.
 	UINT16	mapWidth
 
 	;; Height of the map in pixels 
@@ -63,6 +64,9 @@ IMPORT_MODULE MetaTiles1x16
 
 	;; Number of bytes in a single map row.
 	WORD	sizeOfMapRow
+	;; sizeOfMapRow / 16, used as a speedup to convert xPos/yPos to tile.
+	;; See `MetaTiles1x16_LocationToTile` macro.
+	WORD	sizeOfMapRowDiviedBy16
 
 	;; Metatile table, mapping of metatiles to their inner tiles.
 	STRUCT	metaTiles, MetaTile16Struct, N_METATILES
@@ -78,11 +82,15 @@ IMPORT_MODULE MetaTiles1x16
 
 	;; Initialize the metatile system. 
 	;; REQUIRES: 8 bit A, 16 bit Index
+	;;
+	;; There is no bounds checking. xPos and yPos MUST be < (mapWidth - 256)
+	;; and (mapHeight - 224) respectivly. mapWidth MUST be a multiple of 256.
+	;;
 	;; INPUT:
 	;;	xPos - screen position
 	;;	yPos - screen position
 	;;	mapWidth - the width of the map in pixels
-	;;	mapHeight - the height of the map in pixels
+	;;	mapHeight - the height of the map in pixels (MUST be a multiple of 256)
 	;;	metaTiles - the metaTile data to use (loaded into memory)
 	;;	map	- the map data to use (loaded into memory)
 	ROUTINE	MapInit
@@ -98,6 +106,9 @@ IMPORT_MODULE MetaTiles1x16
 	;;
 	;; So long as the screen only moves < 16 pixels per update only
 	;; horizontal and vertical updates will be preformed.
+	;;
+	;; There is no bounds checking, xPos and yPos MUST be < (mapWidth - 256)
+	;; and (mapHeight - 224) respectivly.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT:
@@ -234,6 +245,65 @@ IMPORT_MODULE MetaTiles1x16
 
 			STZ	MetaTiles1x16__updateBgBuffer
 		ENDIF
+	.endmacro
+
+	;; Converts xPos/yPos coordinates into a tile index.
+	;;
+	;; REQUIRES: 16 bit A, 16 bit Index , DB access registers
+	;; PARAM:
+	;;	xPos - the xPos variable address
+	;;	yPos - the yPos variable address
+	;;	index - (optional) the index of the xPos/yPos
+	;; MODIFIES: A, X, Y (unless index == X or index == Y)
+	;; OUTPUT: A - The index of the tile within `map`
+	.macro MetaTiles1x16_LocationToTile xPos, yPos, index
+		; tmp = (yPos & 0xFFF0) * sizeOfMapRowDiviedBy16	// equivalent of (yPos / 16) * sizeOfMapRow
+		; visibleTopLeftMapIndex = tmp + xPos / 16 * 2
+
+		.ifblank index
+			LDA	yPos
+			AND	#$FFF0
+			TAY
+			LDX	sizeOfMapRowDiviedBy16
+			; ::SHOULDDO have multiply set DB::
+			JSR	Math__Multiply_U16Y_U16X_U16Y
+			LDA	xPos
+			LSR
+			LSR
+			LSR
+			AND	#$FFFE
+			CLC
+			ADC	Math__product16
+		.else
+			.if .xmatch(index, X)
+				PHX
+			.elseif .xmatch(index, Y)
+				PHY
+			.else
+				.fatal .sprintf("unknown index: %s", index)
+			.endif
+			LDA	yPos, index
+			AND	#$FFF0
+			TAY
+			LDX	sizeOfMapRowDiviedBy16
+			; ::SHOULDDO have multiply set DB::
+			JSR	Math__Multiply_U16Y_U16X_U16Y
+
+			.if .xmatch(index, X)
+				PLX
+			.elseif .xmatch(index, Y)
+				PLY
+			.endif
+
+			LDA	xPos, index
+			LSR
+			LSR
+			LSR
+			LSR
+			AND	#$FFFE
+			CLC
+			ADC	Math__product16
+		.endif
 	.endmacro
 
 ENDMODULE
