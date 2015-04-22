@@ -1,5 +1,5 @@
 
-SOURCES  = $(wildcard routines/*.s)
+SOURCES  = $(wildcard routines/*.s) $(wildcard routines/*/*.s)
 OBJECTS  = $(patsubst routines/%.s,obj/%.o,$(SOURCES))
 
 EXAMPLES = $(wildcard examples/*.s)
