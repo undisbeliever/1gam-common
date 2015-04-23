@@ -15,7 +15,7 @@ MODULE Text
 
 .zeropage
 	;; The position of the string
-	LONG	stringPtr
+	FARADDR	stringPtr
 
 .segment "WRAM7E"
 	;; The text buffer

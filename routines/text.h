@@ -113,7 +113,7 @@
 IMPORT_MODULE Text
 	ZEROPAGE
 		;; The position of the string
-		LONG	stringPtr
+		FARADDR	stringPtr
 	ENDZEROPAGE
 
 	;; The text buffer
@@ -726,7 +726,7 @@ ENDMODULE
 	.elseif type = ::TYPE_WORD .or type = ::TYPE_ADDR .or type = ::TYPE_UINT16 .or type = ::TYPE_SINT16
 		LDY	var
 		JSR	::Text__PrintHex_16Y
-	.elseif type = ::TYPE_LONG
+	.elseif type = ::TYPE_FARADDR
 		; ::MAYDO replace with dedicated routine::
 		LDY	var + 2
 		JSR	::Text__PrintHex_8A

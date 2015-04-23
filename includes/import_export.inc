@@ -86,7 +86,7 @@
 	TYPE_BYTE = 1
 	TYPE_WORD
 	TYPE_ADDR
-	TYPE_LONG
+	TYPE_FARADDR
 	TYPE_DWORD
 	TYPE_UINT8
 	TYPE_SINT8
@@ -328,8 +328,8 @@
 	_VARIABLE_HELPER name, TYPE_ADDR, 2, count
 .endmacro
 
-.macro LONG name, count
-	_VARIABLE_HELPER name, TYPE_LONG, 3, count
+.macro FARADDR name, count
+	_VARIABLE_HELPER name, TYPE_FARADDR, 3, count
 .endmacro
 
 .macro DWORD name, count
