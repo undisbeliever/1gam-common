@@ -141,11 +141,8 @@ IMPORT_MODULE MetaTiles1x16
 				LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_32
 				STA	VMAIN
 
-				LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS
-				STA	DMAP0
-
-				LDA	#.lobyte(VMDATA)
-				STA	BBAD0
+				LDX	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS | (.lobyte(VMDATA) << 8)
+				STX	DMAP0			; also sets BBAD0
 
 				LDX	#.loword(MetaTiles1x16__bgVerticalBufferLeft)
 				STX	A1T0
@@ -199,13 +196,9 @@ IMPORT_MODULE MetaTiles1x16
 					LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
 					STA	VMAIN
 
-					LDA	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS
-					STA	DMAP0
-					STA	DMAP1
-
-					LDA	#.lobyte(VMDATA)
-					STA	BBAD0
-					STA	BBAD1
+					LDX	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_2REGS | (.lobyte(VMDATA) << 8)
+					STX	DMAP0			; also sets BBAD0
+					STX	DMAP1			; also sets BBAD1
 
 					LDX	#.loword(MetaTiles1x16__bgHorizontalBuffer)
 					STX	A1T0
