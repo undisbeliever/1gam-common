@@ -338,7 +338,7 @@ ROUTINE Update
 	;
 	;		updateBgBuffer |= METATILE16_UPDATE_VERTICAL_BUFFER
 	; else
-	;	if xPos - visibleTopLeftMapXpos < -METATILE_SIZE * 2
+	;	if xPos - visibleTopLeftMapXpos < -METATILE_SIZE
 	;		DrawEntireScreen()
 	;		return
 	;
@@ -512,7 +512,7 @@ ROUTINE Update
 	IF_GE
 		CMP	#METATILE_SIZE
 		IF_GE
-			CMP	#METATILE_SIZE
+			CMP	#METATILE_SIZE * 2
 			JGE	_DrawEntireScreen_Bank7E
 
 			; c clear from branch.
@@ -554,7 +554,7 @@ ROUTINE Update
 	ELSE
 .A16
 		; A = yPos - visibleTopLeftMapXpos
-		CMP	#.loword(-METATILE_SIZE * 2)
+		CMP	#.loword(-METATILE_SIZE)
 		JSLT	_DrawEntireScreen_Bank7E
 
 		; c clear from branch.
