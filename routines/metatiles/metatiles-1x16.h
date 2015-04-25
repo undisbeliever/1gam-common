@@ -55,6 +55,11 @@ IMPORT_MODULE MetaTiles1x16
 	;; y Position of the screen
 	UINT16	yPos
 
+	;; Maximum value of xPos before out of bounds
+	UINT16	maxXPos
+	;; Maximum value of yPos before out of bounds
+	UINT16	maxYPos
+
 	;; Width of the map in pixels
 	;; Must be a multiple of 256.
 	UINT16	mapWidth

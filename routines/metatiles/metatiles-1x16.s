@@ -29,6 +29,9 @@ METATILE_DISPLAY_HEIGHT = 14
 	UINT16	xPos
 	UINT16	yPos
 
+	UINT16	maxXPos
+	UINT16	maxYPos
+
 	UINT16	displayXoffset
 	UINT16	displayYoffset
 
@@ -106,6 +109,8 @@ ROUTINE MapInit
 	; sizeOfMapRow = (mapWidth + METATILE_SIZE) / METATILE_SIZE * 2
 	; sizeOfMapRowDisplayHeight = sizeOfMapRow * METATILE_DISPLAY_HEIGHT
 	; sizeOfMapRowDiviedBy16 = sizeOfMapRow / 16
+	; maxXPos = mapWidth - 256
+	; maxYPos = mapHeight - 224
 	; DrawEntireScreen()
 
 	REP	#$31			; also clear carry
@@ -135,6 +140,13 @@ ROUTINE MapInit
 	LSR
 	STA	sizeOfMapRowDiviedBy16
 
+	LDA	mapWidth
+	SUB	#256
+	STA	maxXPos
+
+	LDA	mapHeight
+	SUB	#224
+	STA	maxYPos
 
 	SEP	#$20
 
