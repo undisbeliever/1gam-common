@@ -26,11 +26,15 @@
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
 
+.setcpu "65816"
 
 ;; Maximum number of tiles in map.
 ; Enough to fit a single Illusion of Gaia map.
 ; Uses 12.5 KiB of space.
 METATILES_MAP_TILE_ALLOCATION = 80 * 80
+
+;; Maximum number of rows in a map.
+METATILES_MAX_ROWS = 128
 
 ;; Number of metatiles per map
 N_METATILES	= 512
@@ -82,7 +86,12 @@ IMPORT_MODULE MetaTiles1x16
 	;;
 	;; Each cell contains the word address within the metaTile table
 	;; (`tile * 8`), for speed purposes.
-	ADDR	map, METATILES_MAP_TILE_ALLOCATION
+	.global	MetaTiles1x16__map : far
+
+	;; The table conating the starting tile address of each row in the map.
+	;; Conatins METATILES_MAX_ROWS .addr fields.
+	;; Accessed with WRAM7E bank.
+	.global MetaTiles1x16__mapRowAddressTable : far
 
 
 	;; Initialize the metatile system. 
@@ -251,56 +260,47 @@ IMPORT_MODULE MetaTiles1x16
 	;; PARAM:
 	;;	xPos - the xPos variable address
 	;;	yPos - the yPos variable address
-	;;	index - (optional) the index of the xPos/yPos
-	;; MODIFIES: A, X, Y (unless index == X or index == Y)
+	;;	index - (optional) the index of the xPos/yPos, can only be Y
+	;; MODIFIES: A, X
 	;; OUTPUT: A - The index of the tile within `map`
 	.macro MetaTiles1x16_LocationToTile xPos, yPos, index
-		; tmp = (yPos & 0xFFF0) * sizeOfMapRowDiviedBy16	// equivalent of (yPos / 16) * sizeOfMapRow
-		; visibleTopLeftMapIndex = tmp + xPos / 16 * 2
+		; return (xPos / 16 * 2) + mapRowAddressTable[yPos / 16]
 
 		.ifblank index
 			LDA	yPos
-			AND	#$FFF0
-			TAY
-			LDX	sizeOfMapRowDiviedBy16
-			; ::SHOULDDO have multiply set DB::
-			JSR	Math__Multiply_U16Y_U16X_U16Y
+			LSR
+			LSR
+			LSR
+			AND	#$FFFE		; / 16 * 2
+			TAX
+
 			LDA	xPos
 			LSR
 			LSR
 			LSR
 			AND	#$FFFE
 			CLC
-			ADC	Math__product16
+			ADC	f:MetaTiles1x16__mapRowAddressTable, X
 		.else
-			.if .xmatch(index, X)
-				PHX
-			.elseif .xmatch(index, Y)
+			.if .xmatch(index, Y)
 				PHY
 			.else
-				.fatal .sprintf("unknown index: %s", index)
+				.fatal .sprintf("only allow Y index")
 			.endif
-			LDA	yPos, index
-			AND	#$FFF0
-			TAY
-			LDX	sizeOfMapRowDiviedBy16
-			; ::SHOULDDO have multiply set DB::
-			JSR	Math__Multiply_U16Y_U16X_U16Y
-
-			.if .xmatch(index, X)
-				PLX
-			.elseif .xmatch(index, Y)
-				PLY
-			.endif
-
-			LDA	xPos, index
+			LDA	yPos, Y
 			LSR
+			LSR
+			LSR
+			AND	#$FFFE
+			TAX
+
+			LDA	xPos, Y
 			LSR
 			LSR
 			LSR
 			AND	#$FFFE
 			CLC
-			ADC	Math__product16
+			ADC	f:MetaTiles1x16__mapRowAddressTable, X
 		.endif
 	.endmacro
 

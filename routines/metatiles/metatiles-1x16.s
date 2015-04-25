@@ -36,7 +36,6 @@ METATILE_DISPLAY_HEIGHT = 14
 	UINT16	displayYoffset
 
 	WORD	sizeOfMapRow
-	WORD	sizeOfMapRowDiviedBy16
 
 	;; Buffer state.
 	BYTE	updateBgBuffer
@@ -53,6 +52,8 @@ METATILE_DISPLAY_HEIGHT = 14
 .segment "WRAM7E"
 	STRUCT	metaTiles, MetaTile16Struct, N_METATILES
 	ADDR	map, METATILES_MAP_TILE_ALLOCATION
+
+	ADDR	mapRowAddressTable, METATILES_MAX_ROWS
 
 	;; The buffer to use when updating the whole display
 	WORD	bgBuffer, 32 * 32
@@ -108,9 +109,15 @@ METATILE_DISPLAY_HEIGHT = 14
 ROUTINE MapInit
 	; sizeOfMapRow = (mapWidth + METATILE_SIZE) / METATILE_SIZE * 2
 	; sizeOfMapRowDisplayHeight = sizeOfMapRow * METATILE_DISPLAY_HEIGHT
-	; sizeOfMapRowDiviedBy16 = sizeOfMapRow / 16
 	; maxXPos = mapWidth - 256
 	; maxYPos = mapHeight - 224
+	;
+	; a = 0
+	; for y = mapHeight / 16 to 0
+	;	mapRowAddressTable[x] = a
+	;	a += sizeOfMapRow
+	;	x++
+	;
 	; DrawEntireScreen()
 
 	REP	#$31			; also clear carry
@@ -133,13 +140,6 @@ ROUTINE MapInit
 	ASL
 	STA	f:sizeOfMapRowDisplayHeight
 
-	LDA	sizeOfMapRow
-	LSR
-	LSR
-	LSR
-	LSR
-	STA	sizeOfMapRowDiviedBy16
-
 	LDA	mapWidth
 	SUB	#256
 	STA	maxXPos
@@ -147,6 +147,23 @@ ROUTINE MapInit
 	LDA	mapHeight
 	SUB	#224
 	STA	maxYPos
+
+	LDA	mapHeight
+	LSR
+	LSR
+	LSR
+	LSR
+	TAY
+
+	LDA	#0
+	LDX	#0
+	REPEAT
+		STA	f:mapRowAddressTable, X
+		ADD	sizeOfMapRow
+		INX
+		INX
+		DEY
+	UNTIL_ZERO
 
 	SEP	#$20
 
@@ -173,8 +190,7 @@ ROUTINE DrawEntireScreen
 ROUTINE _DrawEntireScreen_Bank7E
 	; // Building from bottom-right to top-left because it saves a comparison.
 	;
-	; tmp = (yPos & 0xFFF0) * sizeOfMapRowDiviedBy16	// equivalent of (yPos / 16) * sizeOfMapRow
-	; visibleTopLeftMapIndex = tmp + xPos / METATILE_SIZE * 2
+	; visibleTopLeftMapIndex = (xPos / METATILE_SIZE * 2) + mapRowAddressTable[yPos / METATILE_SIZE]
 	; x = visibleTopLeftMapIndex + sizeOfMapRowDisplayHeight + METATILE_DISPLAY_WIDTH * 2 - 2
 	; y = (METATILE_DISPLAY_HEIGHT + 1) * METATILE_TILES * 32 * 2 - 2
 	; mapColumnIndex = (xPos / 16)
@@ -202,7 +218,7 @@ ROUTINE _DrawEntireScreen_Bank7E
 	; visibleTopLeftMapYpos = yPos & ~(METATILE_SIZE - 1)
 	;
 	; displayXoffset = xPos & (METATILE_SIZE - 1)
-	; displayYoffset = yPos & (METATILE_SIZE - 1)
+	; displayYoffset = yPos & (METATILE_SIZE - 1) - 1
 	;
 	; columnBufferIndex = 0
 	; rowBufferIndex = 0
@@ -216,24 +232,18 @@ ROUTINE _DrawEntireScreen_Bank7E
 
 	.assert METATILE_SIZE = 16, error, "METATILE_SIZE"
 	LDA	yPos
-	AND	#$FFF0
-	TAY
-	LDX	sizeOfMapRowDiviedBy16
-
-	; ::SHOULDDO have Multiply set DB::
-	PEA	$7E00
-	PLB
-	JSR	Math__Multiply_U16Y_U16X_U16Y
-
-	PLB	; set DB $7E
-
-	.assert METATILE_SIZE = 16, error, "METATILE_SIZE"
-	LDA	a:xPos
 	LSR
 	LSR
 	LSR
-	AND	#$FFFE
-	ADD	Math__product16
+	AND	#$FFFE		; / 16 * 2
+	TAX
+
+	LDA	xPos
+	LSR
+	LSR
+	LSR
+	AND	#$FFFE		; / 16 * 2
+	ADD	mapRowAddressTable, X
 	STA	visibleTopLeftMapIndex
 
 	ADD	a:sizeOfMapRowDisplayHeight
@@ -302,6 +312,7 @@ ROUTINE _DrawEntireScreen_Bank7E
 
 	LDA	yPos
 	AND	#(METATILE_SIZE - 1)
+	DEC
 	STA	displayYoffset
 
 	STZ	columnBufferIndex
@@ -386,10 +397,6 @@ ROUTINE Update
 	;		bgHorizontalBufferVramLocation2 = a + METATILES_BG1_MAP + 32 * 32
 	;
 	;		updateBgBuffer |= METATILE16_UPDATE_HORIZONAL_BUFFER
-	;
-	;	displayYoffset = yPos - displayScreenDeltaY
-	;	updateBgBuffer |= METATILE16_UPDATE_POSITION
-	;
 	; else
 	;	if yPos - visibleTopLeftMapYpos < -METATILE_SIZE
 	;		DrawEntireScreen()
@@ -406,7 +413,7 @@ ROUTINE Update
 	;
 	;	updateBgBuffer |= METATILE16_UPDATE_HORIZONAL_BUFFER
 	;
-	; displayYoffset = yPos - displayScreenDeltaY
+	; displayYoffset = yPos - displayScreenDeltaY - 1
 	; updateBgBuffer |= METATILE16_UPDATE_POSITION
 
 	PHB
@@ -604,7 +611,8 @@ ROUTINE Update
 .A16
 
 	LDA	yPos
-	SUB	displayScreenDeltaY
+	CLC
+	SBC	displayScreenDeltaY
 	STA	displayYoffset
 
 	SEP	#$20
