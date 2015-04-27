@@ -10,7 +10,9 @@
 ;; and loaded by the loading module to save ROM space.
 ;;
 ;; The map data is stored as the offsets within the metatile table
-;; (that is `tile * 8`). This is done for speed purposes.
+;; (Which is a structure of arrays, that is `tile * 2`).
+;; This is done so that other modules can create a clean
+;; map to data mapping without worrying about alignment.
 ;;
 ;; The module is configured by setting the `METATILES_BG1_MAP`
 ;; global that indicates the *word* address of the SNES tilemap
@@ -37,13 +39,14 @@ METATILES_MAP_TILE_ALLOCATION = 80 * 80
 METATILES_MAX_ROWS = 128
 
 ;; Number of metatiles per map
-N_METATILES	= 512
+.define N_METATILES 512
 
+;; Structure of arrays that contains the SNES BG tile data for each metatile
 .struct MetaTile16Struct
-	topLeft		.word
-	topRight	.word
-	bottomLeft	.word
-	bottomRight	.word
+	topLeft		.addr N_METATILES
+	topRight	.addr N_METATILES
+	bottomLeft	.addr N_METATILES
+	bottomRight	.addr N_METATILES
 .endstruct
 
 METATILE16_DONT_UPDATE_BUFFER		= $00
@@ -77,8 +80,11 @@ IMPORT_MODULE MetaTiles1x16
 	;; See `MetaTiles1x16_LocationToTile` macro.
 	WORD	sizeOfMapRowDiviedBy16
 
+	; ::SHOULDO declare this using long addressing::
+
 	;; Metatile table, mapping of metatiles to their inner tiles.
-	STRUCT	metaTiles, MetaTile16Struct, N_METATILES
+	;; Structure of Arrays.
+	.global	MetaTiles1x16__metaTiles : far
 
 	;; The map data.
 	;; Stored as a multidimensional array[y][x], with a width of

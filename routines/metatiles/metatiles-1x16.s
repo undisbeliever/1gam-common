@@ -50,7 +50,7 @@ METATILE_DISPLAY_HEIGHT = 14
 
 
 .segment "WRAM7E"
-	STRUCT	metaTiles, MetaTile16Struct, N_METATILES
+	STRUCT	metaTiles, MetaTile16Struct
 	ADDR	map, METATILES_MAP_TILE_ALLOCATION
 
 	ADDR	mapRowAddressTable, METATILES_MAX_ROWS
@@ -198,10 +198,10 @@ ROUTINE _DrawEntireScreen_Bank7E
 	; repeat
 	;	endOfLoop = y - 64
 	;	repeat
-	;		bgBuffer[y] = metaTiles[map[x]].bottomRight
-	;		bgBuffer[y - 2] = metaTiles[map[x]].bottomLeft
-	;		bgBuffer[y - 64] = metaTiles[map[x]].topRight
-	;		bgBuffer[y - 64 - 2] = metaTiles[map[x]].topLeft
+	;		bgBuffer[y] = metaTiles.bottomRight[map[x]]
+	;		bgBuffer[y - 2] = metaTiles.bottomLeft[map[x]]
+	;		bgBuffer[y - 64] = metaTiles.topRight[map[x]]
+	;		bgBuffer[y - 64 - 2] = metaTiles.topLeft[map[x]]
 	;		x -= 2
 	;		y -= 4
 	;	until y == endOfLoop
@@ -637,10 +637,10 @@ ROUTINE _ProcessVerticalBuffer
 	; y = (columnBufferIndex + 30 * 2 - 2) MOD 64
 	;
 	; repeat
-	;	bgVerticalBufferRight[y] = metaTiles[map[x]].bottomRight
-	;	bgVerticalBufferLeft[y] = metaTiles[map[x]].bottomLeft
-	;	bgVerticalBufferRight[y - 2] = metaTiles[map[x]].topRight
-	;	bgVerticalBufferLeft[y - 2] = metaTiles[map[x]].topLeft
+	;	bgVerticalBufferRight[y] = metaTiles.bottomRight[map[x]]
+	;	bgVerticalBufferLeft[y] = metaTiles.bottomLeft[map[x]]
+	;	bgVerticalBufferRight[y - 2] = metaTiles.topRight[map[x]]
+	;	bgVerticalBufferLeft[y - 2] = metaTiles.topLeft[map[x]]
 	;	x -= sizeOfMapRow
 	;	y -= 4
 	;	if y < 0
@@ -713,10 +713,10 @@ ROUTINE _ProcessHorizontalBuffer
 	;
 	; repeat
 	;	x -= 2
-	;	bgHorizontalBuffer[y] = metaTiles[map[x]].topRight
-	;	bgHorizontalBuffer[y - 2] = metaTiles[map[x]].topLeft
-	;	bgHorizontalBuffer[y + 64 * 2] = metaTiles[map[x]].bottomRight
-	;	bgHorizontalBuffer[y + 64 * 2 - 2] = metaTiles[map[x]].bottomLeft
+	;	bgHorizontalBuffer[y] = metaTiles.topRight[map[x]]
+	;	bgHorizontalBuffer[y - 2] = metaTiles.topLeft[map[x]]
+	;	bgHorizontalBuffer[y + 64 * 2] = metaTiles.bottomRight[map[x]]
+	;	bgHorizontalBuffer[y + 64 * 2 - 2] = metaTiles.bottomLeft[map[x]]
 	;	y -= 4
 	;	if y < 0
 	;		y = 64 * 2 - 2
