@@ -68,10 +68,10 @@ IMPORT_MODULE MetaTiles1x16
 	UINT16	maxYPos
 
 	;; Width of the map in pixels
-	;; Must be a multiple of 256.
 	UINT16	mapWidth
 
-	;; Height of the map in pixels 
+	;; Height of the map in pixels
+	;; Must be less than (METATILES_MAX_ROWS * 16)
 	UINT16	mapHeight
 
 	;; Number of bytes in a single map row.
@@ -103,14 +103,14 @@ IMPORT_MODULE MetaTiles1x16
 	;; Initialize the metatile system. 
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
-	;; There is no bounds checking. xPos and yPos MUST be < (mapWidth - 256)
-	;; and (mapHeight - 224) respectivly. mapWidth MUST be a multiple of 256.
+	;; There is no bounds checking. xPos and yPos MUST be >= 0 and less
+	;; than (mapWidth - 256) and (mapHeight - 224) respectivly.
 	;;
 	;; INPUT:
 	;;	xPos - screen position
 	;;	yPos - screen position
 	;;	mapWidth - the width of the map in pixels
-	;;	mapHeight - the height of the map in pixels (MUST be a multiple of 256)
+	;;	mapHeight - the height of the map in pixels (MUST BE less than (METATILES_MAX_ROWS * 16))
 	;;	metaTiles - the metaTile data to use (loaded into memory)
 	;;	map	- the map data to use (loaded into memory)
 	ROUTINE	MapInit
@@ -127,8 +127,9 @@ IMPORT_MODULE MetaTiles1x16
 	;; So long as the screen only moves < 16 pixels per update only
 	;; horizontal and vertical updates will be preformed.
 	;;
-	;; There is no bounds checking, xPos and yPos MUST be < (mapWidth - 256)
-	;; and (mapHeight - 224) respectivly.
+	;; There is no bounds checking, xPos and yPos MUST BE positive
+	;; and less than maxXPos (mapWidth - 256) and maxYPos (mapHeight - 224)
+	;; respectivly.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT:
