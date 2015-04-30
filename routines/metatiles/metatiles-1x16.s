@@ -40,6 +40,8 @@ METATILE_DISPLAY_HEIGHT = 14
 	;; Buffer state.
 	BYTE	updateBgBuffer
 
+	BYTE	mapDirty
+
 	;; VRAM word address to store vertical buffer.
 	ADDR	bgVerticalBufferVramLocation
 	;; VRAM word address to store the horizontal buffer (left tilemap)
@@ -72,8 +74,8 @@ METATILE_DISPLAY_HEIGHT = 14
 	UINT16	displayScreenDeltaX
 	UINT16	displayScreenDeltaY
 
-	;; Number of bytes in a single Map Row * 14
-	WORD	sizeOfMapRowDisplayHeight
+	;; Number of bytes in a single Map Row * METATILE_DISPLAY_HEIGHT
+	sizeOfMapRowDisplayHeight = mapRowAddressTable + METATILE_DISPLAY_HEIGHT * 2
 
 	;; Tile index within `map` that represents the top left of the visible display.
 	WORD	visibleTopLeftMapIndex
@@ -108,7 +110,6 @@ METATILE_DISPLAY_HEIGHT = 14
 .I16
 ROUTINE MapInit
 	; sizeOfMapRow = (mapWidth + METATILE_SIZE) / METATILE_SIZE * 2
-	; sizeOfMapRowDisplayHeight = sizeOfMapRow * METATILE_DISPLAY_HEIGHT
 	; maxXPos = mapWidth - 256
 	; maxYPos = mapHeight - 224
 	;
@@ -131,14 +132,6 @@ ROUTINE MapInit
 	LSR
 	AND	#$FFFE
 	STA	sizeOfMapRow
-
-	.assert METATILE_DISPLAY_HEIGHT = 14, error, "METATILE_DISPLAY_HEIGHT"
-	ASL
-	ADD	sizeOfMapRow
-	ASL
-	ADD	sizeOfMapRow
-	ASL
-	STA	f:sizeOfMapRowDisplayHeight
 
 	LDA	mapWidth
 	SUB	#256
@@ -229,6 +222,7 @@ ROUTINE _DrawEntireScreen_Bank7E
 	; bgVerticalBufferVramLocation = METATILES_BG1_MAP + 32 * 32
 	;
 	; updateBgBuffer = METATILES_UPDATE_WHOLE_BUFFER
+	; mapDirty = False
 
 	.assert METATILE_SIZE = 16, error, "METATILE_SIZE"
 	LDA	yPos
@@ -335,6 +329,8 @@ ROUTINE _DrawEntireScreen_Bank7E
 	LDA	#METATILE16_UPDATE_WHOLE_BUFFER
 	STA	updateBgBuffer
 
+	STZ	mapDirty
+
 	PLB
 	RTS
 
@@ -343,6 +339,10 @@ ROUTINE _DrawEntireScreen_Bank7E
 .A8
 .I16
 ROUTINE Update
+	; if mapDirty
+	;	DrawEntireScreen()
+	;	return
+	;
 	; if xPos - visibleTopLeftMapXpos > 0
 	;	if xPos - visibleTopLeftMapXpos > METATILE_SIZE
 	;		if xPos - visibleTopLeftMapXpos > METATILE_SIZE * 2
@@ -415,6 +415,9 @@ ROUTINE Update
 	;
 	; displayYoffset = yPos - displayScreenDeltaY - 1
 	; updateBgBuffer |= METATILE16_UPDATE_POSITION
+
+	LDA	mapDirty
+	JNE	DrawEntireScreen
 
 	PHB
 

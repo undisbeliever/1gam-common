@@ -76,9 +76,9 @@ IMPORT_MODULE MetaTiles1x16
 
 	;; Number of bytes in a single map row.
 	WORD	sizeOfMapRow
-	;; sizeOfMapRow / 16, used as a speedup to convert xPos/yPos to tile.
-	;; See `MetaTiles1x16_LocationToTile` macro.
-	WORD	sizeOfMapRowDiviedBy16
+
+	;; IF non-zero then the map is declared dirty and a full redraw is preformed.
+	BYTE	mapDirty
 
 	; ::SHOULDO declare this using long addressing::
 
