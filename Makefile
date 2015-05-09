@@ -11,7 +11,7 @@ HEADERS = $(wildcard */*.inc */*.h)
 CONFIG = config/LOROM_1MBit.cfg
 
 .PHONY: all
-all: resources $(OBJECTS) $(BINARIES)
+all: dirs resources $(OBJECTS) $(BINARIES)
 
 # Dependancy modules for each binary.
 # $^ will include all of them in linker
@@ -40,6 +40,20 @@ obj/%.o: routines/%.s
 
 $(OBJECTS) : $(HEADERS) $(CONFIG)
 $(EXAMPLE_OBJECTS) : $(HEADERS) $(CONFIG)
+
+
+.PHONY: dirs
+dirs: obj/ examples/obj/ examples/bin/
+
+obj/:
+	mkdir $(sort $(dir $(OBJECTS)))
+
+examples/obj/:
+	mkdir $(sort $(dir $(EXAMPLE_OBJECTS)))
+
+examples/bin/:
+	mkdir $(sort $(dir $(BINARIES)))
+
 
 .PHONY: resources
 resources:
