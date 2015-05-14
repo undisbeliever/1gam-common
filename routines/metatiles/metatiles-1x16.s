@@ -769,5 +769,32 @@ ROUTINE _ProcessHorizontalBuffer
 
 	RTS
 
+
+
+; IN: X = xpos, Y = ypos
+; OUT: A = tilemap pos
+; DB = $7E
+.A16
+.I16
+ROUTINE LocationToTilePos
+	; return mapRowAddressTable[Y / 16 * 2] + X / 16 * 2
+
+	TYA
+	LSR
+	LSR
+	LSR
+	AND	#$FFFE	; / 16 * 2
+	TAY
+
+	TXA
+	LSR
+	LSR
+	LSR
+	AND	#$FFFE	; / 16 * 2
+	CLC
+	ADC	mapRowAddressTable, Y
+	RTS
+
+
 ENDMODULE
 

@@ -137,6 +137,16 @@ IMPORT_MODULE MetaTiles1x16
 	;;	yPos - screen position
 	ROUTINE	Update
 
+	;; Converts xPos/yPos coordinates into a tile index.
+	;;
+	;; REQUIRES: 16 bit A, 16 bit Index , DB = $7E
+	;; PARAM:
+	;;	X - the xPos variable address
+	;;	Y - the yPos variable address
+	;; OUTPUT: A - The index of the tile within `map`
+	ROUTINE LocationToTilePos
+
+
 	;; Loads the buffers into VRAM
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index, DB=0, DMA channels 0 and 1 free.
