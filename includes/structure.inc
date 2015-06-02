@@ -306,7 +306,7 @@
 		BIT	param, index
 	.endif
 
-	BEQ __STRUCTURE_STACK_LABEL
+	BNE __STRUCTURE_STACK_LABEL
 .endmacro
 
 ;;; Tests z flag
