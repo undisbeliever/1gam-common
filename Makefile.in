@@ -1,0 +1,83 @@
+# This file simplifies the building process of a SNES ROM using this API.
+
+API_ROUTINE_DIR = $(API_DIR)/routines
+
+RESOURCES   = $(wildcard $(RESOURCES_DIR)/* $(RESOURCES_DIR)/*/* $(RESOURCES_DIR)/*/*/*)
+
+SOURCES     = $(wildcard $(SOURCE_DIR)/*.s $(SOURCE_DIR)/*/*.s $(SOURCE_DIR)/*/*.s)
+HEADERS     = $(wildcard $(SOURCE_DIR)/*.h $(SOURCE_DIR)/*/*.h)
+TABLES	    = $(wildcard tables/*)
+INCLUDES    = $(wildcard $(SOURCE_DIR)/*.inc $(SOURCE_DIR)/*/*.inc)
+INCLUDES   += $(wildcard $(SOURCE_DIR)/*.asm $(SOURCE_DIR)/*/*.asm)
+
+BINARY      = bin/$(ROM_NAME).sfc
+OBJECTS     = $(patsubst $(SOURCE_DIR)/%.s,obj/%.o,$(SOURCES))
+API_HEADERS = $(patsubst %,$(API_ROUTINE_DIR)/%.h,$(API_MODULES))
+API_OBJECTS = $(patsubst %,obj/api/%.o,$(API_MODULES))
+CONFIG_FILE = $(API_DIR)/config/$(CONFIG).cfg
+OBJECT_DIRS = $(sort $(dir $(API_OBJECTS) $(OBJECTS)))
+
+ifneq ($(words $(ROM_NAME)), 1)
+  $(error Cannot have space in ROM_NAME)
+endif
+
+.PHONY: all
+all: dirs resources tables $(BINARY)
+
+$(BINARY): $(OBJECTS) $(API_OBJECTS)
+	ld65 -vm -m $(@:.sfc=.memlog) -C $(CONFIG_FILE) -o $@ $^
+	cd bin/ && ucon64 --snes --nhd --chk $(notdir $@)
+
+
+$(OBJECTS) $(API_OBJECTS): $(CONFIG_FILE) $(API_HEADERS) $(HEADERS) $(TABLES) $(INCLUDES) $(API_DIR)/Makefile.in Makefile
+
+obj/%.o: $(SOURCE_DIR)/%.s
+	ca65 -I . -I $(API_DIR) -o $@ $<
+
+obj/api/%.o: $(API_ROUTINE_DIR)/%.s
+	ca65 -I $(API_DIR) -o $@ $<
+
+
+.PHONY: dirs
+dirs: bin/ $(OBJECT_DIRS)
+
+bin/ $(OBJECT_DIRS):
+	mkdir $@
+
+
+.PHONY: resources
+resources:
+ifdef RESOURCES_DIR
+  ifneq (,$(wildcard $(RESOURCES_DIR)/Makefile))
+		cd $(RESOURCES_DIR) && $(MAKE)
+
+
+    obj/resources.o: $(RESOURCES)
+  endif
+endif
+
+
+.PHONY: tables
+tables:
+ifdef TABLES_DIR
+  ifneq (,$(wildcard $(TABLES_DIR)/Makefile))
+		cd $(TABLES_DIR) && $(MAKE)
+  endif
+endif
+
+
+.PHONY: clean
+clean:
+ifdef TABLES_DIR
+  ifneq (,$(wildcard $(TABLES_DIR)/Makefile))
+		cd $(TABLES_DIR) && $(MAKE) clean
+  endif
+endif
+ifdef RESOURCES_DIR
+  ifneq (,$(wildcard $(RESOURCES_DIR)/Makefile))
+		cd $(RESOURCES_DIR) && $(MAKE) clean
+  endif
+endif
+	$(RM) bin/$(BINARY) $(OBJECTS) $(API_OBJECTS)
+
+

@@ -219,3 +219,14 @@ FontBoldTransparentPalette:                ; ANSI Colors
 	.word	$7FFF, $3DEF, $4e73, $6b3a ; Gray    (7)
 FontBoldTransparentPalette_End:
 
+
+; Just to get it to compile
+
+LABEL SnesGss__Module
+LABEL SnesGss__ModulePart2
+LABEL SnesGss__MusicTable
+.export SnesGss__MusicTable_Count = 0
+
+LABEL PalettesTable
+LABEL VramTable
+

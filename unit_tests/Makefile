@@ -1,33 +1,12 @@
 
-API_DIR = ..
-API_MODULES = $(wildcard $(API_DIR)/obj/*.o)
+ROM_NAME    = unit_tests
+CONFIG      = LOROM_1MBit
+API_DIR     = ..
+SOURCE_DIR  = .
+RESOURCES_DIR = ../resources
 
-CONFIG = $(API_DIR)/config/LOROM_1MBit.cfg
+# All API Modules
+API_MODULES  = $(patsubst $(API_DIR)/routines/%.s,%,$(wildcard $(API_DIR)/routines/*.s $(API_DIR)/routines/*/*/.s))
 
-BIN = bin/unit_tests.sfc
-OBJECTS = bin/unit_tests.o
-INCLUDES = $(wildcard *.inc tests/*.asm)
-RESOURCES = $(API_DIR)/resources/font8x8-bold-transparent.2bpp $(API_DIR)/resources/font8x16-bold-transparent.2bpp
-
-
-.PHONY: all
-
-all: $(BIN)
-
-$(BIN): $(API_MODULES) $(OBJECTS)
-	ld65 -vm -m $(@:.sfc=.memlog) -C $(CONFIG) -o $@ $^
-	cd bin/ && ucon64 --snes --nhd --chk $(notdir $@)
-
-
-$(OBJECTS) : $(INCLUDES) $(CONFIG) $(API_MODULES) $(RESOURCES) Makefile
-
-bin/%.o: %.s
-	ca65 -I $(API_DIR) -o $@ $<
-
-
-
-.PHONY: clean
-clean:
-	$(RM) $(BIN) $(OBJECTS)
-
+include ../Makefile.in
 
