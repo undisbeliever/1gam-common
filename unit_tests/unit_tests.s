@@ -11,6 +11,7 @@
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
 .include "includes/structure.inc"
+.include "includes/static_random.inc"
 
 .include "routines/block.h"
 .include "routines/reset-snes.h"
@@ -225,7 +226,8 @@ FontBoldTransparentPalette_End:
 LABEL SnesGss__Module
 LABEL SnesGss__ModulePart2
 LABEL SnesGss__MusicTable
-.export SnesGss__MusicTable_Count = 0
+.export SnesGss__MusicTable_Count: abs
+SnesGss__MusicTable_Count = 0
 
 LABEL PalettesTable
 LABEL VramTable

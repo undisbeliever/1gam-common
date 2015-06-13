@@ -131,3 +131,5 @@ PageTableEnd:
 	.code
 .endmacro
 
+; vim: ft=asm:
+

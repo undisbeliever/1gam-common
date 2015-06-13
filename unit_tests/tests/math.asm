@@ -5,8 +5,13 @@
 PAGE_ROUTINE Math_Multiply_1
 	Text_SetColor	4
 	Text_PrintString "Multiply_U8Y_U8X_UY"
-	
-	.macro Test_Multiply_U8Y_U8X_UY factorY, factorX
+
+	.macro Test_Multiply_U8Y_U8X_UY
+		.local factorX, factorY
+
+		STATIC_RANDOM_MIN_MAX	factorX, 0, 255
+		STATIC_RANDOM_MIN_MAX	factorY, 0, 255
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorX)
@@ -19,15 +24,24 @@ PAGE_ROUTINE Math_Multiply_1
 		JSR	Text__PrintDecimal_U16Y
 	.endmacro
 
-	Test_Multiply_U8Y_U8X_UY	2, 2
-	Test_Multiply_U8Y_U8X_UY	123, 56
+	Test_Multiply_U8Y_U8X_UY
+	Test_Multiply_U8Y_U8X_UY
+	Test_Multiply_U8Y_U8X_UY
+	Test_Multiply_U8Y_U8X_UY
+	Test_Multiply_U8Y_U8X_UY
+
 
 	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_U16Y_U8A_U16Y"
 
-	.macro Test_Multiply_U16Y_U8A_U16Y factorY, factorA
+	.macro Test_Multiply_U16Y_U8A_U16Y
+		.local factorA, factorY
+
+		STATIC_RANDOM_MIN_MAX	factorA, 0, 255
+		STATIC_RANDOM_MIN_MAX	factorY, 0, 65535
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorA)
@@ -40,16 +54,26 @@ PAGE_ROUTINE Math_Multiply_1
 		JSR	Text__PrintDecimal_U16Y
 	.endmacro
 
-	Test_Multiply_U16Y_U8A_U16Y	12345, 67
-	Test_Multiply_U16Y_U8A_U16Y	$FEFE, $FE
+	Test_Multiply_U16Y_U8A_U16Y
+	Test_Multiply_U16Y_U8A_U16Y
+	Test_Multiply_U16Y_U8A_U16Y
+	Test_Multiply_U16Y_U8A_U16Y
+	Test_Multiply_U16Y_U8A_U16Y
+
+	RTS
 
 
+
+PAGE_ROUTINE Math_Multiply_2
 	Text_SetColor	4
-	Text_NewLine
-	Text_NewLine
 	Text_PrintString "Multiply_S16Y_U8A_S16Y"
 
-	.macro Test_Multiply_S16Y_U8A_S16Y factorY, factorA
+	.macro Test_Multiply_S16Y_U8A_S16Y
+		.local factorA, factorY
+
+		STATIC_RANDOM_MIN_MAX	factorA, 0, 255
+		STATIC_RANDOM_MIN_MAX	factorY, -32768, 32767
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%10i * %3u = ", factorY, factorA)
@@ -62,18 +86,24 @@ PAGE_ROUTINE Math_Multiply_1
 		JSR	Text__PrintDecimal_U16Y
 	.endmacro
 
-	Test_Multiply_S16Y_U8A_S16Y	12345, 67
-	Test_Multiply_S16Y_U8A_S16Y	-12345, 67
+	Test_Multiply_S16Y_U8A_S16Y
+	Test_Multiply_S16Y_U8A_S16Y
+	Test_Multiply_S16Y_U8A_S16Y
+	Test_Multiply_S16Y_U8A_S16Y
+	Test_Multiply_S16Y_U8A_S16Y
 
-	RTS
 
-
-
-PAGE_ROUTINE Math_Multiply_2
 	Text_SetColor	4
+	Text_NewLine
+	Text_NewLine
 	Text_PrintString "Multiply_U16Y_U8A_U32XY"
 
-	.macro Test_Multiply_U16Y_U8A_U32 factorY, factorA
+	.macro Test_Multiply_U16Y_U8A_U32
+		.local factorA, factorY
+
+		STATIC_RANDOM_MIN_MAX	factorA, 0, 255
+		STATIC_RANDOM_MIN_MAX	factorY, 0, 65535
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%10u * %3u = ", factorY, factorA)
@@ -87,17 +117,26 @@ PAGE_ROUTINE Math_Multiply_2
 		JSR	Text__PrintDecimal_U32XY
 	.endmacro
 
-	Test_Multiply_U16Y_U8A_U32	12345, 67
-	Test_Multiply_U16Y_U8A_U32	$FEFE, $FE
+	Test_Multiply_U16Y_U8A_U32
+	Test_Multiply_U16Y_U8A_U32
+	Test_Multiply_U16Y_U8A_U32
+	Test_Multiply_U16Y_U8A_U32
+	Test_Multiply_U16Y_U8A_U32
+
+	RTS
 
 
 
+PAGE_ROUTINE Math_Multiply_3
 	Text_SetColor	4
-	Text_NewLine
-	Text_NewLine
 	Text_PrintString "Multiply_U16Y_U16X_U16Y"
 
-	.macro Test_Multiply_U16Y_U16X_U16Y factorY, factorX
+	.macro Test_Multiply_U16Y_U16X_U16Y
+		.local factorX, factorY
+
+		STATIC_RANDOM_MIN_MAX	factorX, 0, 65535
+		STATIC_RANDOM_MIN_MAX	factorY, 0, 65535
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%7i * %6i = ", factorY, factorX)
@@ -110,8 +149,11 @@ PAGE_ROUTINE Math_Multiply_2
 		JSR	Text__PrintDecimal_U16Y
 	.endmacro
 
-	Test_Multiply_U16Y_U16X_U16Y	1234, 5678
-	Test_Multiply_U16Y_U16X_U16Y	987, 654
+	Test_Multiply_U16Y_U16X_U16Y
+	Test_Multiply_U16Y_U16X_U16Y
+	Test_Multiply_U16Y_U16X_U16Y
+	Test_Multiply_U16Y_U16X_U16Y
+	Test_Multiply_U16Y_U16X_U16Y
 
 
 	Text_SetColor	4
@@ -119,7 +161,12 @@ PAGE_ROUTINE Math_Multiply_2
 	Text_NewLine
 	Text_PrintString "Multiply_U16Y_U16X_U32XY"
 
-	.macro Test_Multiply_U16Y_U16X_U32XY factorY, factorX
+	.macro Test_Multiply_U16Y_U16X_U32XY
+		.local factorX, factorY
+
+		STATIC_RANDOM_MIN_MAX	factorX, 0, 65535
+		STATIC_RANDOM_MIN_MAX	factorY, 0, 65535
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%7u * %6u = ", factorY, factorX)
@@ -132,20 +179,26 @@ PAGE_ROUTINE Math_Multiply_2
 		JSR	Text__PrintDecimal_U32XY
 	.endmacro
 
-	Test_Multiply_U16Y_U16X_U32XY	123, 456
-	Test_Multiply_U16Y_U16X_U32XY	9876, 54321
-	Test_Multiply_U16Y_U16X_U32XY	12345, 6789
-	Test_Multiply_U16Y_U16X_U32XY	$FEFE, $FEFE
+	Test_Multiply_U16Y_U16X_U32XY
+	Test_Multiply_U16Y_U16X_U32XY
+	Test_Multiply_U16Y_U16X_U32XY
+	Test_Multiply_U16Y_U16X_U32XY
+	Test_Multiply_U16Y_U16X_U32XY
 
 	RTS
 
 
 
-PAGE_ROUTINE Math_Multiply_3
+PAGE_ROUTINE Math_Multiply_4
 	Text_SetColor	4
 	Text_PrintString "Multiply_S16Y_S16X_S16Y"
 
-	.macro Test_Multiply_S16Y_S16X_S16Y factorY, factorX
+	.macro Test_Multiply_S16Y_S16X_S16Y
+		.local factorX, factorY
+
+		STATIC_RANDOM_MIN_MAX	factorX, -32768, 32767
+		STATIC_RANDOM_MIN_MAX	factorY, -32768, 32767
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%7i * %6i = ", factorY, factorX)
@@ -158,17 +211,24 @@ PAGE_ROUTINE Math_Multiply_3
 		JSR	Text__PrintDecimal_S16Y
 	.endmacro
 
-	Test_Multiply_S16Y_S16X_S16Y	12, 345
-	Test_Multiply_S16Y_S16X_S16Y	-12, 345
-	Test_Multiply_S16Y_S16X_S16Y	987, -6
-	Test_Multiply_S16Y_S16X_S16Y	-987, -6
+	Test_Multiply_S16Y_S16X_S16Y
+	Test_Multiply_S16Y_S16X_S16Y
+	Test_Multiply_S16Y_S16X_S16Y
+	Test_Multiply_S16Y_S16X_S16Y
+	Test_Multiply_S16Y_S16X_S16Y
+
 
 	Text_SetColor	4
 	Text_NewLine
 	Text_NewLine
 	Text_PrintString "Multiply_S16Y_S16X_S32XY"
 
-	.macro Test_Multiply_S16Y_S16X_S32XY factorY, factorX
+	.macro Test_Multiply_S16Y_S16X_S32XY
+		.local factorX, factorY
+
+		STATIC_RANDOM_MIN_MAX	factorX, -32768, 32767
+		STATIC_RANDOM_MIN_MAX	factorY, -32768, 32767
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%7i * %6i = ", factorY, factorX)
@@ -181,23 +241,30 @@ PAGE_ROUTINE Math_Multiply_3
 		JSR	Text__PrintDecimal_S32XY
 	.endmacro
 
-	Test_Multiply_S16Y_S16X_S32XY	1234, 5678
-	Test_Multiply_S16Y_S16X_S32XY	-1234, 5678
-	Test_Multiply_S16Y_S16X_S32XY	9876, -5432
-	Test_Multiply_S16Y_S16X_S32XY	-9876, -5432
+	Test_Multiply_S16Y_S16X_S32XY
+	Test_Multiply_S16Y_S16X_S32XY
+	Test_Multiply_S16Y_S16X_S32XY
+	Test_Multiply_S16Y_S16X_S32XY
+	Test_Multiply_S16Y_S16X_S32XY
 
 	RTS
 
 
 
-PAGE_ROUTINE Math_Multiply_4
+PAGE_ROUTINE Math_Multiply_5
 	Text_SetColor	4
 	Text_PrintString "Multiply_U32XY_U8A_U32XY"
 
-	.macro Test_Multiply_U32XY_U8A_U32XY factor32, factorA
+	.macro Test_Multiply_U32XY_U8A_U32XY
+		.local factor32, factorA
+
+		; Prevent overflow
+		STATIC_RANDOM_MIN_MAX	factor32, 0, 999999999
+		STATIC_RANDOM_MIN_MAX	factorA, 0, 256
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%10u * %3u = ", factor32, factorA)
+		Text_PrintString .sprintf("%11u*%3u = ", factor32, factorA)
 
 		LDXY	#factor32
 		LDA	#factorA
@@ -207,10 +274,11 @@ PAGE_ROUTINE Math_Multiply_4
 		JSR	Text__PrintDecimal_U32XY
 	.endmacro
 
-	Test_Multiply_U32XY_U8A_U32XY	1234567, 89
-	Test_Multiply_U32XY_U8A_U32XY	9876543, 21
-	Test_Multiply_U32XY_U8A_U32XY	1984, 0
-	Test_Multiply_U32XY_U8A_U32XY	$FEFEFEFE, $FE
+	Test_Multiply_U32XY_U8A_U32XY
+	Test_Multiply_U32XY_U8A_U32XY
+	Test_Multiply_U32XY_U8A_U32XY
+	Test_Multiply_U32XY_U8A_U32XY
+	Test_Multiply_U32XY_U8A_U32XY
 
 
 	Text_SetColor	4
@@ -218,10 +286,16 @@ PAGE_ROUTINE Math_Multiply_4
 	Text_NewLine
 	Text_PrintString "Multiply_S32XY_U8A_S32XY"
 
-	.macro Test_Multiply_S32XY_U8A_S32XY factor32, factorA
+	.macro Test_Multiply_S32XY_U8A_S32XY
+		.local factor32, factorA
+
+		; prevent overflow
+		STATIC_RANDOM_MIN_MAX	factor32, -999999999, 999999999
+		STATIC_RANDOM_MIN_MAX	factorA, 0, 256
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%10i * %3u = ", factor32, factorA)
+		Text_PrintString .sprintf("%11i*%3u = ", factor32, factorA)
 
 		LDXY	#factor32
 		LDA	#factorA
@@ -231,23 +305,30 @@ PAGE_ROUTINE Math_Multiply_4
 		JSR	Text__PrintDecimal_U32XY
 	.endmacro
 
-	Test_Multiply_S32XY_U8A_S32XY	1234567, 89
-	Test_Multiply_S32XY_U8A_S32XY	9876543, 21
-	Test_Multiply_S32XY_U8A_S32XY	-1234567, 89
-	Test_Multiply_S32XY_U8A_S32XY	-9876543, 21
-	Test_Multiply_S32XY_U8A_S32XY	$FEFEFEFE, $FE
+	Test_Multiply_S32XY_U8A_S32XY
+	Test_Multiply_S32XY_U8A_S32XY
+	Test_Multiply_S32XY_U8A_S32XY
+	Test_Multiply_S32XY_U8A_S32XY
+	Test_Multiply_S32XY_U8A_S32XY
 
 	RTS
 
 
-PAGE_ROUTINE Math_Multiply_5
+
+PAGE_ROUTINE Math_Multiply_6
 	Text_SetColor	4
 	Text_PrintString "Multiply_U32_U16Y_U32XY"
 
-	.macro Test_Multiply_U32_U16Y_U32XY factor32, factorY
+	.macro Test_Multiply_U32_U16Y_U32XY 
+		.local factor32, factorY
+
+		; Prevent overflow
+		STATIC_RANDOM_MIN_MAX	factor32, 0, 999999999
+		STATIC_RANDOM_MIN_MAX	factorY, 0, 65535
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%8u * %5u = ", factor32, factorY)
+		Text_PrintString .sprintf("%11u*%5u=", factor32, factorY)
 
 		LDXY	#factor32
 		STXY	Math__factor32
@@ -258,10 +339,11 @@ PAGE_ROUTINE Math_Multiply_5
 		JSR	Text__PrintDecimal_U32XY
 	.endmacro
 
-	Test_Multiply_U32_U16Y_U32XY	123, 456
-	Test_Multiply_U32_U16Y_U32XY	9876, 54321
-	Test_Multiply_U32_U16Y_U32XY	$FEFE, $FEFE
-	Test_Multiply_U32_U16Y_U32XY	$FEFEFE, $FEFE
+	Test_Multiply_U32_U16Y_U32XY
+	Test_Multiply_U32_U16Y_U32XY
+	Test_Multiply_U32_U16Y_U32XY
+	Test_Multiply_U32_U16Y_U32XY
+	Test_Multiply_U32_U16Y_U32XY
 
 
 	Text_SetColor	4
@@ -269,10 +351,16 @@ PAGE_ROUTINE Math_Multiply_5
 	Text_NewLine
 	Text_PrintString "Multiply_S32_U16Y_S32XY"
 
-	.macro Test_Multiply_S32_U16Y_S32XY factor32, factorY
+	.macro Test_Multiply_S32_U16Y_S32XY
+		.local factor32, factorY
+
+		; Prevent overflow
+		STATIC_RANDOM_MIN_MAX	factor32, -999999999, 999999999
+		STATIC_RANDOM_MIN_MAX	factorY, 0, 65535
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%8i * %5i = ", factor32, factorY)
+		Text_PrintString .sprintf("%10i*%5i=", factor32, factorY)
 
 		LDXY	#factor32
 		STXY	Math__factor32
@@ -283,20 +371,30 @@ PAGE_ROUTINE Math_Multiply_5
 		JSR	Text__PrintDecimal_S32XY
 	.endmacro
 
-	Test_Multiply_S32_U16Y_S32XY	98765, 4321
-	Test_Multiply_S32_U16Y_S32XY	-98765, 4321
+	Test_Multiply_S32_U16Y_S32XY
+	Test_Multiply_S32_U16Y_S32XY
+	Test_Multiply_S32_U16Y_S32XY
+	Test_Multiply_S32_U16Y_S32XY
+	Test_Multiply_S32_U16Y_S32XY
 
 	RTS
 
 
-PAGE_ROUTINE Math_Multiply_6
+
+PAGE_ROUTINE Math_Multiply_7
 	Text_SetColor	4
 	Text_PrintString "Multiply_U32_S16Y_32XY"
 
-	.macro Test_Multiply_U32_S16Y_32XY factor32, factorY
+	.macro Test_Multiply_U32_S16Y_32XY
+		.local factor32, factorY
+
+		; Prevent overflow
+		STATIC_RANDOM_MIN_MAX	factor32, 999999999
+		STATIC_RANDOM_MIN_MAX	factorY, -32768, 32767
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%8i * %5i = ", factor32, factorY)
+		Text_PrintString .sprintf("%10i*%6i=", factor32, factorY)
 
 		LDXY	#factor32
 		STXY	Math__factor32
@@ -307,8 +405,11 @@ PAGE_ROUTINE Math_Multiply_6
 		JSR	Text__PrintDecimal_S32XY
 	.endmacro
 
-	Test_Multiply_U32_S16Y_32XY	1234567, 890
-	Test_Multiply_U32_S16Y_32XY	1234567, -890
+	Test_Multiply_U32_S16Y_32XY
+	Test_Multiply_U32_S16Y_32XY
+	Test_Multiply_U32_S16Y_32XY
+	Test_Multiply_U32_S16Y_32XY
+	Test_Multiply_U32_S16Y_32XY
 
 
 	Text_SetColor	4
@@ -316,10 +417,16 @@ PAGE_ROUTINE Math_Multiply_6
 	Text_NewLine
 	Text_PrintString "Multiply_S32_S16Y_S32XY"
 
-	.macro Test_Multiply_S32_S16Y_S32XY factor32, factorY
+	.macro Test_Multiply_S32_S16Y_S32XY
+		.local factor32, factorY
+
+		; Prevent overflow
+		STATIC_RANDOM_MIN_MAX	factor32, -999999999, 999999999
+		STATIC_RANDOM_MIN_MAX	factorY, -32768, 32767
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%8i * %5i = ", factor32, factorY)
+		Text_PrintString .sprintf("%10i*%6i=", factor32, factorY)
 
 		LDXY	#factor32
 		STXY	Math__factor32
@@ -330,20 +437,27 @@ PAGE_ROUTINE Math_Multiply_6
 		JSR	Text__PrintDecimal_S32XY
 	.endmacro
 
-	Test_Multiply_S32_S16Y_S32XY	987654, 321
-	Test_Multiply_S32_S16Y_S32XY	-987654, 321
-	Test_Multiply_S32_S16Y_S32XY	987654, -321
-	Test_Multiply_S32_S16Y_S32XY	-987654, -321
+	Test_Multiply_S32_S16Y_S32XY
+	Test_Multiply_S32_S16Y_S32XY
+	Test_Multiply_S32_S16Y_S32XY
+	Test_Multiply_S32_S16Y_S32XY
+	Test_Multiply_S32_S16Y_S32XY
 
 	RTS
 
 
 
-PAGE_ROUTINE Math_Multiply_7
+PAGE_ROUTINE Math_Multiply_8
 	Text_SetColor	4
 	Text_PrintString "Multiply_U32_U32XY_U32XY (hex)"
 
-	.macro Test_Multiply_U32_U32XY_U32XY factor32, factorXY
+	.macro Test_Multiply_U32_U32XY_U32XY
+		.local factor32, factorXY
+
+		; Prevent overflow
+		STATIC_RANDOM_MIN_MAX	factor32, 0, 999999999
+		STATIC_RANDOM_MIN_MAX	factorXY, 0, 999999999
+
 		; no new line, due to overflow.
 		Text_SetColor	0
 		Text_PrintString .sprintf("%8X * %8X = ", factor32, factorXY)
@@ -357,22 +471,27 @@ PAGE_ROUTINE Math_Multiply_7
 		Text_PrintHex	Math__product32
 	.endmacro
 
-	Test_Multiply_U32_U32XY_U32XY	$01234567, $89ABCDEF
-	Test_Multiply_U32_U32XY_U32XY	$FEDCBA98, $76543210
-	Test_Multiply_U32_U32XY_U32XY	$12343457, 0
-	Test_Multiply_U32_U32XY_U32XY	$FEFEFE, $FEFEFE
-	Test_Multiply_U32_U32XY_U32XY	$FEFEFEFE, $FEFEFEFE
+	Test_Multiply_U32_U32XY_U32XY
+	Test_Multiply_U32_U32XY_U32XY
+	Test_Multiply_U32_U32XY_U32XY
+	Test_Multiply_U32_U32XY_U32XY
+	Test_Multiply_U32_U32XY_U32XY
 
 
 	Text_SetColor	4
 	Text_NewLine
-	Text_NewLine
-	Text_PrintString "Multiply_S32_S32XY_S32XY"
+	Text_PrintString "Multiply_S32_S32XY_S32XY (hex)"
 
-	.macro Test_Multiply_S32_S32XY_S32XY factor32, factorXY
-		Text_NewLine
+	.macro Test_Multiply_S32_S32XY_S32XY
+		.local factor32, factorXY
+
+		; Prevent overflow
+		STATIC_RANDOM_MIN_MAX	factor32, -999999999, 999999999
+		STATIC_RANDOM_MIN_MAX	factorXY, -999999999, 999999999
+
+		; no new line, due to overflow.
 		Text_SetColor	0
-		Text_PrintString .sprintf("%8i * %8i = ", factor32, factorXY)
+		Text_PrintString .sprintf("%8X * %8X = ", factor32, factorXY)
 
 		LDXY	#factor32
 		STXY	Math__factor32
@@ -380,14 +499,14 @@ PAGE_ROUTINE Math_Multiply_7
 		JSR	Math__Multiply_S32_S32XY_S32XY
 
 		Check_32XY (factor32 * factorXY)
-
-		LDXY	Math__product32
-		JSR	Text__PrintDecimal_S32XY
+		Text_PrintHex	Math__product32
 	.endmacro
 
-	Test_Multiply_S32_S32XY_S32XY	123, -456
-	Test_Multiply_S32_S32XY_S32XY	-987, 654 
-	Test_Multiply_S32_S32XY_S32XY	-2014, -1201
+	Test_Multiply_S32_S32XY_S32XY
+	Test_Multiply_S32_S32XY_S32XY
+	Test_Multiply_S32_S32XY_S32XY
+	Test_Multiply_S32_S32XY_S32XY
+	Test_Multiply_S32_S32XY_S32XY
 
 	RTS
 
@@ -397,7 +516,12 @@ PAGE_ROUTINE Math_Divide_1
 	Text_SetColor	4
 	Text_PrintString "Divide_U16Y_U16X"
 
-	.macro Test_Divide_U16Y_U16X dividend, divisor
+	.macro Test_Divide_U16Y_U16X
+		.local dividend, divisor
+
+		STATIC_RANDOM_MIN_MAX	dividend, 1000, 65535
+		STATIC_RANDOM_MIN_MAX	divisor, 1, 5000
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%8u / %5u = ", dividend, divisor)
@@ -418,12 +542,11 @@ PAGE_ROUTINE Math_Divide_1
 		JSR	Text__PrintDecimal_U16Y
 	.endmacro
 
-
-	Test_Divide_U16Y_U16X 12345, 6789
-	Test_Divide_U16Y_U16X 9876, 54321
-	; Divisor is one byte test.
-	Test_Divide_U16Y_U16X 12345, 67
-	Test_Divide_U16Y_U16X 9876, 5
+	Test_Divide_U16Y_U16X
+	Test_Divide_U16Y_U16X
+	Test_Divide_U16Y_U16X
+	Test_Divide_U16Y_U16X
+	Test_Divide_U16Y_U16X
 
 
 	Text_SetColor	4
@@ -432,6 +555,11 @@ PAGE_ROUTINE Math_Divide_1
 	Text_PrintString "Divide_S16Y_U16X"
 
 	.macro Test_Divide_S16Y_U16X dividend, divisor
+		.local dividend, divisor
+
+		STATIC_RANDOM_MIN_MAX	dividend, -32768, 32767
+		STATIC_RANDOM_MIN_MAX	divisor, 1, 5000
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%8i / %5i = ", dividend, divisor)
@@ -452,20 +580,30 @@ PAGE_ROUTINE Math_Divide_1
 			Check_16Y (dividend .mod divisor)
 		.else
 			Check_16Y -(dividend .mod divisor)
-		.endif 
+		.endif
 		JSR	Text__PrintDecimal_S16Y
 	.endmacro
 
-	Test_Divide_S16Y_U16X 12345, 6789
-	Test_Divide_S16Y_U16X -12345, 6789
+	Test_Divide_U16Y_U16X
+	Test_Divide_U16Y_U16X
+	Test_Divide_U16Y_U16X
+	Test_Divide_U16Y_U16X
+	Test_Divide_U16Y_U16X
+
+	RTS
 
 
+
+PAGE_ROUTINE Math_Divide_2
 	Text_SetColor	4
-	Text_NewLine
-	Text_NewLine
 	Text_PrintString "Divide_U16Y_S16X"
 
-	.macro Test_Divide_U16Y_S16X dividend, divisor
+	.macro Test_Divide_U16Y_S16X
+		.local dividend, divisor
+
+		STATIC_RANDOM_MIN_MAX	dividend, 0, 65535
+		STATIC_RANDOM_MIN_MAX	divisor, -5000, 5000
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%8i / %5i = ", dividend, divisor)
@@ -486,22 +624,28 @@ PAGE_ROUTINE Math_Divide_1
 			Check_16Y (dividend .mod divisor)
 		.else
 			Check_16Y -(dividend .mod divisor)
-		.endif 
+		.endif
 		JSR	Text__PrintDecimal_S16Y
 	.endmacro
 
+	Test_Divide_U16Y_S16X
+	Test_Divide_U16Y_S16X
+	Test_Divide_U16Y_S16X
+	Test_Divide_U16Y_S16X
+	Test_Divide_U16Y_S16X
 
-	Test_Divide_U16Y_S16X 12345, 678
-	Test_Divide_U16Y_S16X 12345, -678
 
-	RTS
-
-
-PAGE_ROUTINE Math_Divide_2
 	Text_SetColor	4
+	Text_NewLine
+	Text_NewLine
 	Text_PrintString "Divide_S16Y_S16X"
 
-	.macro Test_Divide_S16Y_S16X dividend, divisor
+	.macro Test_Divide_S16Y_S16X
+		.local dividend, divisor
+
+		STATIC_RANDOM_MIN_MAX	dividend, -32768, 32767
+		STATIC_RANDOM_MIN_MAX	divisor, -5000, 5000
+
 		Text_NewLine
 		Text_SetColor	0
 		Text_PrintString .sprintf("%8i /%5i = ", dividend, divisor)
@@ -522,27 +666,33 @@ PAGE_ROUTINE Math_Divide_2
 			Check_16Y (dividend .mod divisor)
 		.else
 			Check_16Y -(dividend .mod divisor)
-		.endif 
+		.endif
 		JSR	Text__PrintDecimal_S16Y
 	.endmacro
 
+	Test_Divide_S16Y_S16X
+	Test_Divide_S16Y_S16X
+	Test_Divide_S16Y_S16X
+	Test_Divide_S16Y_S16X
+	Test_Divide_S16Y_S16X
 
-	Test_Divide_S16Y_S16X 12345, 6789
-	Test_Divide_S16Y_S16X 12345, -6789
-	Test_Divide_S16Y_S16X -9876, 54
-	Test_Divide_S16Y_S16X -12345, -67
+	RTS
 
 
 
+PAGE_ROUTINE Math_Divide_3
 	Text_SetColor	4
-	Text_NewLine
-	Text_NewLine
 	Text_PrintString "Divide_U16Y_U8A"
 
-	.macro Test_Divide_U16Y_U8A dividend, divisor
+	.macro Test_Divide_U16Y_U8A
+		.local dividend, divisor
+
+		STATIC_RANDOM_MIN_MAX	dividend, 0, 65535
+		STATIC_RANDOM_MIN_MAX	divisor, 1, 256
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%8u / %4u = ", dividend, divisor)
+		Text_PrintString .sprintf("%8u/%4u = ", dividend, divisor)
 
 		LDY	#dividend
 		LDA	#divisor
@@ -560,8 +710,11 @@ PAGE_ROUTINE Math_Divide_2
 		JSR	Text__PrintDecimal_U16Y
 	.endmacro
 
-	Test_Divide_U16Y_U8A 9876, 5
-	Test_Divide_U16Y_U8A 12345, 67
+	Test_Divide_U16Y_U8A
+	Test_Divide_U16Y_U8A
+	Test_Divide_U16Y_U8A
+	Test_Divide_U16Y_U8A
+	Test_Divide_U16Y_U8A
 
 
 	Text_SetColor	4
@@ -569,10 +722,15 @@ PAGE_ROUTINE Math_Divide_2
 	Text_NewLine
 	Text_PrintString "Divide_U32_U8A"
 
-	.macro Test_Divide_U32_U8A dividend, divisor
+	.macro Test_Divide_U32_U8A
+		.local dividend, divisor
+
+		STATIC_RANDOM_MIN_MAX	dividend, 0, 999999999
+		STATIC_RANDOM_MIN_MAX	divisor, 1, 256
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%8u / %4u = ", dividend, divisor)
+		Text_PrintString .sprintf("%9u/%3u = ", dividend, divisor)
 
 		LDXY	#dividend
 		STXY	Math__dividend32
@@ -592,19 +750,29 @@ PAGE_ROUTINE Math_Divide_2
 		JSR	Text__PrintDecimal_U8A
 	.endmacro
 
-	Test_Divide_U32_U8A 9876543, 21
-	Test_Divide_U32_U8A 12345678, 90
+	Test_Divide_U32_U8A
+	Test_Divide_U32_U8A
+	Test_Divide_U32_U8A
+	Test_Divide_U32_U8A
+	Test_Divide_U32_U8A
 
 	RTS
 
 
-PAGE_ROUTINE Math_Divide_3
+PAGE_ROUTINE Math_Divide_4
 	Text_SetColor	4
-	Text_PrintString "Divide_U32_U32"
-	.macro Test_Divide_U32_U32 dividend, divisor
+	Text_PrintString "Divide_U32_U32 (hex)"
+	.macro Test_Divide_U32_U32
+		.local dividend, divisor
+
+		STATIC_RANDOM_MIN_MAX	dividend, 0, 99999999
+		STATIC_RANDOM_MIN_MAX	divisor, 1, 9999999
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%7u / %6u = ", dividend, divisor)
+		Text_PrintString .sprintf("%10d / %10d =", dividend, divisor)
+		Text_NewLine
+		Text_PrintString "        "
 
 		LDXY	#dividend
 		STXY	Math__dividend32
@@ -624,20 +792,30 @@ PAGE_ROUTINE Math_Divide_3
 		JSR	Text__PrintDecimal_U32XY
 	.endmacro
 
-	Test_Divide_U32_U32 123456, 789
-	Test_Divide_U32_U32 987654, 321
-	Test_Divide_U32_U32 987, 654321
-	Test_Divide_U32_U32 0, 123456
+	Test_Divide_U32_U32
+	Test_Divide_U32_U32
+	Test_Divide_U32_U32
+	Test_Divide_U32_U32
+	Test_Divide_U32_U32
+
+	RTS
 
 
+
+PAGE_ROUTINE Math_Divide_5
 	Text_SetColor	4
-	Text_NewLine
-	Text_NewLine
 	Text_PrintString "Divide_S32_S32"
-	.macro Test_Divide_S32_S32 dividend, divisor
+	.macro Test_Divide_S32_S32
+		.local dividend, divisor
+
+		STATIC_RANDOM_MIN_MAX	dividend, -999999999, 999999999
+		STATIC_RANDOM_MIN_MAX	divisor, -9999999, 9999999
+
 		Text_NewLine
 		Text_SetColor	0
-		Text_PrintString .sprintf("%7i / %6i = ", dividend, divisor)
+		Text_PrintString .sprintf("%10i / %10i =", dividend, divisor)
+		Text_NewLine
+		Text_PrintString "        "
 
 		LDXY	#dividend
 		STXY	Math__dividend32
@@ -657,14 +835,15 @@ PAGE_ROUTINE Math_Divide_3
 			Check_32XY (dividend .mod divisor)
 		.else
 			Check_32XY -(dividend .mod divisor)
-		.endif 
+		.endif
 		JSR	Text__PrintDecimal_S32XY
 	.endmacro
 
-	Test_Divide_S32_S32 987654, 321
-	Test_Divide_S32_S32 123456, -789
-	Test_Divide_S32_S32 -987, 654321
-	Test_Divide_S32_S32 -123456, -789
+	Test_Divide_S32_S32
+	Test_Divide_S32_S32
+	Test_Divide_S32_S32
+	Test_Divide_S32_S32
+	Test_Divide_S32_S32
 
 	RTS
 
