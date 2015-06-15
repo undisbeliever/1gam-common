@@ -3,6 +3,14 @@
 
 .setcpu "65816"
 .include "includes/import_export.inc"
+.include "includes/config.inc"
+
+;; The maximum channel to use in the sfx rotating channel count.
+CONFIG SNESGSS_INIT_SFXRC_MAX_CHANNEL, 8
+
+;; Default state of the stereo/mono flag (0 = mono, 1 = stereo)
+CONFIG SNESGSS_INIT_STEREO, 0
+
 
 ;; An implementation of the SNES GSS (Game Sound System) ABI.
 ;;
@@ -74,13 +82,6 @@ IMPORT_MODULE SnesGss
 		STREAM_END	= $0D
 	.endenum
 
-	;; The maximum channel to use in the sfx rotating channel count.
-	;; ::TODO make configurable::
-	DEFAULT_SFXRC_MAX_CHANNEL = 8
-
-	;; Default state of the stereo/mono flag (0 = mono, 1 = stereo)
-	;; ::TODO make configurable::
-	DEFAULT_SNESGSS_STEREO = 0
 
 	;; Sets the maximum channel count to use in the sfx rotating channel count.
 	;; This value is reset on Init

@@ -22,9 +22,9 @@ MODULE Text
 	;; In $7E so shadow RAM can also be accessed.
 	WORD buffer, 32*32
 
-.if N_TEXT_WINDOWS > 1
+.if TEXT_N_WINDOWS > 1
 	;; Storage of the various Text Windows
-	STRUCT windowArray, TextWindow, N_TEXT_WINDOWS
+	STRUCT windowArray, TextWindow, TEXT_N_WINDOWS
 .endif
 
 .segment "SHADOW"
@@ -40,7 +40,7 @@ MODULE Text
 	;; The character to use when padding a string.
 	BYTE paddingCharacter
 
-.if N_TEXT_WINDOWS > 1
+.if TEXT_N_WINDOWS > 1
 	;; The current window index.
 	BYTE currentWindow
 .endif
@@ -371,21 +371,21 @@ ROUTINE SetCursor
 	JMP	(TextInterface::CursorMoved, X)
 
 
-.if N_TEXT_WINDOWS > 1
+.if TEXT_N_WINDOWS > 1
 ROUTINE SelectWindow
 	PHP
 	SEP	#$30
 .A8
 .I8
 
-	CMP	#N_TEXT_WINDOWS
+	CMP	#TEXT_N_WINDOWS
 	IF_GE
 		LDA	#0
 	ENDIF
 
 	; Y = A * 15
 	.assert .sizeof(TextWindow) = 15, error, "Incorrect TextWindow Size"
-	.assert N_TEXT_WINDOWS * .sizeof(TextWindow) <= 255, error, "8 bit overflow"
+	.assert TEXT_N_WINDOWS * .sizeof(TextWindow) <= 255, error, "8 bit overflow"
 
 	STA	tmp
 	ASL

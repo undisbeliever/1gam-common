@@ -3,8 +3,8 @@
 ;; Builds random numbers using the Multiply with Carry method.
 ;;
 
-.ifndef ::_STATIC_RANDOM_H_
-::_STATIC_RANDOM_H_ = 1
+.ifndef ::_STATIC_RANDOM_INC_
+::_STATIC_RANDOM_INC_ = 1
 
 __STATIC_RANDOM_W .set .time
 __STATIC_RANDOM_Z .set .time

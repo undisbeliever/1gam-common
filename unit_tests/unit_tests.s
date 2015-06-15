@@ -1,12 +1,7 @@
 ;; Routine that tests the Math Routines for correctness.
 
-.define VERSION 1
-.define REGION NTSC
-.define ROM_NAME "SNESDEV-COMMON TESTS"
-
 .setcpu "65816"
 
-.include "includes/sfc_header.inc"
 .include "includes/import_export.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
@@ -33,6 +28,7 @@ BG1_TILES		= $1000
 
 .A8
 .I16
+
 .include "macros.inc"
 .include "tests/text.asm"
 .include "tests/math.asm"
@@ -137,12 +133,12 @@ ROUTINE NewPage
 
 
 ;; Blank Handlers
-IrqHandler:
-CopHandler:
+LABEL IrqHandler
+LABEL CopHandler
 	RTI
 
 
-VBlank:
+LABEL VBlank
 	; Save state
 	REP	#$30
 	PHA

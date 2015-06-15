@@ -1,12 +1,15 @@
-;
-; Builds the SNES ROM headers
-;
-;
-; In order to use this file the following must be defined
-;
-;  * VERSION  - from 0 to 255
-;  * REGION   - NTSC or PAL
-;  * ROM_NAME - a string of the ROM name.
+;;
+;; Builds the SNES ROM headers
+;;
+;;
+;; In order to use this file the following must be defined by
+;; the `config.h`
+;;
+;;  * VERSION  - from 0 to 255
+;;  * REGION   - NTSC or PAL
+;;  * ROM_NAME - a string of the ROM name.
+
+.include "includes/config.inc"
 
 ; Allow memmap to declare these symbols.
 .import __ROMHEADER_EXPANSION_RAM
@@ -38,27 +41,27 @@
 
 
 .segment "ROMHEADER"
-	.byte "FF"				; $FFB0 2 Digit maker code
-	.byte "SNES"				; $FFB2 4 Character game ID
+	.byte "FF"					; $FFB0 2 Digit maker code
+	.byte "SNES"					; $FFB2 4 Character game ID
 
-	.byte $00, $00, $00, $00, $00, $00, $00	; $FFB6 Fixed Value (7 bytes)
+	.byte $00, $00, $00, $00, $00, $00, $00		; $FFB6 Fixed Value (7 bytes)
 
-	.byte <__ROMHEADER_EXPANSION_RAM	; $FFBD Expansion RAM Size
-	.byte $00				; $FFBE Special Version
-	.byte $00				; $FFBF Cartridge Type Sub-Number 
+	.byte .lobyte(__ROMHEADER_EXPANSION_RAM)	; $FFBD Expansion RAM Size
+	.byte $00					; $FFBE Special Version
+	.byte $00					; $FFBF Cartridge Type Sub-Number 
 
-	.byte .sprintf("%21s", ROM_NAME)	; $FFC0 ROM Name (21 Characters)
+	.byte .sprintf("%21s", ROM_NAME)		; $FFC0 ROM Name (21 Characters)
 
-	.byte <__ROMHEADER_MAP_MODE		; $FFD5 Map Mode
-	.byte <__ROMHEADER_CART_TYPE		; $FFD6 Cartridge Type
-	.byte <__ROMHEADER_ROM_SIZE		; $FFD7 ROM Size
-	.byte <__ROMHEADER_SRAM_SIZE		; $FFD8 RAM Size
-	.byte <__ROMHEADER_DESTINATION		; $FFD9 Destination code
-	.byte $33				; $FFDA Fixed value
-	.byte VERSION				; $FFDB ROM Version
+	.byte .lobyte(__ROMHEADER_MAP_MODE)		; $FFD5 Map Mode
+	.byte .lobyte(__ROMHEADER_CART_TYPE)		; $FFD6 Cartridge Type
+	.byte .lobyte(__ROMHEADER_ROM_SIZE)		; $FFD7 ROM Size
+	.byte .lobyte(__ROMHEADER_SRAM_SIZE)		; $FFD8 RAM Size
+	.byte .lobyte(__ROMHEADER_DESTINATION)		; $FFD9 Destination code
+	.byte $33					; $FFDA Fixed value
+	.byte VERSION					; $FFDB ROM Version
 
-	.word $AAAA				; $FFDC - Checksum compliment
-	.word $5555				; $FFDE - Checksum
+	.word $AAAA					; $FFDC - Checksum compliment
+	.word $5555					; $FFDE - Checksum
 
 ;; Define the Inturrupt Vectors.
 ;;

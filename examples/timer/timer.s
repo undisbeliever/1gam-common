@@ -6,12 +6,7 @@
 ;;
 ;; This is an example of using multiple text windows.
 
-.define VERSION 1
-.define REGION NTSC
-.define ROM_NAME "TIMER"
 
-
-.include "includes/sfc_header.inc"
 .include "includes/import_export.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
@@ -22,8 +17,6 @@
 .include "routines/text.h"
 .include "routines/text8x8.h"
 .include "routines/text8x16.h"
-
-FPS			= 60 ; ::TODO make configurable::
 
 BG1_MAP			= $0400
 BG1_TILES		= $1000
@@ -161,12 +154,12 @@ ROUTINE CalculateTime
 
 
 ;; Blank Handlers
-IrqHandler:
-CopHandler:
+LABEL IrqHandler
+LABEL CopHandler
 	RTI
 
 
-VBlank:
+LABEL VBlank
 	; Save state
 	REP	#$30
 	PHA

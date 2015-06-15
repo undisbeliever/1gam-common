@@ -12,7 +12,7 @@ INCLUDES   += $(wildcard $(SOURCE_DIR)/*.asm $(SOURCE_DIR)/*/*.asm)
 
 BINARY      = bin/$(ROM_NAME).sfc
 OBJECTS     = $(patsubst $(SOURCE_DIR)/%.s,obj/%.o,$(SOURCES))
-API_HEADERS = $(patsubst %,$(API_ROUTINE_DIR)/%.h,$(API_MODULES))
+API_HEADERS = $(wildcard $(patsubst %,$(API_ROUTINE_DIR)/%.h,$(API_MODULES)))
 API_OBJECTS = $(patsubst %,obj/api/%.o,$(API_MODULES))
 CONFIG_FILE = $(API_DIR)/config/$(CONFIG).cfg
 OBJECT_DIRS = $(sort $(dir $(API_OBJECTS) $(OBJECTS)))
@@ -35,7 +35,7 @@ obj/%.o: $(SOURCE_DIR)/%.s
 	ca65 -I . -I $(API_DIR) -o $@ $<
 
 obj/api/%.o: $(API_ROUTINE_DIR)/%.s
-	ca65 -I $(API_DIR) -o $@ $<
+	ca65 -I . -I $(API_DIR) -o $@ $<
 
 
 .PHONY: dirs
@@ -44,6 +44,9 @@ dirs: bin/ $(OBJECT_DIRS)
 bin/ $(OBJECT_DIRS):
 	mkdir $@
 
+ifneq (,$(wildcard config.h))
+  $(OBJECTS): config.h
+endif
 
 .PHONY: resources
 resources:

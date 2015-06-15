@@ -2,11 +2,6 @@
 
 ; ::TODO add randomizer after all 3 games are played::
 
-.define VERSION 3
-.define REGION NTSC
-.define ROM_NAME "GAME OF LIFE"
-
-.include "includes/sfc_header.inc"
 .include "includes/import_export.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
@@ -17,8 +12,9 @@
 .include "routines/block.h"
 
 ; Ignore interrupts
-IrqHandler	= EmptyHandler
-CopHandler	= EmptyHandler
+.import EmptyHandler
+.export IrqHandler	= EmptyHandler
+.export CopHandler	= EmptyHandler
 
 ; Cell format
 ;

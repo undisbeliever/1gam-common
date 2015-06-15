@@ -27,26 +27,27 @@
 .include "includes/structure.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
+.include "includes/config.inc"
 
 .setcpu "65816"
 
 ;; Maximum number of tiles in map.
 ; Enough to fit a single Illusion of Gaia map.
 ; Uses 12.5 KiB of space.
-METATILES_MAP_TILE_ALLOCATION = 80 * 80
+CONFIG METATILES_MAP_TILE_ALLOCATION, 80 * 80
 
 ;; Maximum number of rows in a map.
-METATILES_MAX_ROWS = 128
+CONFIG METATILES_MAX_ROWS, 128
 
 ;; Number of metatiles per map
-.define N_METATILES 512
+CONFIG_DEFINE METATILES_N_METATILES, 512
 
 ;; Structure of arrays that contains the SNES BG tile data for each metatile
 .struct MetaTile16Struct
-	topLeft		.addr N_METATILES
-	topRight	.addr N_METATILES
-	bottomLeft	.addr N_METATILES
-	bottomRight	.addr N_METATILES
+	topLeft		.addr METATILES_N_METATILES
+	topRight	.addr METATILES_N_METATILES
+	bottomLeft	.addr METATILES_N_METATILES
+	bottomRight	.addr METATILES_N_METATILES
 .endstruct
 
 METATILE16_DONT_UPDATE_BUFFER		= $00

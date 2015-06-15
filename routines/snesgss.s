@@ -52,7 +52,8 @@ SONG_N_MUSIC_CHANNELS_OFFSET = 2
 .A8
 .I16
 ROUTINE Init
-	LDA	#DEFAULT_SFXRC_MAX_CHANNEL << 4 | SnesGssCommand::SFX_PLAY
+	.assert SNESGSS_INIT_SFXRC_MAX_CHANNEL <= 0 & SNESGSS_INIT_SFXRC_MAX_CHANNEL <=8, error, "Invalid SNESGSS_INIT_SFXRC_MAX_CHANNEL"
+	LDA	#SNESGSS_INIT_SFXRC_MAX_CHANNEL << 4 | SnesGssCommand::SFX_PLAY
 	STA	sfxRCOverflow
 
 	LDA	#SnesGssCommand::SFX_PLAY
@@ -65,7 +66,7 @@ ROUTINE Init
 	STA	sfxPan
 
 	; stereoFlag will be set by `Stereo` routine if non-zero
-	.if DEFAULT_SNESGSS_STEREO = 0
+	.if SNESGSS_INIT_STEREO = 0
 		STZ	stereoFlag
 	.endif
 
@@ -119,7 +120,7 @@ ROUTINE Init
 	LDX	#SnesGssCommand::INITIALIZE
 	JSR	Command
 
-	.if DEFAULT_SNESGSS_STEREO <> 0
+	.if SNESGSS_INIT_STEREO <> 0
 		.assert * = Stereo, lderror, "Bad Flow"
 	.else
 		RTS

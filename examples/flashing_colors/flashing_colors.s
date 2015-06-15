@@ -2,12 +2,6 @@
 ;
 ; Used for the initial test of the structure macros.
 
-
-.define VERSION 2
-.define REGION NTSC
-.define ROM_NAME "FLASHING COLORS"
-
-.include "includes/sfc_header.inc"
 .include "includes/import_export.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
@@ -18,7 +12,6 @@
 .segment "SHADOW"
 change_color_flag:	.res 1
 next_color_index:	.res 2
-
 
 
 .code
@@ -64,8 +57,8 @@ ROUTINE Main
 	FOREVER
 
 ;; Blank Handlers
-IrqHandler:
-CopHandler:
+LABEL IrqHandler
+LABEL CopHandler
 	RTI
 
 
@@ -75,7 +68,7 @@ CopHandler:
 ;;	clear `change_color_flag`
 ;; 	set the BG color to the color at `next_color_index`
 ;;	increment `next_color_index` to next color (+2), resetting as necessary
-VBlank:
+LABEL VBlank
 	; Save state
 	REP	#$30
 	PHA

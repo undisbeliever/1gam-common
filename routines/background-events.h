@@ -48,13 +48,12 @@
 ; Common includes
 .include "includes/import_export.inc"
 .include "includes/registers.inc"
+.include "includes/config.inc"
 
-
-;; ::TODO make configurable::
 ;; Number of events to run in the background of the game loop.
-N_BACKGROUND_EVENTS = 3
+CONFIG N_BACKGROUND_EVENTS, 3
 ;; The maximum size of the events in bytes.
-BACKGROUND_EVENT_SIZE = 20
+CONFIG BACKGROUND_EVENT_SIZE, 20
 
 ;; Sets up a struct containing the functionPtr for the first item
 ;; Also ensures that the size of the structure is <= BACKGROUND_EVENT_SIZE

@@ -5,7 +5,6 @@
 .include "includes/registers.inc"
 .include "includes/structure.inc"
 
-; ::SHOULDDO test this - works in castle platformer::
 MODULE BackgroundEvents
 
 BACKGROUND_EVENT_STRUCT BackgroundEventStruct

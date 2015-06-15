@@ -10,11 +10,11 @@
 ::_TEXT_H_ = 1
 
 .include "includes/import_export.inc"
+.include "includes/config.inc"
 .include "routines/block.h"
 
-.ifndef N_TEXT_WINDOWS
-	.define N_TEXT_WINDOWS 4
-.endif
+;; Number of text windows to allocate in memory.
+CONFIG TEXT_N_WINDOWS, 4
 
 .struct TextWindow 
 	;; This word is appended to each character to convert it into a tileset
@@ -368,7 +368,7 @@ IMPORT_MODULE Text
 	;; Windows
 	;; =======
 
-.if N_TEXT_WINDOWS > 1
+.if TEXT_N_WINDOWS > 1
 	;; Selects a given TextWindow
 	;;
 	;; The current window settings will be saved to WRAM
@@ -382,7 +382,7 @@ IMPORT_MODULE Text
 	;; Shadow RAM and would actually waste CPU time if more than 250 characters
 	;; were printed.
 	;;
-	;; INPUT: A = Window Number. If > N_TEXT_WINDOWS, window 0 will be used.
+	;; INPUT: A = Window Number. If > TEXT_N_WINDOWS, window 0 will be used.
 	ROUTINE SelectWindow
 .endif
 
@@ -508,7 +508,7 @@ IMPORT_MODULE Text
 
 ENDMODULE
 
-.if N_TEXT_WINDOWS > 1
+.if TEXT_N_WINDOWS > 1
 ;; Selects the given window
 ;;
 ;; INPUT: win - the window number

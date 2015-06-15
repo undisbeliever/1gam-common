@@ -1,11 +1,5 @@
 ; A test of `routines.text.s`
 
-.define VERSION 1
-.define REGION NTSC
-.define ROM_NAME "PRINT TEST"
-
-
-.include "includes/sfc_header.inc"
 .include "includes/import_export.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
@@ -77,12 +71,12 @@ StringFromLabel:
 .code
 
 ;; Blank Handlers
-IrqHandler:
-CopHandler:
+LABEL IrqHandler
+LABEL CopHandler
 	RTI
 
 
-VBlank:
+LABEL VBlank
 	; Save state
 	REP	#$30
 	PHA

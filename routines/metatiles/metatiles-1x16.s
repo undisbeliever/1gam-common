@@ -54,7 +54,6 @@ METATILE_DISPLAY_HEIGHT = 14
 .segment "WRAM7E"
 	STRUCT	metaTiles, MetaTile16Struct
 	ADDR	map, METATILES_MAP_TILE_ALLOCATION
-
 	ADDR	mapRowAddressTable, METATILES_MAX_ROWS
 
 	;; The buffer to use when updating the whole display
