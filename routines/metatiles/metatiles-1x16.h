@@ -84,20 +84,25 @@ IMPORT_MODULE MetaTiles1x16
 
 	;; Metatile table, mapping of metatiles to their inner tiles.
 	;; Structure of Arrays.
-	.global	MetaTiles1x16__metaTiles : far
+	;;
+	;; ACCESS: WRAM7E
+	STRUCT	metaTiles, MetaTile16Struct
 
 	;; The map data.
 	;; Stored as a multidimensional array[y][x], with a width of
 	;; `mapWidth / 16` and a height of `mapHeight / 16`.
 	;;
-	;; Each cell contains the word address within the metaTile table
-	;; (`tile * 8`), for speed purposes.
-	.global	MetaTiles1x16__map : far
+	;; Each cell contains the word address within the `metaTiles` table
+	;; (`tile * 2`), for speed purposes.
+	;;
+	;; ACCESS: WRAM7E
+	ADDR	map, METATILES_MAP_TILE_ALLOCATION
 
 	;; The table conating the starting tile address of each row in the map.
 	;; Conatins METATILES_MAX_ROWS .addr fields.
-	;; Accessed with WRAM7E bank.
-	.global MetaTiles1x16__mapRowAddressTable : far
+	;;
+	;; ACCESS: WRAM7E
+	ADDR	mapRowAddressTable, METATILES_MAX_ROWS
 
 
 	;; Initialize the metatile system. 

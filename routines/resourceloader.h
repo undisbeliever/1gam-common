@@ -66,11 +66,10 @@
 
 
 ;; A table of `PaletteTableFormat`
-.global	PalettesTable : far
-
+.global	PalettesTable
 
 ;; A table of far addresses to `VramHeader`
-.global VramTable : far
+.global VramTable
 
 
 IMPORT_MODULE ResourceLoader

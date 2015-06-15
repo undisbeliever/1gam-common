@@ -18,7 +18,6 @@ SONG_N_MUSIC_CHANNELS_OFFSET = 2
 
 .zeropage
 	;; The location of the data to load into SPC
-	;; ::SHOULDO generic far pointer::
 	FARADDR	dataPtr
 
 
