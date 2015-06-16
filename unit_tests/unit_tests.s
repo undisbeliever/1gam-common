@@ -222,8 +222,7 @@ FontBoldTransparentPalette_End:
 LABEL SnesGss__Module
 LABEL SnesGss__ModulePart2
 LABEL SnesGss__MusicTable
-.export SnesGss__MusicTable_Count: abs
-SnesGss__MusicTable_Count = 0
+.exportzp SnesGss__MusicTable_Count = 0
 
 LABEL PalettesTable
 LABEL VramTable

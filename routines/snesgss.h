@@ -111,7 +111,7 @@ IMPORT_MODULE SnesGss
 	;; A table of 24bit addresses for each song in play
 	.global	SnesGss__MusicTable
 	;; Number of items in `MusicTable`. Must be below 256
-	.global SnesGss__MusicTable_Count
+	.globalzp SnesGss__MusicTable_Count
 
 
 	;; Initializes SNESGSS, loads the module into the SPC-700

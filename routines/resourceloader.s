@@ -39,17 +39,17 @@ _LoadPalette__16A:
 	ASL
 	TAX
 
-	LDA	PalettesTable + PaletteTableFormat::palettePtr, X
+	LDA	f:PalettesTable + PaletteTableFormat::palettePtr, X
 	STA	A1T0
 
-	LDA	PalettesTable + PaletteTableFormat::nColors, X
+	LDA	f:PalettesTable + PaletteTableFormat::nColors, X
 	AND	#$00FF
 	ASL
 	STA	DAS0
 
 	SEP	#$20
 .A8
-	LDA	PalettesTable + PaletteTableFormat::palettePtr + 2, X
+	LDA	f:PalettesTable + PaletteTableFormat::palettePtr + 2, X
 	STA	A1B0
 
 	LDX	#DMAP_DIRECTION_TO_PPU | DMAP_TRANSFER_WRITE_TWICE | (.lobyte(CGDATA) << 8)
@@ -98,9 +98,9 @@ _LoadVram__16A:
 	ADD	dataPtr
 	TAX
 
-	LDA	VramTable + 1, X
+	LDA	f:VramTable + 1, X
 	STA	dataPtr + 1
-	LDA	VramTable, X
+	LDA	f:VramTable, X
 	STA	dataPtr
 	TAY
 
@@ -273,8 +273,6 @@ _DataToWram_Format_UnCompressed_AfterSetBank:
 	STA	MDMAEN
 
 	RTS
-
-
 
 ENDMODULE
 
