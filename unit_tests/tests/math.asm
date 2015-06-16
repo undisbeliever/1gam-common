@@ -1,6 +1,14 @@
 ; Test of Math routines
 .include "routines/math.h"
 
+;; Call math routine through DB set handler.
+;; Will set DB to $FF (so it can't access registers) for call
+.macro JSR_MTH routine
+	PEA	$80FF
+	PLB
+	JSR	.ident(.sprintf("%s_DB", .string(routine)))
+	PLB
+.endmacro
 
 PAGE_ROUTINE Math_Multiply_1
 	Text_SetColor	4
@@ -18,7 +26,7 @@ PAGE_ROUTINE Math_Multiply_1
 
 		LDY	#factorY
 		LDX	#factorX
-		JSR	Math__Multiply_U8Y_U8X_UY
+		JSR_MTH	Math__Multiply_U8Y_U8X_UY
 
 		Check_16Y (factorY * factorX)
 		JSR	Text__PrintDecimal_U16Y
@@ -48,7 +56,7 @@ PAGE_ROUTINE Math_Multiply_1
 
 		LDY	#factorY
 		LDA	#factorA
-		JSR	Math__Multiply_U16Y_U8A_U16Y
+		JSR_MTH	Math__Multiply_U16Y_U8A_U16Y
 
 		Check_16Y (factorY * factorA)
 		JSR	Text__PrintDecimal_U16Y
@@ -80,7 +88,7 @@ PAGE_ROUTINE Math_Multiply_2
 
 		LDY	#.loword(factorY)
 		LDA	#factorA
-		JSR	Math__Multiply_S16Y_U8A_S16Y
+		JSR_MTH	Math__Multiply_S16Y_U8A_S16Y
 
 		Check_16Y (factorY * factorA)
 		JSR	Text__PrintDecimal_U16Y
@@ -110,7 +118,7 @@ PAGE_ROUTINE Math_Multiply_2
 
 		LDY	#factorY
 		LDA	#factorA
-		JSR	Math__Multiply_U16Y_U8A_U32
+		JSR_MTH	Math__Multiply_U16Y_U8A_U32
 		LDXY	Math__product32
 
 		Check_32XY (factorY * factorA)
@@ -143,7 +151,7 @@ PAGE_ROUTINE Math_Multiply_3
 
 		LDY	#.loword(factorY)
 		LDX	#.loword(factorX)
-		JSR	Math__Multiply_U16Y_U16X_U16Y
+		JSR_MTH	Math__Multiply_U16Y_U16X_U16Y
 
 		Check_16Y (factorY * factorX)
 		JSR	Text__PrintDecimal_U16Y
@@ -173,7 +181,7 @@ PAGE_ROUTINE Math_Multiply_3
 
 		LDY	#factorY
 		LDX	#factorX
-		JSR	Math__Multiply_U16Y_U16X_U32XY
+		JSR_MTH	Math__Multiply_U16Y_U16X_U32XY
 
 		Check_32XY (factorY * factorX)
 		JSR	Text__PrintDecimal_U32XY
@@ -205,7 +213,7 @@ PAGE_ROUTINE Math_Multiply_4
 
 		LDY	#.loword(factorY)
 		LDX	#.loword(factorX)
-		JSR	Math__Multiply_S16Y_S16X_S16Y
+		JSR_MTH	Math__Multiply_S16Y_S16X_S16Y
 
 		Check_16Y (factorY * factorX)
 		JSR	Text__PrintDecimal_S16Y
@@ -235,7 +243,7 @@ PAGE_ROUTINE Math_Multiply_4
 
 		LDY	#.loword(factorY)
 		LDX	#.loword(factorX)
-		JSR	Math__Multiply_S16Y_S16X_S32XY
+		JSR_MTH	Math__Multiply_S16Y_S16X_S32XY
 
 		Check_32XY (factorY * factorX)
 		JSR	Text__PrintDecimal_S32XY
@@ -268,7 +276,7 @@ PAGE_ROUTINE Math_Multiply_5
 
 		LDXY	#factor32
 		LDA	#factorA
-		JSR	Math__Multiply_U32XY_U8A_U32XY
+		JSR_MTH	Math__Multiply_U32XY_U8A_U32XY
 
 		Check_32XY (factor32 * factorA)
 		JSR	Text__PrintDecimal_U32XY
@@ -299,7 +307,7 @@ PAGE_ROUTINE Math_Multiply_5
 
 		LDXY	#factor32
 		LDA	#factorA
-		JSR	Math__Multiply_S32XY_U8A_S32XY
+		JSR_MTH	Math__Multiply_S32XY_U8A_S32XY
 
 		Check_32XY (factor32 * factorA)
 		JSR	Text__PrintDecimal_U32XY
@@ -333,7 +341,7 @@ PAGE_ROUTINE Math_Multiply_6
 		LDXY	#factor32
 		STXY	Math__factor32
 		LDY	#factorY
-		JSR	Math__Multiply_U32_U16Y_U32XY
+		JSR_MTH	Math__Multiply_U32_U16Y_U32XY
 
 		Check_32XY (factor32 * factorY)
 		JSR	Text__PrintDecimal_U32XY
@@ -365,7 +373,7 @@ PAGE_ROUTINE Math_Multiply_6
 		LDXY	#factor32
 		STXY	Math__factor32
 		LDY	#factorY
-		JSR	Math__Multiply_S32_U16Y_S32XY
+		JSR_MTH	Math__Multiply_S32_U16Y_S32XY
 
 		Check_32XY (factor32 * factorY)
 		JSR	Text__PrintDecimal_S32XY
@@ -399,7 +407,7 @@ PAGE_ROUTINE Math_Multiply_7
 		LDXY	#factor32
 		STXY	Math__factor32
 		LDY	#.loword(factorY)
-		JSR	Math__Multiply_U32_S16Y_32XY
+		JSR_MTH	Math__Multiply_U32_S16Y_32XY
 
 		Check_32XY (factor32 * factorY)
 		JSR	Text__PrintDecimal_S32XY
@@ -431,7 +439,7 @@ PAGE_ROUTINE Math_Multiply_7
 		LDXY	#factor32
 		STXY	Math__factor32
 		LDY	#.loword(factorY)
-		JSR	Math__Multiply_S32_S16Y_S32XY
+		JSR_MTH	Math__Multiply_S32_S16Y_S32XY
 
 		Check_32XY (factor32 * factorY)
 		JSR	Text__PrintDecimal_S32XY
@@ -465,7 +473,7 @@ PAGE_ROUTINE Math_Multiply_8
 		LDXY	#factor32
 		STXY	Math__factor32
 		LDXY	#factorXY
-		JSR	Math__Multiply_U32_U32XY_U32XY
+		JSR_MTH	Math__Multiply_U32_U32XY_U32XY
 
 		Check_32XY (factor32 * factorXY)
 		Text_PrintHex	Math__product32
@@ -496,7 +504,7 @@ PAGE_ROUTINE Math_Multiply_8
 		LDXY	#factor32
 		STXY	Math__factor32
 		LDXY	#factorXY
-		JSR	Math__Multiply_S32_S32XY_S32XY
+		JSR_MTH	Math__Multiply_S32_S32XY_S32XY
 
 		Check_32XY (factor32 * factorXY)
 		Text_PrintHex	Math__product32
@@ -528,7 +536,7 @@ PAGE_ROUTINE Math_Divide_1
 
 		LDY	#dividend
 		LDX	#divisor
-		JSR	Math__Divide_U16Y_U16X
+		JSR_MTH	Math__Divide_U16Y_U16X
 
 		PHX
 		Check_16Y (dividend / divisor)
@@ -566,7 +574,7 @@ PAGE_ROUTINE Math_Divide_1
 
 		LDY	#.loword(dividend)
 		LDX	#.loword(divisor)
-		JSR	Math__Divide_S16Y_U16X
+		JSR_MTH	Math__Divide_S16Y_U16X
 
 		PHX
 		Check_16Y (dividend / divisor)
@@ -610,7 +618,7 @@ PAGE_ROUTINE Math_Divide_2
 
 		LDY	#.loword(dividend)
 		LDX	#.loword(divisor)
-		JSR	Math__Divide_U16Y_S16X
+		JSR_MTH	Math__Divide_U16Y_S16X
 
 		PHX
 		Check_16Y (dividend / divisor)
@@ -652,7 +660,7 @@ PAGE_ROUTINE Math_Divide_2
 
 		LDY	#.loword(dividend)
 		LDX	#.loword(divisor)
-		JSR	Math__Divide_S16Y_S16X
+		JSR_MTH	Math__Divide_S16Y_S16X
 
 		PHX
 		Check_16Y (dividend / divisor)
@@ -696,7 +704,7 @@ PAGE_ROUTINE Math_Divide_3
 
 		LDY	#dividend
 		LDA	#divisor
-		JSR	Math__Divide_U16Y_U8A
+		JSR_MTH	Math__Divide_U16Y_U8A
 		PHX
 
 		Check_16Y (dividend / divisor)
@@ -735,7 +743,7 @@ PAGE_ROUTINE Math_Divide_3
 		LDXY	#dividend
 		STXY	Math__dividend32
 		LDA	#divisor
-		JSR	Math__Divide_U32_U8A
+		JSR_MTH	Math__Divide_U32_U8A
 
 		PHA
 		LDXY	Math__result32
@@ -778,7 +786,7 @@ PAGE_ROUTINE Math_Divide_4
 		STXY	Math__dividend32
 		LDXY	#divisor
 		STXY	Math__divisor32
-		JSR	Math__Divide_U32_U32
+		JSR_MTH	Math__Divide_U32_U32
 
 		LDXY	Math__result32
 		Check_32XY (dividend / divisor)
@@ -821,7 +829,7 @@ PAGE_ROUTINE Math_Divide_5
 		STXY	Math__dividend32
 		LDXY	#divisor
 		STXY	Math__divisor32
-		JSR	Math__Divide_S32_S32
+		JSR_MTH	Math__Divide_S32_S32
 
 		LDXY	Math__result32
 		Check_32XY (dividend / divisor)

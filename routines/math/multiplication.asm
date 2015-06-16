@@ -157,13 +157,14 @@ ROUTINE Multiply_S16Y_U16X_32XY
 	CLC
 	ADC	RDMPYL
 	STA	product32 + 1
-	LDA	#0
-	ADC	RDMPYH
-	STA	product32 + 2
-	LDA	#0
-	;ADC	#0
-	STA	product32 + 3
 
+	LDA	RDMPYH
+	REP	#$20
+.A16
+	ADC	#0
+	STA	product32 + 2
+	SEP	#$20
+.A8
 
 	LDA	mathTmp3 + 1	; High byte of X
 	STA	WRMPYA

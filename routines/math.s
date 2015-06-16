@@ -31,6 +31,7 @@ MODULE Math
 
 .include "routines/math/multiplication.asm"
 .include "routines/math/division.asm"
+.include "routines/math/db_unknown.asm"
 
 ENDMODULE
 

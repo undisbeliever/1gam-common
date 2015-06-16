@@ -37,6 +37,7 @@ obj/%.o: $(SOURCE_DIR)/%.s
 obj/api/%.o: $(API_ROUTINE_DIR)/%.s
 	ca65 -I . -I $(API_DIR) -o $@ $<
 
+obj/api/math.o: $(wildcard $(API_ROUTINE_DIR)/math/*)
 
 .PHONY: dirs
 dirs: bin/ $(OBJECT_DIRS)

@@ -30,6 +30,7 @@ IMPORT_MODULE Math
 	;; OUTPUT:
 	;;	Y: result (8 or 16 bits depending on Index size)
 	ROUTINE Multiply_U8Y_U8X_UY
+	ROUTINE Multiply_U8Y_U8X_UY_DB
 
 	;; Mutliply a 16 bit integer by an 8 bit unsigned integer
 	;;
@@ -48,6 +49,9 @@ IMPORT_MODULE Math
 	ROUTINE Multiply_S16Y_U8A_S16Y
 	ROUTINE Multiply_U16Y_U8A_U16Y
 	ROUTINE Multiply_U16Y_U8A_U32
+	ROUTINE Multiply_S16Y_U8A_S16Y_DB
+	ROUTINE Multiply_U16Y_U8A_U16Y_DB
+	ROUTINE Multiply_U16Y_U8A_U32_DB
 
 	;; Multiply two 16 bit integers.
 	;;
@@ -67,6 +71,10 @@ IMPORT_MODULE Math
 	ROUTINE Multiply_U16Y_S16X_16Y
 	ROUTINE Multiply_S16Y_U16X_16Y
 	ROUTINE Multiply_S16Y_S16X_S16Y
+	ROUTINE Multiply_U16Y_U16X_U16Y_DB
+	ROUTINE Multiply_U16Y_S16X_16Y_DB
+	ROUTINE Multiply_S16Y_U16X_16Y_DB
+	ROUTINE Multiply_S16Y_S16X_S16Y_DB
 
 	;; Multiply two 16 bit integers resulting in a 32 integer.
 	;;
@@ -83,6 +91,9 @@ IMPORT_MODULE Math
 	ROUTINE Multiply_U16Y_U16X_U32XY
 	ROUTINE Multiply_U16Y_S16X_32XY
 	ROUTINE Multiply_S16Y_U16X_32XY
+	ROUTINE Multiply_U16Y_U16X_U32XY_DB
+	ROUTINE Multiply_U16Y_S16X_32XY_DB
+	ROUTINE Multiply_S16Y_U16X_32XY_DB
 
 	;; Multiply two signed 16 bit integers resulting in a 32 signed integer.
 	;;
@@ -97,7 +108,7 @@ IMPORT_MODULE Math
 	;;	XY: 32 bit signed product
 	;;	product32: 32 bit signed product
 	ROUTINE Multiply_S16Y_S16X_S32XY
-
+	ROUTINE Multiply_S16Y_S16X_S32XY_DB
 
 	;; Mutliply a 32 bit integer by an 8 bit unsigned integer
 	;;
@@ -114,7 +125,8 @@ IMPORT_MODULE Math
 	;;	c: 33rd bit of result
 	ROUTINE Multiply_U32XY_U8A_U32XY
 	ROUTINE Multiply_S32XY_U8A_S32XY
-
+	ROUTINE Multiply_U32XY_U8A_U32XY_DB
+	ROUTINE Multiply_S32XY_U8A_S32XY_DB
 
 	;; Multiply a 32 bit integer by a 16 bit unsigned integer.
 	;;
@@ -129,6 +141,8 @@ IMPORT_MODULE Math
 	;;	product32: 32 bit product
 	ROUTINE Multiply_U32_U16Y_U32XY
 	ROUTINE Multiply_S32_U16Y_S32XY
+	ROUTINE Multiply_U32_U16Y_U32XY_DB
+	ROUTINE Multiply_S32_U16Y_S32XY_DB
 
 	;; Multiply a 32 bit integer by a 16 bit signed integer.
 	;;
@@ -143,6 +157,8 @@ IMPORT_MODULE Math
 	;;	product32: 32 bit product
 	ROUTINE Multiply_U32_S16Y_32XY
 	ROUTINE Multiply_S32_S16Y_S32XY
+	ROUTINE Multiply_U32_S16Y_32XY_DB
+	ROUTINE Multiply_S32_S16Y_S32XY_DB
 
 	;; Multiply a 32 bit integer by another 32 bit integer.
 	;;
@@ -159,6 +175,10 @@ IMPORT_MODULE Math
 	ROUTINE Multiply_U32_S32XY_32XY
 	ROUTINE Multiply_S32_U32XY_32XY
 	ROUTINE Multiply_S32_S32XY_S32XY
+	ROUTINE Multiply_U32_U32XY_U32XY_DB
+	ROUTINE Multiply_U32_S32XY_32XY_DB
+	ROUTINE Multiply_S32_U32XY_32XY_DB
+	ROUTINE Multiply_S32_S32XY_S32XY_DB
 
 
 ;; Division
@@ -186,6 +206,7 @@ IMPORT_MODULE Math
 	;;   * uint16 divisor
 	;;   * uint16 counter
 	ROUTINE Divide_U16Y_U16X
+	ROUTINE Divide_U16Y_U16X_DB
 
 	;; Signed 16 bit / unsigned 16 bit Integer Division.
 	;;
@@ -209,6 +230,7 @@ IMPORT_MODULE Math
 	;;   * uint16 divisor
 	;;   * uint16 counter
 	ROUTINE Divide_S16Y_U16X
+	ROUTINE Divide_S16Y_U16X_DB
 
 	;; Unsigned 16 bit by signed 16 bit Integer Division.
 	;;
@@ -232,6 +254,7 @@ IMPORT_MODULE Math
 	;;   * uint16 divisor
 	;;   * uint16 counter
 	ROUTINE Divide_U16Y_S16X
+	ROUTINE Divide_U16Y_S16X_DB
 
 	;; Signed 16 / 16 bit Integer Division.
 	;;
@@ -255,6 +278,7 @@ IMPORT_MODULE Math
 	;;   * uint16 divisor
 	;;   * uint16 counter
 	ROUTINE Divide_S16Y_S16X
+	ROUTINE Divide_S16Y_S16X_DB
 
 	;; Unsigned 16 / 8 bit Integer Division
 	;;
@@ -268,6 +292,7 @@ IMPORT_MODULE Math
 	;;	Y: 16 bit unsigned Result
 	;;	X: 16 bit unsigned Remainder
 	ROUTINE Divide_U16Y_U8A
+	ROUTINE Divide_U16Y_U8A_DB
 
 	;; Unsigned 32 / 32 bit Integer Division
 	;;
@@ -284,6 +309,7 @@ IMPORT_MODULE Math
 	;; NOTES:
 	;;	`result32` and `dividend32` share the same memory location
 	ROUTINE Divide_U32_U32
+	ROUTINE Divide_U32_U32_DB
 
 	;; Signed 32 / 32 bit Integer Division
 	;;
@@ -300,6 +326,7 @@ IMPORT_MODULE Math
 	;; NOTES:
 	;;	`result32` and `dividend32` share the same memory location
 	ROUTINE Divide_S32_S32
+	ROUTINE Divide_S32_S32_DB
 
 	;; Unsigned 32 / 8 bit Integer Division
 	;;
@@ -314,6 +341,7 @@ IMPORT_MODULE Math
 	;; NOTES:
 	;;	`result32` and `dividend32` share the same memory location
 	ROUTINE Divide_U32_U8A
+	ROUTINE Divide_U32_U8A_DB
 ENDMODULE
 
 .endif ; ::_MATH_H_
