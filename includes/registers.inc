@@ -1060,7 +1060,7 @@ VTIMEH = $420A
 ;;
 ;; 76543210
 ;;
-;; 7/6/5/4/3/2/1 = Enable HDMA channel.
+;; 7/6/5/4/3/2/1 = Enable DMA channel.
 ;;
 ;; When a DMA is activated the CPU will be paused until all DMAs are completed.
 MDMAEN = $420B
@@ -1083,7 +1083,7 @@ MDMAEN = $420B
 ;; 76543210
 ;;
 ;; 7/6/5/4/3/2/1 = Enable HDMA channel.
-HDMAEN = $420B
+HDMAEN = $420C
 
 ;;; Flags
 .define HDMAEN_DMA0 %00000001
