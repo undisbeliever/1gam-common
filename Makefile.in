@@ -1,12 +1,22 @@
 # This file simplifies the building process of a SNES ROM using this API.
+#
+# The following VARIABALES determine the behaviour of the build process:
+#    * ROM_NAME      - the name of the final rom (without extension)
+#    * API_DIR       - the directory of the snesdev-common repo
+#    * CONFIG        - the memory config to use
+#    * SOURCE_DIR    - the location of the source
+#    * RESOURCES_DIR - (optional) the location of the resources, can contain its own makefile
+#    * TABLES_DIR    - (optional) the location of the precalculated tables, can contain its own makefile
+
+# Disable Builtin rules
+.SUFFIXES:
+MAKEFLAGS += --no-builtin-rules
+
 
 API_ROUTINE_DIR = $(API_DIR)/routines
 
-RESOURCES   = $(wildcard $(RESOURCES_DIR)/* $(RESOURCES_DIR)/*/* $(RESOURCES_DIR)/*/*/*)
-
 SOURCES     = $(wildcard $(SOURCE_DIR)/*.s $(SOURCE_DIR)/*/*.s $(SOURCE_DIR)/*/*.s)
 HEADERS     = $(wildcard $(SOURCE_DIR)/*.h $(SOURCE_DIR)/*/*.h)
-TABLES	    = $(wildcard tables/*)
 INCLUDES    = $(wildcard $(SOURCE_DIR)/*.inc $(SOURCE_DIR)/*/*.inc)
 INCLUDES   += $(wildcard $(SOURCE_DIR)/*.asm $(SOURCE_DIR)/*/*.asm)
 
@@ -21,6 +31,7 @@ ifneq ($(words $(ROM_NAME)), 1)
   $(error Cannot have space in ROM_NAME)
 endif
 
+
 .PHONY: all
 all: dirs resources tables $(BINARY)
 
@@ -29,7 +40,14 @@ $(BINARY): $(OBJECTS) $(API_OBJECTS)
 	cd bin/ && ucon64 --snes --nhd --chk $(notdir $@)
 
 
-$(OBJECTS) $(API_OBJECTS): $(CONFIG_FILE) $(API_HEADERS) $(HEADERS) $(TABLES) $(INCLUDES) $(API_DIR)/Makefile.in Makefile
+$(OBJECTS): $(HEADERS) $(INCLUDES)
+$(OBJECTS) $(API_OBJECTS): $(CONFIG_FILE) $(API_HEADERS) $(API_DIR)/Makefile.in Makefile
+
+ifneq (,$(wildcard config.h))
+  $(OBJECTS) $(API_OBJECTS): config.h
+endif
+
+
 
 obj/%.o: $(SOURCE_DIR)/%.s
 	ca65 -I . -I $(API_DIR) -o $@ $<
@@ -39,25 +57,33 @@ obj/api/%.o: $(API_ROUTINE_DIR)/%.s
 
 obj/api/math.o: $(wildcard $(API_ROUTINE_DIR)/math/*)
 
+
 .PHONY: dirs
 dirs: bin/ $(OBJECT_DIRS)
 
 bin/ $(OBJECT_DIRS):
 	mkdir $@
 
-ifneq (,$(wildcard config.h))
-  $(OBJECTS): config.h
-endif
-
 .PHONY: resources
 resources:
 ifdef RESOURCES_DIR
   ifneq (,$(wildcard $(RESOURCES_DIR)/Makefile))
-		cd $(RESOURCES_DIR) && $(MAKE)
-
-
-    obj/resources.o: $(RESOURCES)
+		$(MAKE) -C $(RESOURCES_DIR)
+  else
+    # ::ANNOY tried to put common rules in here, but Makefile took 1min 23sec to process ::
+		$(MAKE) -C $(RESOURCES_DIR) -f "$(realpath $(API_DIR)/makefiles/resources.makefile)"
   endif
+
+  RESOURCES   = $(wildcard $(RESOURCES_DIR)/* $(RESOURCES_DIR)/*/* $(RESOURCES_DIR)/*/*/*)
+  SNESGSS_RES = $(wildcard $(RESOURCES_DIR)/snesgss/*/*)
+
+  ifneq (,$(wildcard $(SOURCE_DIR)/resources.s))
+    obj/resources.o: $(RESOURCES)
+  else
+    $(OBJECTS): $(RESOURCES)
+  endif
+
+  $(OBJECTS): $(SNESGSS_RES)
 endif
 
 
@@ -65,21 +91,30 @@ endif
 tables:
 ifdef TABLES_DIR
   ifneq (,$(wildcard $(TABLES_DIR)/Makefile))
-		cd $(TABLES_DIR) && $(MAKE)
+		$(MAKE) -C $(TABLES_DIR)
+  else
+    # ::ANNOY tried to put rules in here, but Makefile took 12 seconds to process ::
+		$(MAKE) -C $(TABLES_DIR) -f "$(realpath $(API_DIR)/makefiles/tables.makefile)"
   endif
+
+  $(OBJECTS): $(wildcard $(RESOURCES_DIR)/* $(RESOURCES_DIR)/*/* $(RESOURCES_DIR)/*/*/*)
 endif
 
 
 .PHONY: clean
-clean:
+clean::
 ifdef TABLES_DIR
   ifneq (,$(wildcard $(TABLES_DIR)/Makefile))
-		cd $(TABLES_DIR) && $(MAKE) clean
+		$(MAKE) -C $(TABLES_DIR) clean
+  else
+		$(MAKE) -C $(TABLES_DIR) -f "$(realpath $(API_DIR)/makefiles/tables.makefile)" clean
   endif
 endif
 ifdef RESOURCES_DIR
   ifneq (,$(wildcard $(RESOURCES_DIR)/Makefile))
-		cd $(RESOURCES_DIR) && $(MAKE) clean
+		$(MAKE) -C $(RESOURCES_DIR) clean
+  else
+		$(MAKE) -C $(RESOURCES_DIR) -f "$(realpath $(API_DIR)/makefiles/resources.makefile)" clean
   endif
 endif
 	$(RM) bin/$(BINARY) $(OBJECTS) $(API_OBJECTS)

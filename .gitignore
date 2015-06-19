@@ -5,8 +5,8 @@ examples/*/bin
 examples/*/obj
 unit_tests/bin
 unit_tests/obj
-resources/*.xcf
-resources/*.2bpp
-resources/*.4bpp
-resources/*.clr
+resources/*/*.xcf
+resources/*/*.2bpp
+resources/*/*.4bpp
+resources/*/*.clr
 

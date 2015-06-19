@@ -162,7 +162,7 @@ ROUTINE LoadPalette
 
 Font8x8Bold:
 	.res 16, 0
-	.incbin "resources/font8x8-bold.2bpp"
+	.incbin "resources/tiles2bpp/font8x8-bold.2bpp"
 Font8x8Bold_End:
 
 FontBoldPalette:                          ; ANSI Colors
