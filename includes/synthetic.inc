@@ -48,6 +48,7 @@
 .endmacro
 
 .macro RSB16 param, index
+	; ::TODO test 8/16 bit A::
 	.ifblank index
 		EOR	#$FFFF
 		SEC
@@ -76,6 +77,7 @@
 .endmacro
 
 .macro RSC16 param
+	; ::TODO test 8/16 bit A::
 	.ifblank index
 		EOR	#$FFFF
 		SEC
@@ -91,6 +93,7 @@
 ;;
 ;; REQUIRE: 8 bit A
 .macro ASR8
+	; ::TODO test 8/16 bit A::
 	CMP	#$80		; carry set to the sign bit
 	ROR
 .endmacro
@@ -99,6 +102,7 @@
 ;;
 ;; REQUIRE: 16 bit A
 .macro ASR16
+	; ::TODO test 8/16 bit A::
 	CMP	#$8000		; carry set to the sign bit
 	ROR
 .endmacro
@@ -106,6 +110,7 @@
 
 ;; 8/16 bit rotate right
 .macro ROTATEL
+	; ::TODO test 8/16 bit A::
 	ASL A
 	ADC	#0
 .endmacro
@@ -113,6 +118,7 @@
 
 ;; 8/16 bit rotate right
 .macro ROTATER
+	; ::TODO test 8/16 bit A::
 	PHA
 	LSR A
 	PLA
@@ -123,6 +129,7 @@
 ;;
 ;; REQUIRE: 8 bit A
 .macro NEG8
+	; ::TODO test 8/16 bit A::
 	EOR	#$FF
 	INC
 .endmacro
@@ -131,6 +138,7 @@
 ;;
 ;; REQUIRE: 16 bit A
 .macro NEG16
+	; ::TODO test 8/16 bit A::
 	EOR	#$FFFF
 	INC
 .endmacro
@@ -179,6 +187,74 @@
 			STA	2 + (var), index
 		.endif
 	.endif
+.endmacro
+
+
+;; Load an absolute signed 8 bit variable into A.
+;;
+;; Parameter can be X, Y, blank (A), or a variable.
+;;
+;; Please note that doing a `IF_MINUS : NEG16 : ENDIF` would be faster
+;; than `LDABS16 A` if you know the the N flag matches the accumulator's
+;; MSB.
+;;
+;; REQUIRES: 8 bit A
+.macro LDABS8 var, index
+	; ::TODO enforce 8 bit A::
+	.local skip
+
+	.ifblank index
+		.if .xmatch({var}, X)
+			TXA
+		.elseif .xmatch({var}, Y)
+			TYA
+		.elseif .blank(var) .or .xmatch({var}, A)
+			; Sets N flag depending on MSB of A
+			CMP	#0
+		.else
+			LDA	var
+		.endif
+	.else
+		LDA	var, index
+	.endif
+
+	BPL	skip
+		NEG8
+skip:
+.endmacro
+
+
+;; Load an absolute signed 16 bit variable into A.
+;;
+;; Parameter can be X, Y, blank (A), or a variable.
+;;
+;; Please note that doing a `IF_MINUS : NEG16 : ENDIF` would be faster
+;; than `LDABS16 A` if you know the the N flag matches the accumulator's
+;; MSB.
+;;
+;; REQUIRES: 16 bit A
+.macro LDABS16 var, index
+	; ::TODO enforce 16 bit A::
+	.local skip
+
+	.ifblank index
+		.if .xmatch({var}, X)
+			TXA
+		.elseif .xmatch({var}, Y)
+			TYA
+		.elseif .blank(var) .or .xmatch({var}, A)
+			; Sets N flag depending on MSB of A
+			CMP	#0
+		.else
+			LDA	var
+		.endif
+	.else
+		LDA	var, index
+	.endif
+
+	BPL	skip
+		NEG16
+skip:
 .endmacro
 
 ;; 16 bit increment on 8 bit Accumulator
