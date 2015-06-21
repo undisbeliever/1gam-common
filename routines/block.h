@@ -47,6 +47,8 @@ IMPORT_MODULE Block
 	;;	* the label {source}End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro MemCopy source, destination, size
+		.assert .not(((.bankbyte(source) & $7F < $40 .and .loword(source) < $2000) .or (.bankbyte(source) = $7E) .or (.bankbyte(source) = $7F))), error, "source must not be in RAM"
+
 		.assert ((.bankbyte(destination) & $7F < $40 .and .loword(destination) < $2000) .or (.bankbyte(destination) = $7E) .or (.bankbyte(destination) = $7F)), error, "destination must be in RAM"
 
 		LDX	#.loword(destination)

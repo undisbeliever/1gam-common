@@ -19,6 +19,13 @@ IMPORT_MODULE Screen
 	;; REQUIRES: VBlank enabled
 	ROUTINE	WaitFrame
 
+	;; Pauses execution for a given number of frames
+	;;
+	;; REQUIRES: VBlank enabled
+	;;
+	;; INPUT: A - number of frames to wait
+	ROUTINE	WaitManyFrames
+
 	;; Starts at Screen brightness 0 and fades in to full brightness
 	;;
 	;; REQUIRES: 8 bit A, VBlank Enabled

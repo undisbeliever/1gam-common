@@ -376,6 +376,18 @@ ROUTINE PlayMusicFromData
 	BRA	Command
 
 
+
+.A8
+.I16
+ROUTINE ResetSfxVolume
+	LDA	#127
+	STA	SnesGss__sfxVolume
+	INC			; 128
+	STA	SnesGss__sfxPan
+	RTS
+
+
+
 ;; Loads a headered data block to the SPC-700
 ;;
 ;; The first two bytes of the data (not loaded to SPC) are

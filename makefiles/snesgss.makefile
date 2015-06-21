@@ -1,6 +1,7 @@
 
 # Disable Builtin rules
 .SUFFIXES:
+.DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
 API_DIR := $(realpath $(dir $(lastword $(MAKEFILE_LIST)))/../)
@@ -24,7 +25,7 @@ export/spc700.bin: export/combined.gsm
 
 export/combined.gsm: $(SFXES) $(MUSICS)
 	$(RM) export/*.bin
-	"$(COMBINE_GSM)" $(SFXES) $(MUSICS) >|  $@
+	"$(COMBINE_GSM)" $(SFXES) $(MUSICS) >| $@
 
 export/:
 	mkdir export

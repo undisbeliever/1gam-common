@@ -18,7 +18,8 @@ MODULE Screen
 
 .code
 
-; A and I unknown
+; A and I size unknown
+; MUST NOT USE A
 ROUTINE	WaitFrame
 	LDX	frameCounter
 	REPEAT
@@ -28,6 +29,16 @@ ROUTINE	WaitFrame
 
 	RTS
 
+
+; A and I size unknown
+; IN: A = frames to delay
+ROUTINE	WaitManyFrames
+	REPEAT
+		JSR	WaitFrame
+		DEC
+	UNTIL_ZERO
+
+	RTS
 
 
 .A8

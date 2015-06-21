@@ -290,11 +290,17 @@
 ;; This Macro can be used in a header if the filename is missing.
 ;;
 ;; This macro also exports the label and creates the {label}End label used by the block module.
-.macro INCLUDE_BINARY label, filename
+.macro INCLUDE_BINARY label, filename, start, size
 	LABEL label
 
 	.if ::__MODULE_TYPE <> __MODULE_TYPE_IMPORT .or .blank(filename)
-		.incbin filename
+		.if .blank(start) .and .blank(size)
+			.incbin filename
+		.elseif .blank(size)
+			.incbin filename, start
+		.else
+			.incbin filename, start, size
+		.endif
 	.endif
 
 	LABEL .ident(.sprintf("%s_End", .string(label)))

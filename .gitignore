@@ -1,12 +1,16 @@
 *.swp
 *~
 
-examples/*/bin
-examples/*/obj
 unit_tests/bin
 unit_tests/obj
-resources/*/*.xcf
-resources/*/*.2bpp
-resources/*/*.4bpp
-resources/*/*.clr
+examples/*/bin
+examples/*/obj
+examples/*/resources/snesgss/export
+
+*.2bpp
+*.4bpp
+*.clr
+*.map
+*.mp7
+*.pc7
 

@@ -1,6 +1,7 @@
 
 # Disable Builtin rules
 .SUFFIXES:
+.DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
 API_DIR  := $(realpath $(dir $(lastword $(MAKEFILE_LIST)))/../)

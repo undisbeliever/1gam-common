@@ -10,6 +10,7 @@
 
 # Disable Builtin rules
 .SUFFIXES:
+.DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
 

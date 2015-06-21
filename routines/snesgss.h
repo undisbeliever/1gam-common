@@ -204,6 +204,10 @@ IMPORT_MODULE SnesGss
 	;;	  sfxPan - the panning value of the SFX
 	ROUTINE PlaySfxRC
 
+	;; Resets the sfxVolume and sfxPan values to their initial values
+	;; REQUIRES: 8 bit Index, DB access shadow
+	ROUTINE	ResetSfxVolume
+
 	;; Sets mono sound.
 	;;
 	;; Will set `stereoFlag` to zero.
