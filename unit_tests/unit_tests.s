@@ -198,11 +198,11 @@ ROUTINE SetupPPU
 .rodata
 
 Font8x8BoldTransparent:
-	.incbin "../resources/font8x8-bold-transparent.2bpp"
+	.incbin "../resources/tiles2bpp/font8x8-bold-transparent.2bpp"
 Font8x8BoldTransparent_End:
 
 Font8x16BoldTransparent:
-	.incbin "../resources/font8x16-bold-transparent.2bpp"
+	.incbin "../resources/tiles2bpp/font8x16-bold-transparent.2bpp"
 Font8x16BoldTransparent_End:
 
 FontBoldTransparentPalette:                ; ANSI Colors

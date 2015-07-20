@@ -5,8 +5,7 @@ API_DIR     = ..
 SOURCE_DIR  = .
 RESOURCES_DIR = ../resources
 
-# All API Modules
-API_MODULES  = $(patsubst $(API_DIR)/routines/%.s,%,$(wildcard $(API_DIR)/routines/*.s $(API_DIR)/routines/*/*/.s))
+API_MODULES  = reset-snes sfc-header block screen text text8x16 text8x8 math metasprite
 
 include ../Makefile.in
 
