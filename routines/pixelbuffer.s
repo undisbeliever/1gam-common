@@ -269,16 +269,16 @@ ROUTINE DrawVerticalLine
 	;	if height == 0:
 	;		break
 	;	else
-	;		if bPos & (TILE_SIZE - 2) == TILE_SIZE - 2
-	;			bPos += PIXELBUFFER_WIDTH * TILE_SIZE - 2 - (TILE_SIZE - 2)
-	;		else
-	;			bPos += 2
+	;		bPos += 2
+	;		if bPos & (TILE_SIZE - 1) == 0
+	;			bPos += PIXELBUFFER_WIDTH * TILE_SIZE - TILE_SIZE
 
 	PHA
 
 	JSR	_CalculateColorMaskAndBufferY
 
 	PLX
+	CLC
 	REPEAT
 		LDA	a:buffer, Y
 		EOR	a:colorBits
@@ -289,17 +289,11 @@ ROUTINE DrawVerticalLine
 		DEX
 		BEQ	BREAK_LABEL
 
+		; c always clear if Y does not overflow
 		TYA
-		AND	#TILE_SIZE - 2
-		CMP	#TILE_SIZE - 2
-		IF_GE
-			TYA
-			CLC
-			ADC	#PIXELBUFFER_WIDTH * TILE_SIZE - (TILE_SIZE - 2)
-		ELSE
-			TYA
-			; carry clear
-			ADC	#2
+		ADC	#2
+		IF_NOT_BIT	#TILE_SIZE - 1
+			ADC	#PIXELBUFFER_WIDTH * TILE_SIZE - TILE_SIZE
 		ENDIF
 
 		TAY
