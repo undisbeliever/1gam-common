@@ -39,6 +39,144 @@ bufferBank = .bankbyte(buffer)
 .code
 
 
+.if PIXELBUFFER_HEIGHT * PIXELBUFFER_WIDTH < 1023
+
+	; A - tile offset
+	.A16
+	.I16
+	ROUTINE WriteTileMapToVram
+
+		.if PIXELBUFFER_WIDTH = 32
+
+			LDX	#PIXELBUFFER_WIDTH * PIXELBUFFER_HEIGHT
+			REPEAT
+				STA	VMDATA
+				INC
+
+				DEX
+			UNTIL_ZERO
+
+			.if PIXELBUFFER_HEIGHT < 32
+				LDX	#(32 - PIXELBUFFER_HEIGHT) * 32
+				REPEAT
+					STZ	VMDATA
+
+					DEX
+				UNTIL_ZERO
+
+			.elseif PIXELBUFFER_HEIGHT > 32 .and PIXELBUFFER_HEIGHT < 64
+				LDX	#(64 - PIXELBUFFER_HEIGHT) * 32
+				REPEAT
+					STZ	VMDATA
+
+					DEX
+				UNTIL_ZERO
+			.endif
+
+		.elseif PIXELBUFFER_WIDTH < 32
+
+			LDY	#PIXELBUFFER_HEIGHT
+			REPEAT
+				LDX	#PIXELBUFFER_WIDTH
+				REPEAT
+					STA	VMDATA
+					INC
+
+					DEX
+				UNTIL_ZERO
+
+				LDX	#32 - PIXELBUFFER_WIDTH
+				REPEAT
+					STZ	VMDATA
+
+					DEX
+				UNTIL_ZERO
+
+				DEY
+			UNTIL_ZERO
+
+			.if PIXELBUFFER_HEIGHT < 32
+				LDX	#(32 - PIXELBUFFER_HEIGHT) * 32
+				REPEAT
+					STZ	VMDATA
+
+					DEX
+				UNTIL_ZERO
+
+			.elseif PIXELBUFFER_HEIGHT > 32 .and PIXELBUFFER_HEIGHT < 64
+				LDX	#(64 - PIXELBUFFER_HEIGHT) * 64
+				REPEAT
+					STZ	VMDATA
+
+					DEX
+				UNTIL_ZERO
+			.endif
+
+		.else
+			; PIXELBUFFER_WIDTH > 32
+			; PIXELBUFFER_HEIGHT <= 32
+			.assert PIXELBUFFER_HEIGHT <= 32, error, "Bad values"
+
+			; Part A
+			PHA
+
+			LDY	#PIXELBUFFER_HEIGHT
+			REPEAT
+				LDX	#32
+				REPEAT
+					STA	VMDATA
+					INC
+
+					DEX
+				UNTIL_ZERO
+
+				ADD	#PIXELBUFFER_WIDTH - 32
+
+				DEY
+			UNTIL_ZERO
+
+			.if PIXELBUFFER_HEIGHT < 32
+				LDX	#(32 - PIXELBUFFER_HEIGHT) * 32
+				REPEAT
+					STZ	VMDATA
+
+					DEX
+				UNTIL_ZERO
+			.endif
+
+			; Part B
+			PLA
+
+			LDY	#PIXELBUFFER_HEIGHT
+			REPEAT
+				ADD	#32
+
+				LDX	#PIXELBUFFER_WIDTH - 32
+				REPEAT
+					STA	VMDATA
+					INC
+
+					DEX
+				UNTIL_ZERO
+
+				DEY
+			UNTIL_ZERO
+
+			.if PIXELBUFFER_HEIGHT < 32
+				LDX	#(32 - PIXELBUFFER_HEIGHT) * 32
+				REPEAT
+					STZ	VMDATA
+
+					DEX
+				UNTIL_ZERO
+			.endif
+		.endif
+
+		RTS
+.endif
+
+
+
 .A16
 .I16
 ROUTINE FillBuffer

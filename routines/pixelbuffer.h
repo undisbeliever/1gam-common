@@ -51,6 +51,32 @@ IMPORT_MODULE PixelBuffer
 	WORD	colorBits
 
 
+	.if PIXELBUFFER_HEIGHT * PIXELBUFFER_WIDTH < 1023
+		;; Creates a tilemap that is loaded to VRAM.
+		;;
+		;;
+		;; If the buffer width and height <= 32 then it expects the
+		;; tilemap to be 32x32
+		;;
+		;; If the buffer width or height is > 32 then
+		;; it expects the tilemap to be 32x64 or 64x32 tiles respectivly.
+		;;
+		;; If the buffer is smaller than the tilemap it will be padded
+		;; with 0s.
+		;;
+		;; This method is unavailable if the buffer contains more than
+		;; 1023 tiles. Projects that use 1024 or more tiles will need
+		;; to build its own maps, using Mode 0 and multiple tilemaps.
+		;;
+		;; REQUIRES: 16 bit A, 16 bit X, DB access registers
+		;;
+		;; INPUT:
+		;;	VMDATA set to the BG MAP
+		;;	VMAIN set to {VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1}
+		;;	A - tile map offset
+		ROUTINE WriteTileMapToVram
+	.endif
+
 
 	;; Fills the pixel buffer with a single color
 	;; REQUIRES: 16 bit A, 16 bit X, DB = anywhere
