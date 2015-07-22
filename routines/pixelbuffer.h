@@ -51,6 +51,14 @@ IMPORT_MODULE PixelBuffer
 	WORD	colorBits
 
 
+
+	;; Fills the pixel buffer with a single color
+	;; REQUIRES: 16 bit A, 16 bit X, DB = anywhere
+	;;
+	;; INPUT:
+	;;	colorBits - the color to set.
+	ROUTINE FillBuffer
+
 	;; Retrieves the value of a pixel within the buffer.
 	;; REQUIRES: 16 bit A, 16 bit X, DB = PixelBuffer__bufferBank
 	;;

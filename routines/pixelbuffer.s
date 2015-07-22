@@ -6,6 +6,8 @@
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
 
+.include "routines/block.h"
+
 .setcpu "65816"
 
 .assert PIXELBUFFER_WIDTH_LOG2 >= 3 .and PIXELBUFFER_WIDTH_LOG2 <= 6, error, "PIXELBUFFER_WIDTH_LOG2 must be between 3 and 6"
@@ -35,6 +37,26 @@ bufferBank = .bankbyte(buffer)
 
 
 .code
+
+
+.A16
+.I16
+ROUTINE FillBuffer
+	PHB
+
+	LDA	f:colorBits
+	STA	f:buffer
+
+	LDX	#.loword(buffer)
+	LDY	#.loword(buffer) + 2
+	LDA	#buffer__size - 3
+
+	MVN	.bankbyte(buffer), .bankbyte(buffer)
+
+	PLB
+	RTS
+
+
 
 ; IN: X = xpos, Y = ypos
 ; OUT: A = color
