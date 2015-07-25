@@ -240,7 +240,7 @@ ROUTINE Multiply_S32_S16Y_S32XY
 	CPY	#$8000
 	IF_GE
 		LDX	#$FFFF
-		BRA	Multiply_S32_S32XY_S32XY
+		BRA	Multiply_S32_S32XY_S32XY_SkipXCheck
 	ENDIF
 
 	.assert * = Multiply_U32_U16Y_U32XY, lderror, "Bad Flow"
@@ -327,6 +327,7 @@ ROUTINE Multiply_S32_S32XY_S32XY
 	CPX	#0
 	BEQ	Multiply_U32_U16Y_U32XY
 
+Multiply_S32_S32XY_S32XY_SkipXCheck:
 	PHX
 	PHY
 	; first line
