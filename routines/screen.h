@@ -100,7 +100,13 @@ IMPORT_MODULE Screen
 
 		.macro _Screen_SetVramBaseAndSize_map mapWordAddress1, size1, mapWordAddress2, size2, register
 			.ifdef mapWordAddress1
+				.assert (mapWordAddress1 / BGXSC_BASE_WALIGN) * BGXSC_BASE_WALIGN = mapWordAddress1, error, "mapWordAddress1 does not align with BGXSC_BASE_WALIGN"
+				.assert mapWordAddress1 < $8000, error, "mapWordAddress1 too large"
+
 				.ifdef mapWordAddress2
+					.assert (mapWordAddress2 / BGXSC_BASE_WALIGN) * BGXSC_BASE_WALIGN = mapWordAddress2, error, "mapWordAddress2 does not align with BGXSC_BASE_WALIGN"
+					.assert mapWordAddress2 < $8000, error, "mapWordAddress2 too large"
+
 					LDY	#((mapWordAddress1 / BGXSC_BASE_WALIGN) << BGXSC_BASE_SHIFT | (size1 & BGXSC_MAP_SIZE_MASK)) | ((mapWordAddress2 / BGXSC_BASE_WALIGN) << BGXSC_BASE_SHIFT | (size2 & BGXSC_MAP_SIZE_MASK)) << 8
 					STY	register
 				.else
@@ -109,6 +115,9 @@ IMPORT_MODULE Screen
 				.endif
 			.else
 				.ifdef mapWordAddress2
+					.assert (mapWordAddress2 / BGXSC_BASE_WALIGN) * BGXSC_BASE_WALIGN = mapWordAddress2, error, "mapWordAddress2 does not align with BGXSC_BASE_WALIGN"
+					.assert mapWordAddress2 < $8000, error, "mapWordAddress2 too large"
+
 					LDA	#(mapWordAddress2 / BGXSC_BASE_WALIGN) << BGXSC_BASE_SHIFT | (size2 & BGXSC_MAP_SIZE_MASK)
 					STA	register + 1
 				.endif
@@ -117,6 +126,9 @@ IMPORT_MODULE Screen
 
 		.macro _Screen_SetVramBaseAndSize_oam size, name, oamTileWordAddress
 			.ifdef oamTileWordAddress
+				.assert (oamTileWordAddress / OBSEL_BASE_WALIGN) * OBSEL_BASE_WALIGN = oamTileWordAddress, error, "oamTileWordAddress does not align with OBSEL_BASE_WALIGN"
+				.assert oamTileWordAddress < $8000, error, "oamTileWordAddress too large"
+
 				LDA	#(size << OBSEL_SIZE_SHIFT) | ((name << OBSEL_NAME_SHIFT) & OBSEL_NAME_MASK) | (oamTileWordAddress / OBSEL_BASE_WALIGN) & OBSEL_BASE_MASK
 				STA	OBSEL
 			.endif
@@ -135,6 +147,15 @@ IMPORT_MODULE Screen
 			.ifndef bg4
 				bg4 = 0
 			.endif
+
+			.assert (bg1 / BG12NBA_BASE_WALIGN) * BG12NBA_BASE_WALIGN = bg1, error, "bg1 map word adddress does not align with BG12NBA_BASE_WALIGN"
+			.assert bg1 < $8000, error, "bg1 map address too large"
+			.assert (bg2 / BG12NBA_BASE_WALIGN) * BG12NBA_BASE_WALIGN = bg2, error, "bg2 map word adddress does not align with BG12NBA_BASE_WALIGN"
+			.assert bg2 < $8000, error, "bg2 map address too large"
+			.assert (bg3 / BG34NBA_BASE_WALIGN) * BG34NBA_BASE_WALIGN = bg3, error, "bg3 map word adddress does not align with BG34NBA_BASE_WALIGN"
+			.assert bg3 < $8000, error, "bg3 map address too large"
+			.assert (bg4 / BG34NBA_BASE_WALIGN) * BG34NBA_BASE_WALIGN = bg4, error, "bg4 map word adddress does not align with BG34NBA_BASE_WALIGN"
+			.assert bg4 < $8000, error, "bg4 map address too large"
 
 			LDY	#(((bg2 / BG12NBA_BASE_WALIGN) << BG12NBA_BG2_SHIFT) & BG12NBA_BG2_MASK) | ((bg1 / BG12NBA_BASE_WALIGN) & BG12NBA_BG1_MASK) | ((((bg4 / BG12NBA_BASE_WALIGN) << BG34NBA_BG4_SHIFT) & BG34NBA_BG4_MASK) | ((bg3 / BG34NBA_BASE_WALIGN) & BG34NBA_BG3_MASK)) << 8
 			STY	BG12NBA
