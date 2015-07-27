@@ -293,7 +293,7 @@
 .macro INCLUDE_BINARY label, filename, start, size
 	LABEL label
 
-	.if ::__MODULE_TYPE <> __MODULE_TYPE_IMPORT .or .blank(filename)
+	.if ::__MODULE_TYPE <> __MODULE_TYPE_IMPORT .and (.not .blank(filename))
 		.if .blank(start) .and .blank(size)
 			.incbin filename
 		.elseif .blank(size)
