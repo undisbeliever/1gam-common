@@ -239,6 +239,21 @@ ROUTINE GetPixel
 	RTS
 
 
+
+; IN: A = color
+.A16
+ROUTINE SetColor
+	AND	#3
+	ASL
+	TAX
+
+	LDA	f:ColorBitsTable, X
+	STA	f:colorBits
+
+	RTS
+
+
+
 ; IN, X = xpos, Y = ypos
 .A16
 .I16
@@ -519,6 +534,13 @@ ROUTINE _CalculateBufferIndexY
 
 
 .segment "BANK1"
+
+LABEL ColorBitsTable
+	.word	$0000
+	.word	$00FF
+	.word	$FF00
+	.word	$FFFF
+
 
 LABEL ColorMaskTable
 	.repeat 8, i

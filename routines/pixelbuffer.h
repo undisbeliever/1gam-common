@@ -22,6 +22,14 @@ CONFIG_DEFINE PIXELBUFFER_HEIGHT, 28
 
 .define PIXELBUFFER_WIDTH 1 << (PIXELBUFFER_WIDTH_LOG2)
 
+
+;; Color Bits for each of the 4 colors.
+.define PIXELBUFFER_COLOR0 $0000
+.define PIXELBUFFER_COLOR1 $00FF
+.define PIXELBUFFER_COLOR2 $FF00
+.define PIXELBUFFER_COLOR3 $FFFF
+
+
 ;; The bank the buffers are stored in. Fastest if bank == WRAM7E
 ;; Options: WRAM7E, WRAM7F
 CONFIG_DEFINE PIXELBUFFER_BANK, "WRAM7E"
@@ -94,6 +102,13 @@ IMPORT_MODULE PixelBuffer
 	;;
 	;; RETURNS: A - the color of the pixel.
 	ROUTINE GetPixel
+
+
+	;; Sets the colorBits to a given color.
+	;; REQUIRES: 16 bit A, DB = anywhere
+	;;
+	;; INPUT: A - the color to set
+	ROUTINE SetColor
 
 	;; Sets the pixel within the buffer.
 	;; REQUIRES: 16 bit A, 16 bit X, DB = PixelBuffer__bufferBank
