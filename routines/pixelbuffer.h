@@ -136,6 +136,20 @@ IMPORT_MODULE PixelBuffer
 	;;	colorBits - color to set.
 	ROUTINE DrawHorizontalLine
 
+	;; Retrieves the tile offset (in bytes) of the position of a pixel within the buffer.
+	;;
+	;; This is useful for setting up a VBlank update code.
+	;;
+	;; REQUIRES: 16 bit A, 16 bit X
+	;;
+	;; INPUT:
+	;;	X - xpos (MUST be < PIXELBUFFER_WIDTH * 8)
+	;;	Y - ypos (MUST be < PIXELBUFFER_HEIGHT * 8)
+	;;
+	;; OUTPUT: X the tile offset of the position within buffer
+	;;
+	ROUTINE TileOffsetForPosition
+
 ENDMODULE
 
 .endif ; ::_PIXELBUFFER_H_

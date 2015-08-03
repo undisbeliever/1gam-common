@@ -422,6 +422,29 @@ tmp_xTilePosIndex	= tmp3
 	RTS
 
 
+; IN: X/Y Position
+; OUT: X - tile location within buffer
+.A16
+.I16
+ROUTINE TileOffsetForPosition
+	; X = ((((yPos & $01F8) >> 3) << PIXELBUFFER_WIDTH_LOG2) + (xPos & $01F8) / 8) * TILE_SIZE 
+
+	TXA
+	AND	#$01F8
+	STA	cm_tmp
+
+	TYA
+	AND	#$01F8
+	.repeat	PIXELBUFFER_WIDTH_LOG2
+		ASL
+	.endrepeat
+
+	ADC	cm_tmp	; carry clear
+	ASL
+
+	TAX
+	RTS
+
 
 ;; Calculates the buffer offset and color mask for the given X/Y position
 ;; INPUT: X, Y
