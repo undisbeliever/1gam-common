@@ -20,6 +20,29 @@ import os.path
 SNES_SCANLINES = 262
 SNES_HTIME     = 1374
 
+
+class LineReader:
+    """
+    A simple line reader that supports peeking at the next line.
+    """
+    def __init__(self, fp):
+        self.fp = fp
+        self.peek = fp.readline()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        line = self.peek
+
+        if line:
+            self.peek = self.fp.readline()
+            return line
+        else:
+            raise StopIteration
+
+
+
 class RoutineProfile:
     def __init__(self, addr, caller, callAddress):
         self.address = addr
@@ -68,26 +91,27 @@ class Profile:
 
     def read_trace(self, fp):
         # ::TODO add bsnes-plus Frame Counter (optional)::
-        regex = re.compile(r'^([A-Za-z0-9]{6})\s+(\w+?)\s[^\[]*(?:\[([A-Za-z0-9]{6})\])?\s.+?V:\s*(\d+)\sH:\s*(\d+)')
+        regex = re.compile(r'^([A-Za-z0-9]{6})\s+(\w+?)\s.+?V:\s*(\d+)\sH:\s*(\d+)')
+        addr_regex = re.compile(r'^([A-Za-z0-9]{6})\s')
 
-        line = fp.readline()
-        m = regex.match(line)
+        reader = LineReader(fp)
+
+        m = regex.match(reader.peek)
         if not m:
             raise ValueError("Not in a trace format")
 
         root = RoutineProfile(int(m.group(1), 16), None, -1)
-        prevVTime = int(m.group(4))
-        prevHTime = int(m.group(5))
+        prevVTime = int(m.group(3))
+        prevHTime = int(m.group(4))
 
         current = root
 
-        for line in fp:
-            line = line.strip()
+        for line in reader:
             m = regex.match(line)
             if m:
                 # Calculate time between instructions.
-                vTime = int(m.group(4))
-                hTime = int(m.group(5))
+                vTime = int(m.group(3))
+                hTime = int(m.group(4))
 
                 if vTime < prevVTime:
                     vTime += SNES_SCANLINES
@@ -97,8 +121,8 @@ class Profile:
 
                 current.time += hTime - prevHTime
 
-                prevVTime = int(m.group(4))
-                prevHTime = int(m.group(5))
+                prevVTime = int(m.group(3))
+                prevHTime = int(m.group(4))
 
 
                 # Determine if enter a routine
@@ -106,7 +130,9 @@ class Profile:
                 instAddr = int(m.group(1), 16)
 
                 if inst == 'jsr' or inst == 'jsl':
-                    routineAddr = int(m.group(3), 16)
+                    # Determine the location of the routine by address of next line
+                    nm = addr_regex.match(reader.peek)
+                    routineAddr = int(nm.group(1), 16)
 
                     p = current.get_or_make_call(instAddr, routineAddr)
                     p.count += 1
@@ -117,8 +143,11 @@ class Profile:
                     if current.caller:
                         current = current.caller
                     else:
-                        # ::TODO get address after RTS/RTL ::
-                        current = RoutineProfile(-1, None, -1)
+                        # Determine the location of the routine by address of next line
+                        nm = addr_regex.match(reader.peek)
+                        routineAddr = int(nm.group(1), 16)
+
+                        current = RoutineProfile(routineAddr, None, -1)
                         root.caller = current
                         current.add_call(root)
                         root = current
