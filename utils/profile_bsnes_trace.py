@@ -43,6 +43,33 @@ class LineReader:
 
 
 
+class MemoryMap:
+    def __init__(self):
+        self.addresses = dict()
+
+    def load(self, filename):
+        regex = re.compile(r'^([A-Za-z0-9_\-]+)\s+([A-Za-z0-9]{6})\s+[A-Z]{1,3}(?:\s+([A-Za-z0-9_\-]+)\s+([A-Za-z0-9]{6})\s)')
+
+        with open(filename, 'r') as fp:
+            for line in fp:
+                m = regex.match(line)
+                if m:
+                    addr = int(m.group(2), 16) & 0x7FFFFF
+                    self.addresses[addr] = m.group(1)
+
+                    if m.group(3):
+                        addr = int(m.group(4), 16) & 0x7FFFFF
+                        self.addresses[addr] = m.group(3)
+
+    def nameForAddress(self, addr):
+        maddr = addr & 0x7FFFFF
+        if maddr in self.addresses:
+            return self.addresses[maddr]
+        else:
+            return None
+
+
+
 class RoutineProfile:
     def __init__(self, addr, caller, callAddress):
         self.address = addr
@@ -189,16 +216,30 @@ class Profile:
 
 
 
-def write_routine_times(fp, profile):
+def write_routine_times(fp, profile, memmap):
     totaltime = profile.totaltime
 
     fp.write('<h2>Routines:</h2>')
     fp.write('<table>')
-    fp.write('<thead><th>Routine</th><th>Count</th><th>Cycles</th><th>Percentage</th></thead>')
+    fp.write('<thead><th colspan="2">Routine</th><th>Count</th><th>Cycles</th><th>Percentage</th></thead>')
     fp.write('<tbody>')
     for r in profile.routines:
-        fp.write("<tr><td><tt>%06x</tt></td><td>%d</td><td>%d</td><td>%f%%</td></tr>" % (
-            r.address,
+        fp.write("<tr>")
+
+        aname = memmap.nameForAddress(r.address)
+        if aname:
+            fp.write("<td><tt>%06x</tt></td><td>%s</td>" % (
+                r.address,
+                aname
+            ))
+        elif r.address >= 0:
+            fp.write("<td><tt>%06x</tt></td><td>&nbsp;</td>" % (
+                r.address
+            ))
+        else:
+            fp.write("<td><tt>NULL</tt></td><td>&nbsp;</td>")
+
+        fp.write("<td>%d</td><td>%d</td><td>%f%%</td></tr>" % (
             r.count,
             r.time,
             r.time / totaltime * 100.0,
@@ -208,11 +249,25 @@ def write_routine_times(fp, profile):
 
 
 
-def write_profile_calls(fp, profile):
+def write_profile_calls(fp, profile, memmap):
 
     def recurse(proutine, parent_totaltime):
-        fp.write("<li><tt>%06x</tt>: Called at <tt>%06x</tt> %d times, %i cycles (%f%% parent, %f%% total)</li>" % (
+        fp.write("<li>")
+
+        aname = memmap.nameForAddress(proutine.address)
+        if aname:
+            fp.write("<tt>%06x</tt> %s" % (
                 proutine.address,
+                aname
+            ))
+        elif proutine.address >= 0:
+            fp.write("<tt>%06x</tt>" % (
+                proutine.address
+            ))
+        else:
+            fp.write("<tt>NULL</tt>")
+
+        fp.write(": Called at <tt>%06x</tt> %d times, %i cycles (%f%% parent, %f%% total)</li>" % (
                 proutine.callAddress,
                 proutine.count,
                 proutine.totaltime,
@@ -236,12 +291,12 @@ def write_profile_calls(fp, profile):
 
 
 
-def write_html(fp, profile):
+def write_html(fp, profile, memmap):
     fp.write('<html><title>%s tracelog profile</title><body>' % profile.name)
     fp.write('<h1>%s</h1>' % profile.name)
 
-    write_routine_times(fp, profile)
-    write_profile_calls(fp, profile)
+    write_routine_times(fp, profile, memmap)
+    write_profile_calls(fp, profile, memmap)
 
     fp.write('</body></html>')
 
@@ -250,6 +305,9 @@ def write_html(fp, profile):
 def process_args():
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('-m', '--memlog', type=str,
+            help='Memlog file',
+    )
     parser.add_argument('logfile',
             help='The SNES assembly trace file (`-` is stdin)',
     )
@@ -263,6 +321,11 @@ def process_args():
 def main():
     args = process_args()
 
+    memmap = MemoryMap()
+
+    if args.memlog:
+        memmap.load(args.memlog)
+
     if args.logfile == '-':
         profile = Profile('SNES')
         profile.read_trace(sys.stdin)
@@ -273,10 +336,10 @@ def main():
             profile.read_trace(fp)
 
     if args.htmlfile == '-':
-        write_html(sys.stdout, profile)
+        write_html(sys.stdout, profile, memmap)
     else:
         with open(args.htmlfile, 'w') as fp:
-            write_html(fp, profile)
+            write_html(fp, profile, memmap)
 
 
 if __name__ == '__main__':
