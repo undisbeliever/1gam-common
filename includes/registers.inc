@@ -38,6 +38,8 @@ _REGISTERS_INC_ = 1
 ;;; Shifts
 .define TILEMAP_HIGH_PALETTE_SHIFT  2
 .define TILEMAP_PALETTE_SHIFT      10
+.define TILEMAP_HIGH_ORDER_SHIFT    5
+.define TILEMAP_ORDER_SHIFT        13
 
 
 
