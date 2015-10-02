@@ -129,7 +129,7 @@ IMPORT_MODULE Screen
 				.assert (oamTileWordAddress / OBSEL_BASE_WALIGN) * OBSEL_BASE_WALIGN = oamTileWordAddress, error, "oamTileWordAddress does not align with OBSEL_BASE_WALIGN"
 				.assert oamTileWordAddress < $8000, error, "oamTileWordAddress too large"
 
-				LDA	#(size << OBSEL_SIZE_SHIFT) | ((name << OBSEL_NAME_SHIFT) & OBSEL_NAME_MASK) | (oamTileWordAddress / OBSEL_BASE_WALIGN) & OBSEL_BASE_MASK
+				LDA	#(size & OBSEL_SIZE_MASK) | (name & OBSEL_NAME_MASK) | (oamTileWordAddress / OBSEL_BASE_WALIGN) & OBSEL_BASE_MASK
 				STA	OBSEL
 			.endif
 		.endmacro
