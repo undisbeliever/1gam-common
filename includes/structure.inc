@@ -436,33 +436,6 @@
 .endmacro
 
 
-;;; Signed Greater than or equal after CMP
-.macro IF_SGE
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
-
-	BSLT __STRUCTURE_STACK_LABEL
-.endmacro
-
-;;; Signed Greater than after CMP
-.macro IF_SGT
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
-
-	BSLE __STRUCTURE_STACK_LABEL
-.endmacro
-
-;;; Signed less than after CMP
-.macro IF_SLT
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
-
-	BSGE __STRUCTURE_STACK_LABEL
-.endmacro
-
-;;; Signed Less than or equal after CMP
-.macro IF_SLE
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
-
-	BSGT __STRUCTURE_STACK_LABEL
-.endmacro
 
 ;; IF Long Branch
 ;;; Tests z flag
@@ -591,34 +564,6 @@
 	JGT __STRUCTURE_STACK_LABEL
 .endmacro
 
-
-;;; Signed Greater than or equal after CMP
-.macro IFL_SGE
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
-
-	JSLT __STRUCTURE_STACK_LABEL
-.endmacro
-
-;;; Signed Greater than after CMP
-.macro IFL_SGT
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
-
-	JSLE __STRUCTURE_STACK_LABEL
-.endmacro
-
-;;; Signed less than after CMP
-.macro IFL_SLT
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
-
-	JSGE __STRUCTURE_STACK_LABEL
-.endmacro
-
-;;; Signed Less than or equal after CMP
-.macro IFL_SLE
-	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF
-
-	JSGT __STRUCTURE_STACK_LABEL
-.endmacro
 
 
 ;; Else
@@ -861,39 +806,6 @@ BREAK_LABEL:
 .endmacro
 
 
-;;; Signed Greater than or equal after CMP
-.macro UNTIL_SGE
-	JSLT __STRUCTURE_STACK_LABEL
-
-BREAK_LABEL:
-	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
-.endmacro
-
-;;; Signed Greater than after CMP
-.macro UNTIL_SGT
-	JSLE __STRUCTURE_STACK_LABEL
-
-BREAK_LABEL:
-	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
-.endmacro
-
-;;; Signed Less than after CMP
-.macro UNTIL_SLT
-	JSGE __STRUCTURE_STACK_LABEL
-
-BREAK_LABEL:
-	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
-.endmacro
-
-;;; Signed Less than or equal after CMP
-.macro UNTIL_SLE
-	JSGT __STRUCTURE_STACK_LABEL
-
-BREAK_LABEL:
-	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
-.endmacro
-
-
 .macro __WHILE_HELPER
 	.if ::__STRUCTURE_STACK_TYPE_01 <> __STRUCTURE_TYPE_REPEAT
 		.fatal "Missing REPEAT"
@@ -1031,33 +943,6 @@ BREAK_LABEL:
 .endmacro
 
 
-;;; Signed Greater than or equal after CMP
-.macro WHILE_SGE
-	__WHILE_HELPER
-
-	BSLT BREAK_LABEL
-.endmacro
-
-;;; Signed Greater than after CMP
-.macro WHILE_SGT
-	__WHILE_HELPER
-
-	BSLE BREAK_LABEL
-.endmacro
-
-;;; Signed less than after CMP
-.macro WHILE_SLT
-	__WHILE_HELPER
-
-	BSGE BREAK_LABEL
-.endmacro
-
-;;; Signed Less than or equal after CMP
-.macro WHILE_SLE
-	__WHILE_HELPER
-
-	BSGT BREAK_LABEL
-.endmacro
 
 
 ;; End REPEAT ... WHILE loop

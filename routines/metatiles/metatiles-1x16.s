@@ -480,7 +480,7 @@ ROUTINE Update
 .A16
 		; A = xPos - visibleTopLeftMapXpos
 		CMP	#.loword(-METATILE_SIZE)
-		JSLT	_DrawEntireScreen_Bank7E
+		JMI	_DrawEntireScreen_Bank7E
 
 		; ::TODO check to see if yPos is out of scope::
 
@@ -576,7 +576,7 @@ ROUTINE Update
 .A16
 		; A = yPos - visibleTopLeftMapXpos
 		CMP	#.loword(-METATILE_SIZE)
-		JSLT	_DrawEntireScreen_Bank7E
+		JMI	_DrawEntireScreen_Bank7E
 
 		; c clear from branch.
 		LDA	visibleTopLeftMapYpos
@@ -696,7 +696,7 @@ ROUTINE _ProcessVerticalBuffer
 		ENDIF
 
 		CPX	endOfLoop
-	UNTIL_SLT
+	UNTIL_MINUS
 
 	RTS
 
@@ -764,7 +764,7 @@ ROUTINE _ProcessHorizontalBuffer
 		ENDIF
 
 		CPX	endOfLoop
-	UNTIL_SLT
+	UNTIL_MINUS
 
 	RTS
 

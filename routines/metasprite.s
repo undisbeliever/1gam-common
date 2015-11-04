@@ -269,9 +269,9 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 
 		ADC	yPos
 		CMP	#.loword(-SPRITE_SIZE + 1)
-		BSLT	SkipObject
+		BMI	SkipObject
 		CMP	#240
-		BSGE	SkipObject
+		BPL	SkipObject
 
 		SEP	#$20
 .A8
@@ -289,9 +289,9 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 
 		ADC	xPos
 		CMP	#.loword(-SPRITE_SIZE + 1)
-		BSLT	SkipObject
+		BMI	SkipObject
 		CMP	#$0100
-		BSGE	SkipObject
+		BPL	SkipObject
 
 		SEP	#$20
 .A8
