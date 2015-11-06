@@ -121,7 +121,7 @@ IMPORT_MODULE MetaSprite
 	;; MODIFIES: A, X
 	ROUTINE	FinalizeLoop
 
-	;; Add a sprite to the OAM buffer. There is no out of bounds checking.
+	;; Add a sprite to the OAM buffer.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index, Shadow RAM accessable
 	;;

@@ -146,14 +146,28 @@ ROUTINE ProcessSprite
 	;	oamBuffer2Pos++
 	;	oamBuffer2Temp = 0x80
 
+	LDX	xPos
+	CPX	#.loword(-SPRITE_SIZE + 1)
+	BMI	_ProcessSprite_Return
+	CPX	#$0100
+	BPL	_ProcessSprite_Return
+
+	LDY	yPos
+	CPY	#.loword(-SPRITE_SIZE + 1)
+	BMI	_ProcessSprite_Return
+	CPY	#240
+	BPL	_ProcessSprite_Return
+
+	TXA
+
 	LDX	oamBufferPos
 	CPX	#.sizeof(oamBuffer)
 	BGE	_ProcessSprite_Return
 
-	LDA	xPos
+	; X = lobyte(xPos)
 	STA	oamBuffer + OamFormat::xPos, X
 
-	LDA	yPos
+	TYA
 	STA	oamBuffer + OamFormat::yPos, X
 
 	; ANNOY: NO `STY addr,X`
@@ -299,7 +313,7 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 
 		; xpos bit 9
 		XBA
-		ASL
+		LSR
 		ROR	oamBuffer2Temp
 
 
