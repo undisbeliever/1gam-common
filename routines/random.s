@@ -7,7 +7,7 @@
 MODULE Random
 
 .segment "SHADOW"
-	UINT32	Seed
+	UINT32	seed
 	WORD	prevJoypadState
 	WORD	tmp
 .code
@@ -29,21 +29,29 @@ ROUTINE AddJoypadEntropy
 .A8
 .I16
 ROUTINE Rnd
-	; Seed = Seed * MTH_A + MTH_C
+    ; LCPR parameters are the same as cc65 (MIT license)
+    ;
+	; seed = seed * 0x010101 + 0x31415927
 
-	LDXY	Seed
-	STXY	Math__factor32
-	LDY	#Random__MTH_A
-	JSR	Math__Multiply_U32_U16Y_U32XY
+	CLC
+	LDA	seed + 0
+	ADC	seed + 1
+	STA	seed + 1
+	ADC	seed + 2
+	STA	seed + 2
+	ADC	seed + 3
+	STA	seed + 3
 
-	REP	#$21	; include carry
+	REP	#$31
 .A16
-	TYA
-	ADC	#.loword(Random__MTH_C)
-	STA	Seed
-	TXA
-	ADC	#.hiword(Random__MTH_C)
-	STA	Seed + 2
+	; carry clear
+	LDA	seed + 0
+	ADC	#$5927
+	STA	seed + 0
+
+	LDA	seed + 2
+	ADC	#$3141
+	STA	seed + 2
 
 	SEP	#$20
 .A8
@@ -54,11 +62,7 @@ ROUTINE Rnd
 .I16
 ROUTINE Rnd_4
 	JSR	Rnd
-	LDA	Seed + 2
-	LSR
-	LSR
-	LSR
-	LSR
+	LDA	seed + 3
 	AND	#$03
 	RTS
 
@@ -67,13 +71,10 @@ ROUTINE Rnd_4
 .I16
 ROUTINE Rnd_3
 	JSR	Rnd
-	LDA	Seed + 1
-	LSR
-	LSR
-	LSR
+	LDA	seed + 3
 	AND	#$03
 	IF_ZERO
-		LDA	Seed + 2
+		LDA	seed + 3
 		LSR
 		LSR
 		AND	#$03
@@ -90,7 +91,7 @@ ROUTINE Rnd_3
 .I16
 ROUTINE Rnd_2
 	JSR	Rnd
-	LDA	Seed
+	LDA	seed + 3
 	ASL
 
 	LDA	#0
@@ -99,49 +100,75 @@ ROUTINE Rnd_2
 	RTS
 
 
-; Y = number of probabilities
+; A = number of probabilities
+; DB unknown
 .A8
 .I16
-ROUTINE	Rnd_U16Y
-	PHY
+ROUTINE	Rnd_U8A
+	TAY
+
+    ; put the higher entropy seed bytes in the lower
+    ; bits in the event that A is a power of 2
+
+	LDA	seed + 3
+	STA	f:WRDIVL
+	LDA	seed + 2
+	STA	f:WRDIVH
+
+	TYA
+	STA	f:WRDIVB
 
 	JSR	Rnd
 
-	PLX
-	LDY	Seed + 1
-	JSR	Math__Divide_U16Y_U16X
+	LDA	f:RDMPY		; remainder
 
-	TXY
 	RTS
 
 
+; Y = number of probabilities
+; DB unknown
+.A8
+.I16
+ROUTINE	Rnd_U16Y
+	TYX
+	LDY	seed + 2
+
+	JSR	Math__Divide_U16Y_U16X
+
+	PHX
+	JSR	Rnd
+	PLY
+
+	RTS
 
 
 ; X = min
 ; Y = max
+; DB unknown
 .A8
 .I16
 ROUTINE	Rnd_U16X_U16Y
 	STX	tmp
-	PHY
 
-	JSR	Rnd
-
-	REP	#$30
+	REP	#$31
 .A16
-	PLA
+	TYA
 	SUB	tmp
 	TAX
 
-	LDY	Seed + 1
+	LDY	seed + 2
 	JSR	Math__Divide_U16Y_U16X
 
 	TXA
 	ADD	tmp
-	TAY
+	PHA
 
 	SEP	#$20
 .A8
+	JSR	Rnd
+
+	PLY
+
 	RTS
 
 ENDMODULE

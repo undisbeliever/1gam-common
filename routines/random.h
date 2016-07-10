@@ -10,17 +10,6 @@
 
 ;; This module is a Linear congruential psudeo random number generator.
 ;;
-;; It uses the following algorithm
-;;
-;; 	Seed = (A * SEED +C) MOD M
-;;
-;; NOTES: A must be a multiplier of 4 plus one
-;;        C should be psudeoprime (or at least odd)
-;;
-;;
-;; To generate a random number between 1 and ?
-;; RndNum = {Seed+2} MOD ? + 1
-;;
 ;; In order to increase the observed randomness of this module,
 ;; the function `AddJoypadEntropy` should be called once every frame.
 ;; This will cycle the random number generator once or twice, depending
@@ -28,15 +17,11 @@
 
 IMPORT_MODULE Random
 
-	; These numbers were selected at random, following the rules
-	; listed above, I'm not 100% sure about them.
-	CONST	MTH_A,	59069
-	CONST	MTH_C,	739967
-
-	UINT32	Seed
+	UINT32	seed
 
 	;; Runs the random seed through a single pass of the seed
-	;; REQUIRE: 8 bit A, 16 bit Index
+	;; REQUIRE: 8 bit A
+	;; RETURN: bits 16-23 of seed
 	ROUTINE Rnd
 
 	;; Adds entropy to the random seed by calling `Rnd`
@@ -49,29 +34,46 @@ IMPORT_MODULE Random
 	ROUTINE AddJoypadEntropy
 
 	;; Generates a random number between 0 and 3 (inclusive)
-	;; REQUIRE: 8 bit A, 16 bit Index
-	;; RETURN: A = random number between 0 and 3 (inclusive)
+	;; REQUIRE: 8 bit A
+	;; RETURN:
+	;;	A: random number between 0 and 3 (inclusive)
+	;;	z: set if A is 0
 	ROUTINE	Rnd_4
 
 	;; Generates a random number between 0 and 2 (inclusive)
 	;;
 	;; It is skewed towards 1.
 	;;
-	;; REQUIRE: 8 bit A, 16 bit Index
-	;; RETURN: A = random number between 0 and 2 (inclusive)
+	;; REQUIRE: 8 bit A
+	;; RETURN:
+	;;	A: random number between 0 and 2 (inclusive)
+	;;	z: set if A is 0
 	ROUTINE	Rnd_3
 
 	;; Generates a random number between 0 and 1 (inclusive)
 	;;
-	;; REQUIRE: 8 bit A, 16 bit Index
+	;; REQUIRE: 8 bit A
 	;; RETURN:
 	;;	A: random number between 0 and 1 (inclusive)
 	;;	z: set if A is 0
 	ROUTINE	Rnd_2
 
-	;; Generates a 16 bit random number between 0 and Y (non-inclusive)
+	;; Generates a 16 bit random number between 0 and A (non-inclusive)
 	;;
 	;; Skewed towards smaller numbers
+	;;
+	;; REQUIRE: 8 bit A
+	;; INPUT:
+	;;	A: unsigned 8 bit value.
+	;; OUTPUT:
+	;;	A: unsigned 8 bit value between 0 and (A-1) (inlusive).
+	ROUTINE	Rnd_U8A
+
+	;; Generates a 16 bit random number between 0 and Y (non-inclusive)
+	;;
+	;; Skewed towards smaller numbers.
+	;;
+	;; Note: If Y < 256, using Rnd_U8A will return more random numbers.
 	;;
 	;; REQUIRE: 8 bit A, 16 bit Index
 	;; INPUT:
@@ -80,9 +82,9 @@ IMPORT_MODULE Random
 	;;	Y: unsigned 16 bit value between 0 and (Y-1) (inlusive).
 	ROUTINE	Rnd_U16Y
 
-	;; Generates a 16 bit random number between X and Y
+	;; Generates a 16 bit random number between X and Y (non-inclusive)
 	;;
-	;; Skewed towards smaller numbers
+	;; Skewed towards smaller numbers.
 	;;
 	;; REQUIRE: 8 bit A, 16 bit Index
 	;; INPUT:
