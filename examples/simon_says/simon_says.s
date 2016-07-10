@@ -196,7 +196,7 @@ ROUTINE WaitForStart
 	LDX	frameDelay_pressStartMessage
 	REPEAT
 		PHX
-		JSR	Screen__WaitFrame
+		JSR	WaitFrame
 		PLX
 
 		LDA	Controller__pressed + 1
@@ -211,7 +211,7 @@ ROUTINE WaitForStart
 	STA	updateTextBuffer
 
 	REPEAT
-		JSR	Screen__WaitFrame
+		JSR	WaitFrame
 
 		LDA	Controller__pressed + 1
 		AND	#JOYH_START
@@ -324,7 +324,7 @@ ROUTINE PlayerRepeatRun
 	LDX	#0
 	STX	position
 
-	JSR	Screen__WaitFrame
+	JSR	WaitFrame
 
 	REPEAT
 		REP	#$20
@@ -370,7 +370,7 @@ ROUTINE PlayerRepeatRun
 		; This wait is here in case currentRun[x - 1] == currentRun[x]
 		; and the player is too quick.
 		; Without it there is no dull frame and it doesn't look right.
-		JSR	Screen__WaitFrame
+		JSR	WaitFrame
 
 		LDX	position
 		LDA	f:currentRun, X
@@ -387,7 +387,7 @@ ROUTINE PlayerRepeatRun
 			AND	#JOY_A | JOY_B | JOY_X | JOY_Y
 			BNE	BREAK_LABEL
 
-			JSR	Screen__WaitFrame
+			JSR	WaitFrame
 
 			DEC	tmp
 		UNTIL_ZERO
@@ -659,6 +659,15 @@ ROUTINE PlayWrongButtonSound
 
 ; -----------------------------------------------------------------------------
 
+;; Waits one frame and increments the RNG
+.A8
+.I16
+ROUTINE WaitFrame
+	JSR	Screen__WaitFrame
+	JMP	Random__AddJoypadEntropy
+
+; -----------------------------------------------------------------------------
+
 ;; Sets up the PPU and Graphics
 .A8
 .I16
@@ -762,8 +771,6 @@ VBlank:
 
 	Screen_VBlank
 	Controller_VBlank
-
-	JSR	Random__AddJoypadEntropy
 
 	; Load State
 	REP	#$30
