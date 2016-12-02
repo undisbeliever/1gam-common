@@ -16,13 +16,8 @@ text.map text.clr text.4bpp: text.pcx
 	pcx2snes -n -s8 -c16 -o16 text
 	mv text.pic text.4bpp
 
-.PHONY: snesgss
-snesgss:
-	$(MAKE) -C snesgss -f "../../../../makefiles/snesgss.makefile"
-
 
 .PHONY: clean
 clean:
 	$(RM) gamefield.map gamefield.clr gamefield.4bpp
-	$(MAKE) -C snesgss -f "../../../../makefiles/snesgss.makefile" clean
 

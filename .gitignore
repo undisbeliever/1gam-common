@@ -5,7 +5,6 @@ unit_tests/bin
 unit_tests/obj
 examples/*/bin
 examples/*/obj
-examples/*/resources/snesgss/export
 
 *.2bpp
 *.4bpp
