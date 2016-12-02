@@ -1,13 +1,12 @@
 ; a 30x28 grid of Conway's Game of Life
 
-; ::TODO add randomizer after all 3 games are played::
-
 .include "includes/import_export.inc"
 .include "includes/synthetic.inc"
 .include "includes/registers.inc"
 .include "includes/structure.inc"
 
 .include "routines/reset-snes.h"
+.include "routines/random.h"
 .include "routines/screen.h"
 .include "routines/cpu-usage.h"
 .include "routines/block.h"
@@ -48,6 +47,13 @@ BG1_SIZE        = BGXSC_SIZE_32X32
 .define	GAME_HEIGHT 28
 .define GAME_WIDTH  30
 .define CELLS_WIDTH 32
+
+.define RANDOM_HEIGHT 12
+.define RANDOM_WIDTH  12
+.define RANDOM_LIVE_RNG $78
+.define RANDOM_FRAMES 160
+
+.define FRAMES_PER_SECOND 60
 
 .segment "SHADOW"
 	BYTE	cellsPaddingBefore, 	CELLS_WIDTH
@@ -96,8 +102,7 @@ ROUTINE Main
 		JSR	LoadGame
 
 		; Wait a second
-		; ::SHOULDDO use symbol (FRAMES_PER_SECOND) instead of hard numbers::
-		LDA	#60
+		LDA	#FRAMES_PER_SECOND
 		JSR	CpuUsage__WaitLimited
 
 		LDA	#$0F
@@ -113,14 +118,7 @@ ROUTINE Main
 		JSR	CpuUsage__WaitLimited
 
 		; Increment to the next game
-		LDA	gameNumber
-		CMP	#NUM_GAMES - 1
-		IF_GE
-			STZ	gameNumber
-		ELSE
-			INC	gameNumber
-		ENDIF
-		
+		INC	gameNumber
 	FOREVER
 
 
@@ -129,6 +127,7 @@ ROUTINE Main
 .I16
 ROUTINE PlayGame
 	REPEAT
+		JSR	Random__AddJoypadEntropy
 		JSR	ProcessFrame
 
 		; Clip the framerate (to known worst case)
@@ -291,8 +290,7 @@ ROUTINE ProcessFrame
 .A8
 .I16
 ROUTINE LoadGame
-
-.scope 
+.scope
 
 startX   = tmp
 
@@ -310,10 +308,38 @@ startX   = tmp
 		STZ	tilemapBuffer, X
 	NEXT
 
+	; Set padding of buffer to blank tile
+
+	LDX #0
+	REPEAT
+		LDA #PADDING_TILE
+		STA tilemapBuffer, X
+		INC
+		STA tilemapBuffer + CELLS_WIDTH - 1, X
+
+		REP #$20
+.A16
+		TXA
+		ADD	#32
+		TAX
+
+		SEP #$20
+.A8
+
+		CPX #.sizeof(::tilemapBuffer)
+	UNTIL_EQ
+
+
+	; Check to see if game is a random one
+	LDA	gameNumber
+	CMP	#NUM_GAMES
+	IF_GE
+		JMP	GenerateRandomGame
+	ENDIF
+
 	; Get the address of the game
 	REP	#$30
 .A16
-	LDA	gameNumber
 	AND	#$00FF
 	ASL
 	TAX
@@ -405,33 +431,86 @@ startX   = tmp
 		CPX #CELLS_WIDTH * GAME_HEIGHT
 	UNTIL_GE
 
-	; Set padding of buffer to blank tile
-
-	LDX #0
-	REPEAT
-		LDA #PADDING_TILE
-		STA tilemapBuffer, X
-		INC
-		STA tilemapBuffer + CELLS_WIDTH - 1, X
-
-		REP #$20
-.A16
-		TXA
-		ADD	#32
-		TAX
-
-		SEP #$20
-.A8
-
-		CPX #.sizeof(::tilemapBuffer)
-	UNTIL_EQ
-
 	LDA	#1
 	STA	updateTilemap
 
 	RTS
 .endscope
 
+
+;; Generates a random game in the centre of the field
+;;
+;; REQUIRES: 8 bit A, 16 bit Index
+;;
+;; ASSUMES: The board is clear
+.A8
+.I16
+ROUTINE GenerateRandomGame
+.scope
+X_POS = (CELLS_WIDTH - RANDOM_WIDTH) / 2
+Y_POS = (GAME_HEIGHT - RANDOM_HEIGHT) / 2
+MAP_START = (Y_POS * CELLS_WIDTH) + X_POS
+MAP_END = MAP_START + RANDOM_HEIGHT * CELLS_WIDTH
+
+RowCounter = tmp
+
+	LDX	#MAP_START
+	REPEAT
+		LDA	#RANDOM_WIDTH
+		STA	RowCounter
+
+		REPEAT
+			PHX
+				JSR	Random__Rnd
+			PLX
+
+			CMP	#RANDOM_LIVE_RNG
+			IF_LT
+				; +1 to remove left padding
+				; Set cell alive
+				LDA	cells, X
+				ORA	#CELL_ALIVE
+				STA	cells, X
+
+				; Show in buffer
+				LDA	#1
+				STA	tilemapBuffer, X
+
+				; Increment its neighbours
+				INC	cells - 1, X
+				INC	cells + 1, X
+				INC	cells - CELLS_WIDTH, X
+				INC	cells - CELLS_WIDTH - 1, X
+				INC	cells - CELLS_WIDTH + 1, X
+				INC	cells + CELLS_WIDTH, X
+				INC	cells + CELLS_WIDTH - 1, X
+				INC	cells + CELLS_WIDTH + 1, X
+			ENDIF
+
+			INX
+			DEC	RowCounter
+		UNTIL_ZERO
+
+		REP	#$31
+.A16
+		; c clear
+		TXA
+		ADC	#CELLS_WIDTH - RANDOM_WIDTH
+		TAX
+
+		SEP	#$20
+.A8
+		CPX	#MAP_END
+	UNTIL_GE
+
+	LDY	#RANDOM_FRAMES
+	STY	framesLeft
+
+	LDA	#1
+	STA	updateTilemap
+
+	RTS
+.endscope
 
 
 ;; VBlank Handler
@@ -461,6 +540,14 @@ VBlank:
 	IF_NOT_ZERO
 		TransferToVramLocationDataLow	tilemapBuffer, BG1_MAP
 	ENDIF
+
+
+	; Wait for end of auto-joy
+	; (Needed for Random__AddJoypadEntropy)
+	LDA	#HVJOY_AUTOJOY
+	REPEAT
+		BIT	HVJOY
+	UNTIL_ZERO
 
 
 	; Load State
