@@ -35,7 +35,8 @@
 ;;
 ;; REQUIRES: 8 bit A
 .macro RSB8 param, index
-	; ::TODO test 8/16 bit A::
+	.assert .asize = 8, error, "Require 8 bit A"
+
 	.ifblank index
 		EOR	#$FF
 		SEC
@@ -48,7 +49,8 @@
 .endmacro
 
 .macro RSB16 param, index
-	; ::TODO test 8/16 bit A::
+	.assert .asize = 16, error, "Require 16 bit A"
+
 	.ifblank index
 		EOR	#$FFFF
 		SEC
@@ -64,7 +66,8 @@
 ;;
 ;; REQUIRE: 8 bit A
 .macro RSC8 param, index
-	; ::TODO test 8/16 bit A::
+	.assert .asize = 8, error, "Require 8 bit A"
+
 	.ifblank index
 		EOR	#$FF
 		SEC
@@ -76,8 +79,9 @@
 	.endif
 .endmacro
 
-.macro RSC16 param
-	; ::TODO test 8/16 bit A::
+.macro RSC16 param, index
+	.assert .asize = 16, error, "Require 16 bit A"
+
 	.ifblank index
 		EOR	#$FFFF
 		SEC
@@ -93,7 +97,8 @@
 ;;
 ;; REQUIRE: 8 bit A
 .macro ASR8
-	; ::TODO test 8/16 bit A::
+	.assert .asize = 8, error, "Require 8 bit A"
+
 	CMP	#$80		; carry set to the sign bit
 	ROR
 .endmacro
@@ -102,7 +107,8 @@
 ;;
 ;; REQUIRE: 16 bit A
 .macro ASR16
-	; ::TODO test 8/16 bit A::
+	.assert .asize = 16, error, "Require 16 bit A"
+
 	CMP	#$8000		; carry set to the sign bit
 	ROR
 .endmacro
@@ -110,7 +116,6 @@
 
 ;; 8/16 bit rotate right
 .macro ROTATEL
-	; ::TODO test 8/16 bit A::
 	ASL A
 	ADC	#0
 .endmacro
@@ -118,7 +123,6 @@
 
 ;; 8/16 bit rotate right
 .macro ROTATER
-	; ::TODO test 8/16 bit A::
 	PHA
 	LSR A
 	PLA
@@ -129,7 +133,8 @@
 ;;
 ;; REQUIRE: 8 bit A
 .macro NEG8
-	; ::TODO test 8/16 bit A::
+	.assert .asize = 8, error, "Require 8 bit A"
+
 	EOR	#$FF
 	INC
 .endmacro
@@ -138,8 +143,9 @@
 ;;
 ;; REQUIRE: 16 bit A
 .macro NEG16
-	; ::TODO test 8/16 bit A::
-	EOR	#$FFFF
+	.assert .asize = 16, error, "Require 16 bit A"
+
+    EOR	#$FFFF
 	INC
 .endmacro
 
@@ -149,7 +155,8 @@
 ;;
 ;; REQUIRE: 16 bit A
 .macro NEG32 var, index
-	; ::TODO enforce 16 bit A::
+	.assert .asize = 16, error, "Require 16 bit A"
+
 	.ifblank index
 		.if .xmatch({var}, XY)
 			TYA
@@ -200,7 +207,8 @@
 ;;
 ;; REQUIRES: 8 bit A
 .macro LDABS8 var, index
-	; ::TODO enforce 8 bit A::
+	.assert .asize = 8, error, "Require 8 bit A"
+
 	.local skip
 
 	.ifblank index
@@ -234,7 +242,8 @@ skip:
 ;;
 ;; REQUIRES: 16 bit A
 .macro LDABS16 var, index
-	; ::TODO enforce 16 bit A::
+	.assert .asize = 16, error, "Require 16 bit A"
+
 	.local skip
 
 	.ifblank index
@@ -261,7 +270,8 @@ skip:
 ;;
 ;; REQUIRES: 8 bit A
 .macro INC16 param, index
-	; ::TODO enforce 8 bit A::
+	.assert .asize = 8, error, "Require 8 bit A"
+
 	.local skip
 	.ifblank index
 		INC	param
@@ -281,7 +291,8 @@ skip:
 ;;
 ;; REQUIRES: 16 bit A
 .macro INC32 param, index
-	; ::TODO enforce 16 bit A::
+	.assert .asize = 16, error, "Require 16 bit A"
+
 	.local skip
 	.ifblank index
 		.if .xmatch({param}, XY)
@@ -311,10 +322,8 @@ skip:
 ;;
 ;; REQUIRES: 16 bit A
 .macro DEC32 param, index
-	; ::TODO enforce 16 bit A::
-	.local skip
+	.assert .asize = 16, error, "Require 16 bit A"
 
-	; ::TODO enforce 16 bit A::
 	.local skip
 	.ifblank index
 		.if .xmatch({param}, XY)
