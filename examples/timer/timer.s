@@ -17,9 +17,11 @@
 .include "routines/text.h"
 .include "routines/text8x8.h"
 .include "routines/text8x16.h"
+.include "routines/screen.h"
 
 BG1_MAP			= $0400
 BG1_TILES		= $1000
+BG1_SIZE    = BGXSC_SIZE_32X32
 
 LARGE_FONT_OFFSET	= 112
 
@@ -192,7 +194,6 @@ LABEL VBlank
 ;; Sets up the screen base addresses and mode.
 ;;
 ;; Mode 0, BG1 enabled, BG1 tilepos set by BG1_Tilemap and BG1_Tiles, and VBlank enabled
-; ::TODO write macro::
 .A8
 .I16
 ROUTINE SetupPPU
@@ -202,11 +203,7 @@ ROUTINE SetupPPU
 	LDA	#BGMODE_MODE0
 	STA	BGMODE
 
-	LDA	#(BG1_MAP / BGXSC_BASE_WALIGN) << 2
-	STA	BG1SC
-
-	LDA	#BG1_TILES / BG12NBA_BASE_WALIGN
-	STA	BG12NBA
+	Screen_SetVramBaseAndSize
 
 	LDA	#TM_BG1
 	STA	TM

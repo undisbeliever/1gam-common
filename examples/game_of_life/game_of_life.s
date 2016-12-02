@@ -8,6 +8,7 @@
 .include "includes/structure.inc"
 
 .include "routines/reset-snes.h"
+.include "routines/screen.h"
 .include "routines/cpu-usage.h"
 .include "routines/block.h"
 
@@ -35,6 +36,7 @@
 
 BG1_MAP			= $0400
 BG1_TILES		= $1000
+BG1_SIZE        = BGXSC_SIZE_32X32
 
 
 .zeropage
@@ -485,11 +487,7 @@ ROUTINE SetupPPU
 	LDA	#BGMODE_MODE0
 	STA	BGMODE
 
-	LDA	#(BG1_MAP / BGXSC_BASE_WALIGN) << 2
-	STA	BG1SC
-
-	LDA	#BG1_TILES / BG12NBA_BASE_WALIGN
-	STA	BG12NBA
+	Screen_SetVramBaseAndSize
 
 	LDA	#TM_BG1
 	STA	TM
