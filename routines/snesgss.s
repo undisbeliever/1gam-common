@@ -7,8 +7,6 @@
 
 MODULE SnesGss
 
-;; ::SHOULDO Add SESSGSS Streaming code::
-
 SNESGSS_SPC_INIT_LOAD = $0200
 SPC700_START_PC       = $0200
 
@@ -85,8 +83,6 @@ ROUTINE Init
 
 	SEP	#$20
 .A8
-	; ::SHOULDO LOROM test as this isn't needed in HIROM::
-
 	LDY	#SNESGSS_SPC_INIT_LOAD
 
 	CPX	#1 << 15 - 2 + 1

@@ -105,8 +105,8 @@ _LoadVram__16A:
 	TAY
 
 	LDA	[dataPtr]
-	AND	#$00FF
 	ASL
+	AND	#LoadVram_FormatTable_MASK
 	TAX
 
 	INY
@@ -129,6 +129,7 @@ _LoadVram__16A:
 .I16
 LoadVram_FormatTable:
 	.addr	LoadVram_Format_UnCompressed
+LoadVram_FormatTable_MASK = $00
 .code
 
 
@@ -173,8 +174,8 @@ ROUTINE LoadDataToWram7E
 
 	REP	#$30
 .A16
-	AND	#$00FF
 	ASL
+	AND	#LoadDataToWram7E_FormatTable_MASK
 	TAX
 
 	SEP	#$20
@@ -196,8 +197,9 @@ ROUTINE LoadDataToWram7F
 
 	REP	#$30
 .A16
-	AND	#$00FF
 	ASL
+	ASL
+	AND	#LoadDataToWram7F_FormatTable_MASK
 	TAX
 
 	JMP	(.loword(LoadDataToWram7F_FormatTable), X)
@@ -214,6 +216,7 @@ ROUTINE LoadDataToWram7F
 .I16
 LoadDataToWram7E_FormatTable:
 	.addr	DataToWram7E_Format_UnCompressed
+LoadDataToWram7E_FormatTable_MASK = $00
 
 
 ;; Copies the data block to an address in bank $7F
@@ -226,6 +229,7 @@ LoadDataToWram7E_FormatTable:
 .I16
 LoadDataToWram7F_FormatTable:
 	.addr	DataToWram7F_Format_UnCompressed
+LoadDataToWram7F_FormatTable_MASK = $00
 .code
 
 

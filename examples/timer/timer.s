@@ -221,7 +221,6 @@ ROUTINE SetupPPU
 .A8
 .I16
 ROUTINE LoadPalette
-	; ::TODO DMAPalette macro::
 	; Load white to color 1
 	LDA	#0
 	STA	CGADD

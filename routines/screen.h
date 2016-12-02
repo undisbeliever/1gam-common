@@ -59,8 +59,6 @@ IMPORT_MODULE Screen
 	.macro Screen_VBlank
 		.export _Screen_VBlank__Called = 1
 
-		;; ::MAYDO check A size::
-
 		LDY	Screen__frameCounter
 		INY
 		STY	Screen__frameCounter

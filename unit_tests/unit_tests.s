@@ -167,7 +167,6 @@ LABEL VBlank
 ;; Sets up the screen base addresses and mode.
 ;;
 ;; Mode 0, BG1 enabled, BG1 tilepos set by BG1_Tilemap and BG1_Tiles, and VBlank enabled
-; ::TODO write macro::
 .A8
 .I16
 ROUTINE SetupPPU

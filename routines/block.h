@@ -290,9 +290,6 @@ IMPORT_MODULE Block
 	.endmacro
 
 
-	;; ::TODO TranferFrom*::
-
-
 	;; Calculates a checksum of the given data block.
 	;;
 	;; It is reccomended that the checksum be used to verify the integrety

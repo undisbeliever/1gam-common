@@ -117,7 +117,6 @@ def write_include(export_dir, data, fp):
     writeln("\n")
 
 
-    # ::TODO pack files to best fit into banks::
     for mfn in data['music_bin']:
         current_pos += file_size(mfn)
         if current_pos >= BANK_SIZE:

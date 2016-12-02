@@ -11,9 +11,9 @@
 ;;
 ;;       1 - (CurrentBogo) / (ReferenceBogo * (MissedFrames + 1))
 ;;
-;; It also alerts you to missed frames. If 
+;; It also keeps track of missed frames, see the `missedFrames` counter.
 ;;
-;; In order to use this module, the following must occour.
+;; In order to use this module, the following must occur.
 ;;
 ;;  * `CPU_Usage__NMI` must active on every VBlank Inturrupt.
 ;;
@@ -21,11 +21,6 @@
 ;;
 ;;  * `CPU_Usage__Wait_Frame` must be called instead of `WAI`
 ;;
-
-; ::TODO import_export.inc::
-
-; ::TODO clip frames function (ie, 2 cycles)::
-; ::SHOULDDO Calculate Usage percentage ::
 
 .ifndef ::_CPU_USAGE_H_
 ::__CPU_USAGE_H_ = 1
@@ -38,7 +33,7 @@ IMPORT_MODULE CpuUsage
 	;; Number of frames that were missed inbetween `Wait_Frame`s
 	UINT8 missedFrames
 
-	;; Number of VBlanks passed since last `WaitFrame` or `WaitLimited` 
+	;; Number of VBlanks passed since last `WaitFrame` or `WaitLimited`
 	;; (byte)
 	UINT8 vBlankCounter
 
@@ -88,7 +83,6 @@ IMPORT_MODULE CpuUsage
 	;;    * `CurrentBogo`
 	;;
 	;; This routine saves the CPU state.
-	; ::SHOULDDO think of better name::
 	ROUTINE WaitLimited
 
 

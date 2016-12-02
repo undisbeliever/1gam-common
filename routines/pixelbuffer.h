@@ -4,7 +4,7 @@
 ;;
 ;; This module contains a 2bpp pixel buffer in WRAM.
 ;;
-;; ::TODO determine how to send the buffer to WRAM::
+;; The developer is responsible for transferring the buffer to VRAM.
 ;;
 
 .ifndef ::_PIXELBUFFER_H_

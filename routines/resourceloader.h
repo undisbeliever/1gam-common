@@ -14,9 +14,6 @@
 ;; data structure. This holds the data format (1 byte) and the size (2 bytes)
 ;; of the resource data (which naturally follows).
 ;;
-;; Resources can be compressed and extracted by this module automatically
-;; depending on the format. [THIS IS FUTURE FUNCTIONALITY - IT IS INCOMPLETE]
-;;
 ;; This module also contains two routines `LoadDataToWram7E` and
 ;; `LoadDataToWram7F` that will allow the developer to easily create
 ;; a new data table (of possibly compressed data) that will loaded into
@@ -30,17 +27,13 @@
 .include "includes/registers.inc"
 
 .enum	VramDataFormat
+; This feature was never implemented
 	UNCOMPRESSED	= 0
-	; ::TODO LZSS::
-	; ::TODO multi-format::
-	; ::TODO TILES_3BPP_LOW::
-	; ::TODO TILES_3BPP_HIGH::
 .endenum
 
 .enum	WramDataFormat
+; This feature was never implemented
 	UNCOMPRESSED	= 0
-	; ::TODO LZSS::
-	; ::TODO multi-format::
 .endenum
 
 .struct PaletteTableFormat

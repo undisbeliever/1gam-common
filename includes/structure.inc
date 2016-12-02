@@ -61,14 +61,6 @@
 
 .include "includes/synthetic.inc"
 
-; ::SHOULDDO FUNCION, ENDFUNCION ::
-; http://mynesdev.blogspot.ca/2013/09/getting-most-out-of-ca65-part-1.html
-;  * Ensures that stack is empty
-;
-; ::TODO CALL::
-;  * Create defines for Acc, Index 8/16 state ?
-;  * Check that Bank is correct
-
 
 .define __STRUCTURE_TYPE_IF	 1
 .define __STRUCTURE_TYPE_IF_BIT	 2

@@ -435,8 +435,6 @@ ROUTINE Update
 			CMP	#METATILE_SIZE * 2
 			JGE	_DrawEntireScreen_Bank7E
 
-			; ::TODO check to see if yPos is out of scope::
-
 			; c clear from branch.
 			LDA	visibleTopLeftMapXpos
 			ADC	#METATILE_SIZE
@@ -481,8 +479,6 @@ ROUTINE Update
 		; A = xPos - visibleTopLeftMapXpos
 		CMP	#.loword(-METATILE_SIZE)
 		JMI	_DrawEntireScreen_Bank7E
-
-		; ::TODO check to see if yPos is out of scope::
 
 		LDA	visibleTopLeftMapXpos
 		SUB	#METATILE_SIZE

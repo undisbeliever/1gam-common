@@ -54,7 +54,6 @@ CONFIG TEXT_N_WINDOWS, 4
 .endstruct
 
 
-; ::SHOULDO rebuild using import/export macros::
 .struct TextInterface
 	;; Go to the next line
 	;;
@@ -445,8 +444,6 @@ IMPORT_MODULE Text
 	;; Prints the string contained in `Text__stringPtr` to the screen
 	;; with word wrapping
 	;;
-	;; ::TODO add special characters::
-	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: `Text__stringPtr` the string to print
 	ROUTINE PrintStringWordWrapping
@@ -584,7 +581,6 @@ ENDMODULE
 ;; Updates the text buffer in VRAM
 ;;
 ;; REQUIRES: 8 bit A
-; ::SHOULDDO dedicated VBlank channel::
 .macro Text_VBlank
 	LDA	::Text__updateBufferIfZero
 	IF_ZERO
@@ -724,13 +720,11 @@ ENDMODULE
 		LDY	var
 		JSR	::Text__PrintHex_16Y
 	.elseif type = ::TYPE_FARADDR
-		; ::MAYDO replace with dedicated routine::
 		LDY	var + 2
 		JSR	::Text__PrintHex_8A
 		LDY	var
 		JSR	::Text__PrintHex_16Y
 	.elseif type = ::TYPE_DWORD .or type = ::TYPE_UINT32 .or type = ::TYPE_SINT32
-		; ::MAYDO replace with dedicated routine::
 		LDY	var + 2
 		JSR	::Text__PrintHex_16Y
 		LDY	var
@@ -755,9 +749,6 @@ ENDMODULE
 .endmacro
 
 .macro _Text_PrintDecimal_Helper var, type, padding
-	; ::TODO signed decimal printing::
-	; ::SHOULDDO long (24 bit) decimal printing::
-	
 	.if type = ::TYPE_BYTE .or type = ::TYPE_UINT8
 		LDA	var
 		.ifblank padding

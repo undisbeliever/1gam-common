@@ -75,9 +75,6 @@
 ;;	Test__Routine__type
 ;;
 
-;; ::MAYDO add accumulator/index check to ROUTINE::
-;; ::MAYDO add CALL macro that uses assert on accumulator/index and then JSR::
-;; ::MAYDO macros for setting accumulator/index sizes::
 
 .ifndef ::_IMPORT_EXPORT_H_
 ::_IMPORT_EXPORT_H_ = 1

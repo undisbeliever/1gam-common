@@ -50,15 +50,11 @@ ROUTINE NewLine_SingleSpacing
 	; If out of bounds
 	CMP	Text__window + TextWindow::windowEnd
 	IF_GT
-		; ::TODO Check settings and move text up one line::
-
 		LDA	Text__window + TextWindow::windowStart
 		STA	Text__window + TextWindow::bufferPos
 		AND	#$FFC0
 		STA	tmp
 	ENDIF
-
-	; ::TODO Check settings and Clear line::
 
 	SEP	#$20
 .A8
@@ -91,15 +87,11 @@ ROUTINE NewLine_DoubleSpacing
 	; If out of bounds
 	CMP	Text__window + TextWindow::windowEnd
 	IF_GT
-		; ::TODO Check settings and move text up one line::
-
 		LDA	Text__window + TextWindow::windowStart
 		STA	Text__window + TextWindow::bufferPos
 		AND	#$FFC0
 		STA	tmp
 	ENDIF
-
-	; ::TODO Check settings and Clear line::
 
 	SEP	#$20
 .A8

@@ -6,8 +6,6 @@
 RoutineProfiles a bsnes assembly trace.
 """
 
-# ::SHOULDO CPU usage per frame::
-
 import re
 import sys
 import argparse
@@ -161,7 +159,6 @@ class Profile:
 
 
     def readTrace(self, fp):
-        # ::TODO add bsnes-plus Frame Counter (optional)::
         regex = re.compile(r'^([A-Za-z0-9]{6})\s+(\w+?)\s.+?V:\s*(\d+)\sH:\s*(\d+)')
         addr_regex = re.compile(r'^([A-Za-z0-9]{6})\s')
 

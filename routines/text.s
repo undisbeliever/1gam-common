@@ -705,7 +705,6 @@ endLine	  := <tmp2
 
 
 
-; ::MAYDO replace with call to routine (ClearWRAM7E X = destination, Y = size)::.
 ROUTINE ClearEntireBuffer
 	PHP
 	PHB
@@ -815,9 +814,6 @@ ROUTINE PrintStringWordWrapping
 			REP	#$20
 			INC	stringPtr
 			SEP	#$20
-	
-			; ::TODO special characters::
-
 .A8
 
 			LDX	window + TextWindow::textInterfaceAddr

@@ -81,8 +81,6 @@ IMPORT_MODULE MetaTiles1x16
 	;; IF non-zero then the map is declared dirty and a full redraw is preformed.
 	BYTE	mapDirty
 
-	; ::SHOULDO declare this using long addressing::
-
 	;; Metatile table, mapping of metatiles to their inner tiles.
 	;; Structure of Arrays.
 	;;

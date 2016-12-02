@@ -1,8 +1,6 @@
 ;;
 ;; SNES Register Defines.
 ;;
-;; ::TODO license::
-;;
 ;; Names and flags taken from Anomie's SNES Documents
 ;;
 ;;
@@ -131,8 +129,6 @@ OBSEL = $2101
 .define OBSEL_SIZE_16X32_32X64 %11000000
 ;;;; Undocumented
 .define OBSEL_SIZE_16X32_32X32 %11100000
-
-;;; ::TODO OBSEL_NAME::
 
 ;;; Object Tile Address segments sizes.
 ;;; The VRAM address used is 16384 * `bbb`
