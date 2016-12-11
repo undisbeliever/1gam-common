@@ -604,7 +604,7 @@ ROUTINE IlluminateOtherLights
 	CMP	tmp
 	IF_NE
 		JSR	IlluminateLight
-	ENDIF		
+	ENDIF
 
 	RTS
 

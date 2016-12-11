@@ -38,7 +38,7 @@ ROUTINE CalcReference
 	STY	referenceBogo
 
 	; Disable VBlank
-	STZ	NMITIMEN	
+	STZ	NMITIMEN
 
 	RTS
 
@@ -106,7 +106,7 @@ ROUTINE WaitLimited
 
 			DEX
 		UNTIL_ZERO
-		
+
 		STA	currentBogo
 
 		PLP

@@ -46,7 +46,7 @@ ROUTINE NewLine_SingleSpacing
 	AND	#$003F
 	ORA	tmp
 	STA	Text__window + TextWindow::bufferPos
-	
+
 	; If out of bounds
 	CMP	Text__window + TextWindow::windowEnd
 	IF_GT
@@ -83,7 +83,7 @@ ROUTINE NewLine_DoubleSpacing
 	AND	#$003F
 	ORA	tmp
 	STA	Text__window + TextWindow::bufferPos
-	
+
 	; If out of bounds
 	CMP	Text__window + TextWindow::windowEnd
 	IF_GT
@@ -144,7 +144,7 @@ ROUTINE PrintChar
 	DEC	Text__window + TextWindow::tilesLeftInLine
 	IF_ZERO
 		LDX	Text__window + TextWindow::textInterfaceAddr
-		JSR	(TextInterface::NewLine, X)	
+		JSR	(TextInterface::NewLine, X)
 	ENDIF
 
 	RTS

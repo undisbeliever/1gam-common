@@ -433,7 +433,7 @@ tmp_xTilePosIndex	= tmp3
 	AND	a:colorMask
 	EOR	a:buffer, Y
 	STA	a:buffer, Y
-	
+
 	RTS
 
 
@@ -442,7 +442,7 @@ tmp_xTilePosIndex	= tmp3
 .A16
 .I16
 ROUTINE TileOffsetForPosition
-	; X = ((((yPos & $01F8) >> 3) << PIXELBUFFER_WIDTH_LOG2) + (xPos & $01F8) / 8) * TILE_SIZE 
+	; X = ((((yPos & $01F8) >> 3) << PIXELBUFFER_WIDTH_LOG2) + (xPos & $01F8) / 8) * TILE_SIZE
 
 	TXA
 	AND	#$01F8

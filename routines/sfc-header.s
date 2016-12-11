@@ -48,7 +48,7 @@
 
 	.byte .lobyte(__ROMHEADER_EXPANSION_RAM)	; $FFBD Expansion RAM Size
 	.byte $00					; $FFBE Special Version
-	.byte $00					; $FFBF Cartridge Type Sub-Number 
+	.byte $00					; $FFBF Cartridge Type Sub-Number
 
 	.byte .sprintf("%21s", ROM_NAME)		; $FFC0 ROM Name (21 Characters)
 

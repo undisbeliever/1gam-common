@@ -373,7 +373,7 @@ ROUTINE Update
 	;	a = columnVramMetaTileOffset & ($003F / METATILE_TILES)
 	;	if a & ($0020 / METATILE_TILES)
 	;		a ^= ($0420 / METATILE_TILES) 	// (The equivalent of a = a | $0400 & ~$0020)
-	;	bgVerticalBufferVramLocation = METATILES_BG1_MAP + a * METATILE_TILES 
+	;	bgVerticalBufferVramLocation = METATILES_BG1_MAP + a * METATILE_TILES
 	;
 	;	updateBgBuffer |= METATILE16_UPDATE_VERTICAL_BUFFER
 	;
@@ -392,7 +392,7 @@ ROUTINE Update
 	;		columnBufferIndex += METATILE_TILES * 2
 	;		rowVramMetaTileOffset += 32 * METATILE_TILES
 	;		a = (columnVramMetaTileOffset + 28 * 32) & $03FF
-	;		bgHorizontalBufferVramLocation1 = a + METATILES_BG1_MAP 
+	;		bgHorizontalBufferVramLocation1 = a + METATILES_BG1_MAP
 	;		bgHorizontalBufferVramLocation2 = a + METATILES_BG1_MAP + 32 * 32
 	;
 	;		updateBgBuffer |= METATILE16_UPDATE_HORIZONAL_BUFFER
@@ -407,7 +407,7 @@ ROUTINE Update
 	;	columnBufferIndex -= METATILE_TILES * 2
 	;	rowVramMetaTileOffset -= 32 * METATILE_TILES
 	;	a = (columnVramMetaTileOffset - 32 * 2) & $03FF
-	;	bgHorizontalBufferVramLocation1 = a + METATILES_BG1_MAP 
+	;	bgHorizontalBufferVramLocation1 = a + METATILES_BG1_MAP
 	;	bgHorizontalBufferVramLocation2 = a + METATILES_BG1_MAP + 32 * 32
 	;
 	;	updateBgBuffer |= METATILE16_UPDATE_HORIZONAL_BUFFER
@@ -618,7 +618,7 @@ ROUTINE Update
 	LDA	#METATILE16_UPDATE_POSITION
 	TSB	updateBgBuffer
 
-	PLB	
+	PLB
 	RTS
 
 

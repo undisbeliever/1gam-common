@@ -715,7 +715,7 @@ ROUTINE ClearEntireBuffer
 	STA	f:buffer
 
 	LDX	#.loword(buffer)
-	LDY	#.loword(buffer) + 2 
+	LDY	#.loword(buffer) + 2
 	LDA	#.sizeof(buffer) - 3
 	MVN	.bankbyte(buffer), .bankbyte(buffer)
 
@@ -866,9 +866,9 @@ ROUTINE ConvertDecimalString_S16Y
 		DEX
 		LDA	#'-'
 		STA	0, X
-	
+
 		LDA	#.bankbyte(decimalString)
-		RTS	
+		RTS
 	ENDIF
 
 	SEP	#$20
@@ -937,9 +937,9 @@ ROUTINE ConvertDecimalStringPadded_S16Y
 		DEX
 		LDA	#'-'
 		STA	0, X
-	
+
 		LDA	#.bankbyte(decimalString)
-		RTS	
+		RTS
 	ENDIF
 
 	LDA	tmp
@@ -1018,9 +1018,9 @@ ROUTINE ConvertDecimalString_S32XY
 		DEX
 		LDA	#'-'
 		STA	0, X
-	
+
 		LDA	#.bankbyte(decimalString)
-		RTS	
+		RTS
 	ENDIF
 
 	SEP	#$20
@@ -1060,7 +1060,7 @@ _ConvertDecimalStringPadded_U32XY_AfterVarStore:
 	REP	#$20
 .A16
 	; no need for range checking, that is what the BMI is for
-	LDA	#.sizeof(decimalString) - 1 
+	LDA	#.sizeof(decimalString) - 1
 	SUB	padding
 	TAY
 	SEP	#$20

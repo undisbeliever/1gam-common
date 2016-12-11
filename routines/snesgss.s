@@ -94,7 +94,7 @@ ROUTINE Init
 		JSR	LoadSpcData_KnownSize
 
 		LDX	#SnesGssCommand::LOAD
-		JSR	Command		
+		JSR	Command
 
 		LDA	#.bankbyte(SnesGss__ModulePart2)
 		LDX	#.loword(SnesGss__ModulePart2)
@@ -177,7 +177,7 @@ ROUTINE	StopMusic
 .I16
 ROUTINE StopAllSounds
 	LDX	#SnesGssCommand::STOP_ALL_SOUNDS
-	BRA	Command	
+	BRA	Command
 
 
 ; IN: A = sfx

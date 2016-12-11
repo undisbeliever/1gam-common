@@ -35,7 +35,7 @@
 
 BG1_MAP			= $0400
 BG1_TILES		= $1000
-BG1_SIZE        = BGXSC_SIZE_32X32
+BG1_SIZE		= BGXSC_SIZE_32X32
 
 
 .zeropage
@@ -146,7 +146,7 @@ ROUTINE PlayGame
 ; REQUIRE: 8 bit A, 16 bit Index
 ; X = Current position in `cells` array
 .macro _ProcessFrame_UnrollLoop cell, prev_cell, buffer
-	.local continue 
+	.local continue
 
 	; Get and check cell's new state
 	LDA prev_cell, X
@@ -173,7 +173,7 @@ ROUTINE PlayGame
 		DEC	cell - CELLS_WIDTH, X
 		DEC	cell - CELLS_WIDTH - 1, X
 		DEC	cell - CELLS_WIDTH + 1, X
-		DEC	cell + CELLS_WIDTH, X 
+		DEC	cell + CELLS_WIDTH, X
 		DEC	cell + CELLS_WIDTH - 1, X
 		DEC	cell + CELLS_WIDTH + 1, X
 	ELSE
@@ -197,7 +197,7 @@ ROUTINE PlayGame
 			INC	cell - CELLS_WIDTH, X
 			INC	cell - CELLS_WIDTH - 1, X
 			INC	cell - CELLS_WIDTH + 1, X
-			INC	cell + CELLS_WIDTH, X 
+			INC	cell + CELLS_WIDTH, X
 			INC	cell + CELLS_WIDTH - 1, X
 			INC	cell + CELLS_WIDTH + 1, X
 		ENDIF
@@ -420,7 +420,7 @@ startX   = tmp
 				INC	cells - CELLS_WIDTH, X
 				INC	cells - CELLS_WIDTH - 1, X
 				INC	cells - CELLS_WIDTH + 1, X
-				INC	cells + CELLS_WIDTH, X 
+				INC	cells + CELLS_WIDTH, X
 				INC	cells + CELLS_WIDTH - 1, X
 				INC	cells + CELLS_WIDTH + 1, X
 			ENDIF
@@ -514,7 +514,7 @@ RowCounter = tmp
 
 
 ;; VBlank Handler
-;; 
+;;
 ;; Copies `tilemapBuffer` to VRAM when `updateTilemap` is set
 .export VBlank
 VBlank:

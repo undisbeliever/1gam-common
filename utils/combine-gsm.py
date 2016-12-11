@@ -131,7 +131,7 @@ def read_gsm(in_filename):
                     ssc = ss + c
                     song[c] = cdata[ssc]
 
-                sid = name_to_id(song['Name']) 
+                sid = name_to_id(song['Name'])
                 songs[sid] = song
 
 

@@ -116,7 +116,7 @@ _LoadVram__16A:
 
 
 .rodata
-;; Loads the data (which is 4bpp tiles) into VRAM. 
+;; Loads the data (which is 4bpp tiles) into VRAM.
 ;; INPUT:
 ;;	dataPtr - the source (byte AFTER format byte)
 ;;	Y - source addr (minus bank, byte AFTER format)

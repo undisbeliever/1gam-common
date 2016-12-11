@@ -68,7 +68,7 @@ ROUTINE PrintChar
 	DEC	Text__window + TextWindow::tilesLeftInLine
 	IF_ZERO
 		LDX	Text__window + TextWindow::textInterfaceAddr
-		JSR	(TextInterface::NewLine, X)	
+		JSR	(TextInterface::NewLine, X)
 	ENDIF
 
 	RTS

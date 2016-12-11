@@ -241,7 +241,7 @@ ROUTINE LoadPalette
 
 	LDA	#MDMAEN_DMA0
 	STA	MDMAEN
-	
+
 	RTS
 
 

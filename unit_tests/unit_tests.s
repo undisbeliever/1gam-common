@@ -86,7 +86,7 @@ ROUTINE Main
 
 		LDA	noErrors
 		IF_NOT_ZERO
-			Text_SetColor	2 
+			Text_SetColor	2
 
 			Text_SetCursor	5, 12
 			Text_PrintString "All Tests Completed"
@@ -127,7 +127,7 @@ ROUTINE NewPage
 		WAI
 		LDY	JOY1
 	UNTIL_ZERO
-	
+
 	JMP	Text__ClearWindow
 
 

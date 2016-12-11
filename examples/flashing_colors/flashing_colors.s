@@ -26,7 +26,7 @@ ROUTINE Main
 
 	; Enable V-Blank
 	LDA	#NMITIMEN_VBLANK_FLAG
-	STA	NMITIMEN 
+	STA	NMITIMEN
 
 	; Just Loop, flashing the screen
 	; change_color_flag will be responsible for changing color on VBlank
@@ -34,7 +34,7 @@ ROUTINE Main
 		LDA	#$00
 		REPEAT
 			STA	INIDISP
-			
+
 			FOR_X #6, DEC, #0
 				WAI
 			NEXT
@@ -45,7 +45,7 @@ ROUTINE Main
 
 		REPEAT
 			STA INIDISP
-		
+
 			FOR_Y #6, DEC, #0
 				WAI
 			NEXT
@@ -95,7 +95,7 @@ LABEL VBlank
 		STA	$2122
 
 		; Increment color index for next update
-		CPX	#EndColorTable - ColorTable - 2 
+		CPX	#EndColorTable - ColorTable - 2
 		IF_LT
 			INX
 			INX
