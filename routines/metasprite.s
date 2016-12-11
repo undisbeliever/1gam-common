@@ -253,8 +253,8 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 	;
 
 	; The parameters of this function are not zeropage addresses because:
-	;   1. to effectivly store them in a struct I need a 3rd index
-	;      register or modify DP (which I would have to then push/pop)
+    ;   1. In order to effectively store them in a struct I need a 3rd index
+    ;      register or modify DP (which I would have to then push/pop)
 	;   2. xPos, yPos have to be calculated relative to the screen anyway
 	;      which are probably thrown away, thus not worth the memory.
 	;   3. Future modules (dynamic tiles, animated sprites) would

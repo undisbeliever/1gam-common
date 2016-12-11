@@ -11,7 +11,7 @@
 
 IMPORT_MODULE Screen
 
-	;; Incremented every Vblankm used as a frame counter
+	;; Incremented every VBlank, used as a frame counter
 	UINT16	frameCounter
 
 	;; Pauses execution for one frame
@@ -50,7 +50,7 @@ IMPORT_MODULE Screen
 	;; INPUT: A = number of frames per decrement (0 = 256 frames)
 	ROUTINE	SlowFadeOut
 
-	;; Increments frameCounter, signifying a new frame.
+	;; Increments `frameCounter`, signifying a new frame.
 	;;
 	;; Must be called once during v-blank
 	;;
@@ -67,11 +67,11 @@ IMPORT_MODULE Screen
 
 	;; Sets the VRAM size and position registers.
 	;;
-	;; The sizes are taken from the variables BGx_MAP (word adress in VRAM), BGx_SIZE (matches the values BGXSC_SIZE_*),
-	;; BGx_TILES (word address in VRAM), OAM_TILES (word adress in VRAM), OAM_NAME (matches the values OBSEL_NAME_*)
+	;; The sizes are taken from the variables BGx_MAP (word address in VRAM), BGx_SIZE (matches the values BGXSC_SIZE_*),
+	;; BGx_TILES (word address in VRAM), OAM_TILES (word address in VRAM), OAM_NAME (matches the values OBSEL_NAME_*)
 	;; and OAM_SIZE (matches the values OBSEL_SIZE_*). Where BGx represents optional BG1 - BG4.
 	;;
-	;; Alternativly a *prefix* may be supplied, in which the variables used are
+	;; Alternatively a *prefix* may be supplied, in which the variables used are
 	;; <prefix>_BGx_MAP, <prefix>_BGx_SIZE, <prefix>_BGx_TILES, <prefix>_OAM_TILES, and <prefix>_OAM_SIZE.
 	;; Where BGx represents the optional BG1 - BG4.
 	;;

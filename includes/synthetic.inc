@@ -31,7 +31,7 @@
 	.endif
 .endmacro
 
-;; Reverse Subract
+;; Reverse Subtract
 ;;
 ;; REQUIRES: 8 bit A
 .macro RSB8 param, index
@@ -62,7 +62,7 @@
 	.endif
 .endmacro
 
-;; Reverse Subract with carry
+;; Reverse Subtract with carry
 ;;
 ;; REQUIRE: 8 bit A
 .macro RSC8 param, index
@@ -202,7 +202,7 @@
 ;; Parameter can be X, Y, blank (A), or a variable.
 ;;
 ;; Please note that doing a `IF_MINUS : NEG16 : ENDIF` would be faster
-;; than `LDABS16 A` if you know the the N flag matches the accumulator's
+;; than `LDABS16 A` if you know the N flag matches the accumulator's
 ;; MSB.
 ;;
 ;; REQUIRES: 8 bit A
@@ -237,7 +237,7 @@ skip:
 ;; Parameter can be X, Y, blank (A), or a variable.
 ;;
 ;; Please note that doing a `IF_MINUS : NEG16 : ENDIF` would be faster
-;; than `LDABS16 A` if you know the the N flag matches the accumulator's
+;; than `LDABS16 A` if you know the N flag matches the accumulator's
 ;; MSB.
 ;;
 ;; REQUIRES: 16 bit A

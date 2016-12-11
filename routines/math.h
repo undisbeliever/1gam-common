@@ -18,7 +18,7 @@ IMPORT_MODULE Math
 
 ;; Multiplication
 ;; ==============
-	;; Mutliply an 8 bit unsigned integer by an 8 bit unsigned integer
+	;; Multiply an 8 bit unsigned integer by an 8 bit unsigned integer
 	;;
 	;; REQUIRE: 8 bit A, DB Shadow
 	;; MODIFIES: Y
@@ -32,7 +32,7 @@ IMPORT_MODULE Math
 	ROUTINE Multiply_U8Y_U8X_UY
 	ROUTINE Multiply_U8Y_U8X_UY_DB
 
-	;; Mutliply a 16 bit integer by an 8 bit unsigned integer
+	;; Multiply a 16 bit integer by an 8 bit unsigned integer
 	;;
 	;; REQUIRE: 8 bit A, 16 bit Index, DB Shadow
 	;; MODIFIES: A, Y, X
@@ -55,7 +55,7 @@ IMPORT_MODULE Math
 
 	;; Multiply two 16 bit integers.
 	;;
-	;; The signs and lengths of the inputs and ouputs are in the parameters.
+	;; The signs and lengths of the inputs and outputs are in the parameters.
 	;;
 	;; REQUIRE: 16 bit Index, DB Shadow
 	;; MODIFIES: A, X, Y
@@ -110,7 +110,7 @@ IMPORT_MODULE Math
 	ROUTINE Multiply_S16Y_S16X_S32XY
 	ROUTINE Multiply_S16Y_S16X_S32XY_DB
 
-	;; Mutliply a 32 bit integer by an 8 bit unsigned integer
+	;; Multiply a 32 bit integer by an 8 bit unsigned integer
 	;;
 	;; REQUIRE: 8 bit A, 16 bit Index, DB Shadow
 	;; MODIFIES: A, X, Y
@@ -220,7 +220,7 @@ IMPORT_MODULE Math
 	;;
 	;; OUTPUT:
 	;;	Y: 16 bit signed Result
-	;;	X: 16 bit unsigned Remainder (Always positive, Euclidian division)
+	;;	X: 16 bit unsigned Remainder (Always positive, Euclidean division)
 	;;
 	;;
 	;; Uses SNES Registers if Y < 256 and Y >= 0.
@@ -244,7 +244,7 @@ IMPORT_MODULE Math
 	;;
 	;; OUTPUT:
 	;;	Y: 16 bit signed Result
-	;;	X: 16 bit unsigned Remainder (Always positive, Euclidian division)
+	;;	X: 16 bit unsigned Remainder (Always positive, Euclidean division)
 	;;
 	;;
 	;; Uses SNES Registers if Y < 256 and Y >= 0.
@@ -268,7 +268,7 @@ IMPORT_MODULE Math
 	;;
 	;; OUTPUT:
 	;;	Y: 16 bit signed Result
-	;;	X: 16 bit unsigned Remainder (Always positive, Euclidian division)
+	;;	X: 16 bit unsigned Remainder (Always positive, Euclidean division)
 	;;
 	;;
 	;; Uses SNES Registers if Y < 256 and Y >= 0.
@@ -321,7 +321,7 @@ IMPORT_MODULE Math
 	;;
 	;; OUTPUT:
 	;;	result32: sint32
-	;;      remainder32: uint32 (Always positive, Euclidian division)
+	;;      remainder32: uint32 (Always positive, Euclidean division)
 	;;
 	;; NOTES:
 	;;	`result32` and `dividend32` share the same memory location

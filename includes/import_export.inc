@@ -26,7 +26,7 @@
 ;;	* Export a variable called `MODULE_name`
 ;;	* Also creates:
 ;;		* `MODULE__name__type` which matches the `TYPE_*` enum symbols
-;;		* `MODULE__name__size` containg the total size of the variable in bytes
+;;		* `MODULE__name__size` containing the total size of the variable in bytes
 ;;		* `MODULE__name__elsize` containing the size of each element in bytes (if count is used)
 ;;		* `MODULE__name__count` containing the number of elements
 ;;
@@ -39,7 +39,7 @@
 ;;
 ;;
 ;; Declaring a module interface using inside the header file is the same as
-;; Defineing variables, routines and labels. Except you use the 
+;; defining variables, routines and labels. Except you use the 
 ;;
 ;;	IMPORT_MODULE <name>
 ;;
@@ -304,7 +304,7 @@
 .endmacro
 
 
-;; Imports a binarys labels Loads a binary file into a label.
+;; Imports the binary file label that was included by `INCLUDE_BINARY`
 ;;
 ;; This Macro can be used in a header even if there is no module.
 ;;

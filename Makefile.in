@@ -6,7 +6,7 @@
 #    * CONFIG        - the memory config to use
 #    * SOURCE_DIR    - the location of the source
 #    * RESOURCES_DIR - (optional) the location of the resources, can contain its own makefile
-#    * TABLES_DIR    - (optional) the location of the precalculated tables, can contain its own makefile
+#    * TABLES_DIR    - (optional) the location of the pre-calculated tables, can contain its own makefile
 
 # Disable Builtin rules
 .SUFFIXES:

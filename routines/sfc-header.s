@@ -63,7 +63,7 @@
 	.word $AAAA					; $FFDC - Checksum compliment
 	.word $5555					; $FFDE - Checksum
 
-;; Define the Inturrupt Vectors.
+;; Define the Interrupt Vectors.
 ;;
 ;; `EmptyHandler` just links to an `RTI` and doesn't do anything.
 ;; If you are not using any of these handlers (like `CopHandler`)

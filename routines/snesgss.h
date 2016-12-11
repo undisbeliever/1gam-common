@@ -25,7 +25,7 @@ CONFIG SNESGSS_INIT_STEREO, 0
 ;; channel count that is incremented on every call.
 ;; This allows a simple API to play sound effects through, but limits the
 ;; number of channels an effect can use to 1.
-;; It is annoying that SNESGSS does not have this functionaity built-in.
+;; It is annoying that SNESGSS does not have this functionality built-in.
 ;;
 ;;
 ;; Currently it does not implement the streaming functionality of SNESGSS,
@@ -132,7 +132,7 @@ IMPORT_MODULE SnesGss
 	;; `stereoFlag` and will initialise the sound effect rotation count.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index, DB access registers, DP = 0
-	;;	     `SnesGss__MusicTable` - a table of faraddr for each song
+	;;	     `SnesGss__MusicTable` - a table of 24 bit addresses for each song
 	;;	     `SnesGss__MusicTable_Count` - the number of songs in the table
 	;;
 	;; INPUT: A - song number

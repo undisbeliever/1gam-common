@@ -53,11 +53,11 @@ MODULE Text
 	;; Storage area for '-' of signed character (worse case)
 	BYTE decimalStringPrependSign
 	;; Storage area to store decoded string.
-	;; Long enough to cover the a unsigned 32 bit integer and EOS.
+	;; Long enough to cover the unsigned 32 bit integer and string terminator.
 	BYTE decimalString, 11
 
 .zeropage
-	; Temporry values used by this module
+	; Temporary values used by this module
 	WORD	tmp
 	WORD	tmp2
 	WORD	tmp3

@@ -22,14 +22,14 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to reset the block.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {ptr}End exists denoting the end of the data
 	;;	* the label {ptr}__size exists.
 	.macro MemClear ptr, size
 		_Block_Addr_Size_Helper ptr, size, Block__MemClear
 	.endmacro
 
-	;; Copys a block of memory in ROM to WMDATA register
+	;; Copies a block of memory in ROM to WMDATA register
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index, WMADD set
 	;; NOTE: This routine uses DMA channel 0 to reset the block.
@@ -38,12 +38,12 @@ IMPORT_MODULE Block
 	;;	: Y = size
 	ROUTINE	CopyToWmdata
 
-	;; Copys a block of memory in ROM to WMDATA register
+	;; Copies a block of memory in ROM to WMDATA register
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index, WMADD set
 	;; NOTE: This routine uses DMA channel 0 to reset the block.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro MemCopy source, destination, size
@@ -96,7 +96,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToVram source, size
@@ -109,7 +109,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToVramLocation source, vramWordAddress, size
@@ -138,7 +138,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToVramDataLow source, size
@@ -151,7 +151,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToVramLocationDataLow source, vramWordAddress, size
@@ -179,7 +179,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToVramDataHigh source, size
@@ -192,7 +192,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToVramLocationDataHigh source, vramWordAddress, size
@@ -220,7 +220,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToCgram source, size
@@ -233,7 +233,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToCgramLocation source, color, size
@@ -266,7 +266,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToOam source, size
@@ -279,7 +279,7 @@ IMPORT_MODULE Block
 	;;
 	;; NOTE: This routine uses DMA channel 0 to transfer the data.
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {source}_End exists denoting the end of the data
 	;;	* the label {source}__size exists.
 	.macro TransferToOamLocation source, oamAddress, size
@@ -292,7 +292,7 @@ IMPORT_MODULE Block
 
 	;; Calculates a checksum of the given data block.
 	;;
-	;; It is reccomended that the checksum be used to verify the integrety
+	;; It is recommended that the checksum be used to verify the integrity
 	;; of the Save RAM.
 	;;
 	;; This routine doesn't conform to any standards and is made to be faster
@@ -311,7 +311,7 @@ IMPORT_MODULE Block
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
-	;; size can be ommited if:
+	;; size can be omitted if:
 	;;	* the label {addr}_End exists denoting the end of the data
 	;;	* the label {addr}__size exists.
 	.macro	Block_Checksum addr, size

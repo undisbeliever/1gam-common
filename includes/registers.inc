@@ -90,7 +90,7 @@ _REGISTERS_INC_ = 1
 ;; f---bbbb
 ;;
 ;; f    = Force Blank
-;; bbbb = Screen Brightnes, 0 = Dull, 16 = max
+;; bbbb = Screen Brightness, 0 = Dull, 16 = max
 INIDISP = $2100
 
 ;;; Flags and Masks
@@ -99,7 +99,7 @@ INIDISP = $2100
 
 
 
-;; Object Size and Chr Address
+;; Object Size and Character Address
 ;; (write, v-blank)
 ;;
 ;; sssnnbbb
@@ -384,7 +384,7 @@ VMAIN = $2115
 
 ;;; Increment after writing $2118 or reading $2139
 .define VMAIN_INCREMENT_LOW  %00000000
-;;; Increment after writing $2119 or reading $213A (reccomended)
+;;; Increment after writing $2119 or reading $213A (recommended)
 .define VMAIN_INCREMENT_HIGH %10000000
 
 ;;; Increment Amount
@@ -770,7 +770,7 @@ COLDATA = $2132
 ;;
 ;; s = External Sync
 ;; e = Enable Mode 7 EXTBG
-;; p = Enable Psudeo-hires mode
+;; p = Enable Pseudo-hires mode
 ;; o = Enable overscan
 ;; I = Oject Interlace
 ;; i = Screen Interlace
@@ -857,7 +857,7 @@ OPVCT = $213D
 
 
 
-;; PPU 5c77 Staus Flag and Version
+;; PPU 5c77 Status Flag and Version
 ;; (read, any)
 ;;
 ;; trm-vvvv
@@ -877,12 +877,12 @@ STAT77 = $213E
 
 
 
-;; PPU 5c88 Staus Flag and Version
+;; PPU 5c88 Status Flag and Version
 ;; (read, any)
 ;;
 ;; fl-pvvvv
 ;;
-;; f    = Interlace flag (toffled every v-blank)
+;; f    = Interlace flag (toggled every v-blank)
 ;; l    = External Latch Flag (set when PPU counters latched)
 ;; p    = NTSC/PAL mode (1 = PAL, 0 = NTSC)
 ;; vvvv = 5c78 chip number.
@@ -1025,7 +1025,7 @@ WRDIVH = $4205
 ;; (write, any)
 ;;
 ;; After 16 CPU cycles `RDDIV` will contain the unsigned quotient of `WRDIV` and `WRDIVB`.
-;; The remainder of the divison is stored in `RDMPY`.
+;; The remainder of the division is stored in `RDMPY`.
 WRDIVB = $4206
 
 
@@ -1307,7 +1307,7 @@ DMAP7 = $4370
 ;; DMA Destination Register
 ;; (read, write, any)
 ;;
-;; Bus B Address (PPU Memmory Address, maps to $00:21xx)
+;; Bus B Address (PPU Memory Address, maps to $00:21xx)
 BBAD0 = $4301
 BBAD1 = $4311
 BBAD2 = $4321

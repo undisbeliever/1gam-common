@@ -1,7 +1,7 @@
 
 .include "routines/metasprite.h"
 
-; prevent comilation error
+; prevent compilation error
 .export _MetaSprite_VBlank__Called = 1
 
 .A8

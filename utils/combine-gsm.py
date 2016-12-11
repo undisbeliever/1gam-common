@@ -95,7 +95,7 @@ def replace_song_instruments(song_text, replacemap):
             if s in replacemap:
                 sep[i] = replacemap[s]
             else:
-                assert s == '..', "Unknwon instrument - This shouldn't happen"
+                assert s == '..', "Unknown instrument - This shouldn't happen"
 
         lines.append("".join(sep))
 

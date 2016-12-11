@@ -8,7 +8,7 @@
 .include "includes/structure.inc"
 
 
-;; This module is a Linear congruential psudeo random number generator.
+;; This module is a Linear congruential pseudo random number generator.
 ;;
 ;; In order to increase the observed randomness of this module,
 ;; the function `AddJoypadEntropy` should be called once every frame.
@@ -30,7 +30,7 @@ IMPORT_MODULE Random
 	;;
 	;; This can add a bit of variety to the random number generator.
 	;;
-	;; REQUIRE: 8 bit A, 16 bit Index, AutoJoy Enbled
+	;; REQUIRE: 8 bit A, 16 bit Index, AutoJoy Enabled, not in AutoJoy time
 	ROUTINE AddJoypadEntropy
 
 	;; Generates a random number between 0 and 3 (inclusive)
@@ -66,7 +66,7 @@ IMPORT_MODULE Random
 	;; INPUT:
 	;;	A: unsigned 8 bit value.
 	;; OUTPUT:
-	;;	A: unsigned 8 bit value between 0 and (A-1) (inlusive).
+	;;	A: unsigned 8 bit value between 0 and (A-1) (inclusive).
 	ROUTINE	Rnd_U8A
 
 	;; Generates a 16 bit random number between 0 and Y (non-inclusive)
@@ -79,7 +79,7 @@ IMPORT_MODULE Random
 	;; INPUT:
 	;;	Y: unsigned 16 bit value.
 	;; OUTPUT:
-	;;	Y: unsigned 16 bit value between 0 and (Y-1) (inlusive).
+	;;	Y: unsigned 16 bit value between 0 and (Y-1) (inclusive).
 	ROUTINE	Rnd_U16Y
 
 	;; Generates a 16 bit random number between X and Y (non-inclusive)

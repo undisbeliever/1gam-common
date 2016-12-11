@@ -30,12 +30,12 @@
 ;;        * CONTINUE for all loops
 ;;        * BREAK for all loops
 ;;
-;; These macros provide the following functionaity:
+;; These macros provide the following functionality:
 ;;
 ;;   * An 8 level stack. Up to 8 IFs and REPEATs can be nested in one code.
-;;     A .fatal will be emmited if the stack is overrun or underrun.
+;;     A .fatal will be emitted if the stack is overrun or underrun.
 ;;
-;;   * A fatal will be emmited if a ENDIF / ELSE / UNTIL / NEXT
+;;   * A fatal will be emitted if a ENDIF / ELSE / UNTIL / NEXT
 ;;	 is used without the matching IF / REPEAT / FOR on the stack.
 ;;
 ;;   * Long branches will be used on REPEAT / FOR if necessary.
@@ -46,14 +46,14 @@
 ;;   * Generates the minimum code needed as all testing is done outside the
 ;;     structure macros (usually with CMP, CPX, XPY, AND, EOR, BIT, etc).
 ;;
-;; Cavats:
+;; Caveats:
 ;;
 ;;   * If a NEXT / UNTIL is missing, no error will be produced.
 ;;     There is no way for ca65 to automatically call a macro at end of file.
 ;;
 ;;   * Decrementing FOR loops will only exit if equal.
 ;;
-;;   * Incrementing FOR loops will only exit if geater than or equal.
+;;   * Incrementing FOR loops will only exit if greater than or equal.
 
 
 .ifndef ::_STRUCTURE_INC_
@@ -287,7 +287,7 @@
 .endmacro
 
 
-;;; Tests A bits, barnches if A & param != 0
+;;; Tests A bits, branches if A & param != 0
 ;;; Index is optional
 .macro IF_NOT_BIT param, index
 	__STRUCTURE_STACK_PUSH_NEW __STRUCTURE_TYPE_IF_BIT
@@ -651,7 +651,7 @@ BREAK_LABEL:
 .endmacro
 
 ;; UNTIL
-;;; Tests z flag
+;;; Tests z Flag
 .macro UNTIL_ZERO
 	JNE __STRUCTURE_STACK_LABEL
 
@@ -659,7 +659,7 @@ BREAK_LABEL:
 	__STRUCTURE_STACK_POP_CHECK __STRUCTURE_TYPE_REPEAT
 .endmacro
 
-;;; Tests z flah
+;;; Tests z Flag
 .macro UNTIL_NOT_ZERO
 	JEQ __STRUCTURE_STACK_LABEL
 

@@ -15,7 +15,7 @@
 ;;
 ;; In order to use this module, the following must occur.
 ;;
-;;  * `CPU_Usage__NMI` must active on every VBlank Inturrupt.
+;;  * `CPU_Usage__NMI` must active on every VBlank Interrupt.
 ;;
 ;;  * `CPU_Usage__Calc_Idle` must be called once.
 ;;
@@ -30,7 +30,7 @@
 
 IMPORT_MODULE CpuUsage
 
-	;; Number of frames that were missed inbetween `Wait_Frame`s
+	;; Number of frames that were missed in-between `Wait_Frame`s
 	UINT8 missedFrames
 
 	;; Number of VBlanks passed since last `WaitFrame` or `WaitLimited`
@@ -49,8 +49,8 @@ IMPORT_MODULE CpuUsage
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index, DB Access Shadow RAM
 	;;
-	;; This routine will disable Inturrputs and must be called:
-	;;   * stright after Initialisation.
+	;; This routine will disable Interrupts and must be called:
+	;;   * straight after Initialisation.
 	;;   * After FASTROM is set (if using FASTROM)
 	;;   * When VBlank is not doing anything
 	ROUTINE CalcReference

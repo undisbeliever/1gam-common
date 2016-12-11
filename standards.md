@@ -4,7 +4,7 @@ Register Passing
     * 32 bit variables passed via XY, With Y being loword and X being hiword
     * 16 bit variables passed via Y
 
-It is reccomended to append the routine's name with the variable being referenced. For example, the following are used within `Text.s` to specify the variable used:
+It is recommended to append the routine's name with the variable being referenced. For example, the following are used within `Text.s` to specify the variable used:
 
 _U8A
 : unsigned 8 bit A
@@ -16,7 +16,7 @@ _S16Y
 : signed 16 bit Y
 
 _U32XY
-: unsigned 32 bit X/Y, Index = 16 bit, Y is loword, X is highword.
+: unsigned 32 bit X/Y, Index = 16 bit, Y is the lo-word, X is the high-word.
 
 _16X
 : 16 Bit X register
@@ -39,15 +39,15 @@ The following naming conventons are used.
 Coding Conventions
 ==================
     * opcodes should be in ALLCAPS
-    * use tabs top to seperate opcode from parameters
-    * use tabed indenting to show scope/structure
+    * use tabs top to separate opcode from parameters
+    * use tabbed indenting to show scope/structure
     * Have at least 3 empty lines between routines
     * Use `structure.inc` and `import_export.inc` macros to define variables and routines.
     * Routines should be prepending with `.A#` and `.I#` control statements to define register size for routine (if required).
 
 
-Assertations
-============
+Assertions
+==========
     * Use `.assert` to ensure correct flow if routine falls into next routine.
 
        ~~~~ asm

@@ -30,7 +30,7 @@ __STATIC_RANDOM_Z .set .time
 	.endif
 .endmacro
 
-;; Sets the assembeler variable to a random number between min and max.
+;; Sets the assembler variable to a random number between min and max.
 ;;
 ;; Due to the way the ca65 handles arithmetic using sint32 values {abs(min - max)} MUST BE < (2^31-1).
 .macro STATIC_RANDOM_MIN_MAX value, min, max

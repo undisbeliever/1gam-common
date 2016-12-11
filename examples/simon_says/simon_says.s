@@ -1,6 +1,6 @@
 ;; A simple demo of a port of the game Simon.
 ;;
-;; This demo incorperates:
+;; This demo incorporates:
 ;;	* A complex VBlank buffer to illuminating the lights
 ;;	* The Random Module
 ;;	* The Controller Module
@@ -140,7 +140,7 @@ ROUTINE Main
 
 
 
-;; Initalize the game
+;; Initialize the game
 .A8
 .I16
 ROUTINE Init
@@ -427,7 +427,7 @@ ROUTINE GenerateNext
 
 
 
-;; Increaments the score by 1 and displays it on screen
+;; Increments the score by 1 and displays it on screen
 .A8
 .I16
 ROUTINE IncrementScore
@@ -447,7 +447,7 @@ ROUTINE IncrementScore
 
 ; -----------------------------------------------------------------------------
 
-;; Displays the score into the the textBuffer
+;; Displays the score into the textBuffer
 ;; IN: score (BCD)
 .A8
 .I16
@@ -692,7 +692,7 @@ ROUTINE SetupScreen
 
 
 	; Load tile map to VRAM
-	; ::BUGFIX pcx2snes does not include pallete::
+	; ::BUGFIX pcx2snes does not include palette::
 	; ::: Have to append palette to map manually::
 	REP	#$20
 .A16

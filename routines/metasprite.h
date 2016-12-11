@@ -6,7 +6,7 @@
 ;; Meta Sprite Layout format
 ;; =========================
 ;;
-;; 	.db numberOfObjects
+;; 	.db number Of Objects
 ;;	// repeated for each object
 ;;		.byte	xPos (signed)
 ;;		.byte	yPos (signed)
@@ -109,21 +109,21 @@ IMPORT_MODULE MetaSprite
 	;;
 	;; Call at the start of every display frame.
 	;;
-	;; REQUIRES: 8 bit A, 16 bit index, Shadow RAM accessable
+	;; REQUIRES: 8 bit A, 16 bit index, Shadow RAM accessible
 	ROUTINE InitLoop
 
-	;; Finialize the OAM buffer and prepares it for transfer.
+	;; Finalize the OAM buffer and prepares it for transfer.
 	;;
 	;; Call *after* the OAM buffer is populated by Process()
 	;;
-	;; REQUIRES: 8 bit A, 16 bit index, Shadow RAM accessable
+	;; REQUIRES: 8 bit A, 16 bit index, Shadow RAM accessible
 	;;
 	;; MODIFIES: A, X
 	ROUTINE	FinalizeLoop
 
 	;; Add a sprite to the OAM buffer.
 	;;
-	;; REQUIRES: 8 bit A, 16 bit Index, Shadow RAM accessable
+	;; REQUIRES: 8 bit A, 16 bit Index, Shadow RAM accessible
 	;;
 	;; INPUT:
 	;;	xPos      the sprite's X position on the screen (9 bit signed, const)
@@ -136,7 +136,7 @@ IMPORT_MODULE MetaSprite
 
 	;; Add a meta-sprite to the OAM buffer.
 	;;
-	;; REQUIRES: 8 bit A, 16 bit Index, Shadow RAM accessable
+	;; REQUIRES: 8 bit A, 16 bit Index, Shadow RAM accessible
 	;;
 	;; INPUT:
 	;;	xPos      the sprite's X position on the screen (const)
@@ -147,9 +147,9 @@ IMPORT_MODULE MetaSprite
 	;; MODIFIES: A, X, Y
 	ROUTINE	ProcessMetaSprite
 
-	;; Add a meta-sprite to the OAM buffer. This version allows for the charAttr variable to be stored in Y.
+	;; Add a meta-sprite to the OAM buffer. This version allows for the `charAttr` variable to be stored in Y.
 	;;
-	;; REQUIRES: 8 bit A, 16 bit Index, Shadow RAM accessable
+	;; REQUIRES: 8 bit A, 16 bit Index, Shadow RAM accessible
 	;;
 	;; INPUT:
 	;;	xPos      the sprite's X position on the screen (const)

@@ -1,7 +1,7 @@
 1GAM snesdev-common
 ===================
 
-This repository contains common code used the The UnDisbeliever's One Game A Month SNES development challange.
+This repository contains common code used the The UnDisbeliever's One Game A Month SNES development challenge.
 
 NOTICE
 ------

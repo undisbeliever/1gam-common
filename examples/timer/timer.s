@@ -1,7 +1,7 @@
 ;; Displays the current time onto the screen
 ;; using two text windows:
 ;;
-;;	* One in 8x8, cyan, displaying hexidecimal.
+;;	* One in 8x8, cyan, displaying hexadecimal.
 ;;	* The other 8x16 font, black with decimal.
 ;;
 ;; This is an example of using multiple text windows.

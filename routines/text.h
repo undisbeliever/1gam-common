@@ -49,7 +49,7 @@ CONFIG TEXT_N_WINDOWS, 4
 	;; Current PrintString routine Address
 	;;
 	;; REQUIRE: 8 bit A, 16 bit Index
-	;; INPUT: A = the characeter to print
+	;; INPUT: A = the character to print
 	printStringAddr		.addr
 .endstruct
 
@@ -190,58 +190,58 @@ IMPORT_MODULE Text
 
 	;; Prints an unsigned 8 bit A
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: A = the unsigned 8 bit value to print
 	;; MODIFIES: A, X, Y
-	;; CAVATS: Uses SNES Division Register
+	;; CAVEATS: Uses SNES Division Register
 	ROUTINE PrintDecimal_U8A
 
 	;; Prints an signed 8 bit A
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: A = the signed 8 bit value to print
 	;; MODIFIES: A, X, Y
-	;; CAVATS: Uses SNES Division Register
+	;; CAVEATS: Uses SNES Division Register
 	ROUTINE PrintDecimal_S8A
 
 	;; Prints an unsigned 16 bit Y
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: Y = the number to print
 	;; MODIFIES: A, X, Y
-	;; CAVATS: Uses SNES Division Register
+	;; CAVEATS: Uses SNES Division Register
 	ROUTINE PrintDecimal_U16Y
 
 	;; Prints a signed 16 bit Y
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: Y = the number to print (signed)
 	;; MODIFIES: A, X, Y
-	;; CAVATS: Uses SNES Division Register
+	;; CAVEATS: Uses SNES Division Register
 	ROUTINE PrintDecimal_S16Y
 
 	;; Prints an unsigned 32 bit XY
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: XY = the number to print (Y = low byte)
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses Math__DIVIDE
+	;; CAVEATS: Uses Math__DIVIDE
 	ROUTINE PrintDecimal_U32XY
 
 	;; Prints a signed 32 bit XY
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: XY = the number to print (Y = low byte)
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses Math__DIVIDE
+	;; CAVEATS: Uses Math__DIVIDE
 	ROUTINE PrintDecimal_S32XY
 
 	;; Padded Numbers
@@ -251,88 +251,88 @@ IMPORT_MODULE Text
 	;;
 	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: A = the number to print
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses SNES Division Registers
+	;; CAVEATS: Uses SNES Division Registers
 	ROUTINE PrintDecimalPadded_U8A_1
 
 	;; Prints an unsigned 8 bit A with a minimum of 2 digits
 	;;
 	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: A = the number to print
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses SNES Division Registers
+	;; CAVEATS: Uses SNES Division Registers
 	ROUTINE PrintDecimalPadded_U8A_2
 
 	;; Prints an unsigned 8 bit A with a minimum of 3 digits
 	;;
 	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: A = the number to print
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses SNES Division Registers
+	;; CAVEATS: Uses SNES Division Registers
 	ROUTINE PrintDecimalPadded_U8A_3
 
 	;; Prints an unsigned 16 bit Y with a padding
 	;;
 	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: Y = the number to print
 	;;        A = minimum number of digits to display (must be > 8)
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses SNES Division Registers
+	;; CAVEATS: Uses SNES Division Registers
 	ROUTINE PrintDecimalPadded_U16Y
 
 	;; Prints an signed 16 bit Y with a padding
 	;;
 	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: Y = the number to print (signed)
 	;;        A = minimum number of digits to display (must be > 8)
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses SNES Division Registers
+	;; CAVEATS: Uses SNES Division Registers
 	ROUTINE PrintDecimalPadded_S16Y
 
 	;; Prints an unsigned 32 bit XY (with padding)
 	;;
 	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: XY = the number to print (Y = low byte)
 	;;         A = the minimum number of digits to print
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses Math__DIVIDE
+	;; CAVEATS: Uses Math__DIVIDE
 	ROUTINE PrintDecimalPadded_U32XY
 
 	;; Prints a signed 32 bit XY (with padding)
 	;;
 	;; `Text__paddingCharacter` will be used as the padding character.
 	;;
-	;; REQURES: 8 bit A, 16 bit Index
+	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; INPUT: XY = the number to print (Y = low byte)
 	;;         A = the minimum number of digits to print
 	;; MODIFIES: A, X, Y
 	;;
-	;; CAVATS: Uses Math__DIVIDE
+	;; CAVEATS: Uses Math__DIVIDE
 	ROUTINE PrintDecimalPadded_S32XY
 
 	;; Cursor Routines
@@ -340,7 +340,7 @@ IMPORT_MODULE Text
 
 	;; Moves the cursor to the next line.
 	;;
-	;; If new line is outside the text boundry, Text__OutOfBounds is called.
+	;; If new line is outside the text boundary, Text__OutOfBounds is called.
 	;;
 	;; REQUIRES: DB in Shadow 
 	;; MODIFIES: A, X
@@ -361,7 +361,7 @@ IMPORT_MODULE Text
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; MODIFIES: A
 	;;
-	;; INPUT: A the color of the text
+	;; INPUT: A = the color of the text
 	ROUTINE SetColor
 
 	;; Windows
@@ -374,10 +374,10 @@ IMPORT_MODULE Text
 	;; and the new window will loaded from WRAM into `Text__window`
 	;;
 	;; The save/load method was chosen because it simplifies the TextInterface.
-	;; And I believe that most window switching would occour in Text Scenes
+	;; And I believe that most window switching would occur in Text Scenes
 	;; and menus which will require a lot of processor time.
 	;;
-	;; I also throught about using DP to select Window, but it wastes precious
+	;; I also thought about using DP to select Window, but it wastes precious
 	;; Shadow RAM and would actually waste CPU time if more than 250 characters
 	;; were printed.
 	;;
@@ -423,7 +423,7 @@ IMPORT_MODULE Text
 	;;
 	;; REQUIRES 8 bit A, 16 bit Index
 	;; MODIFIES: A, X, Y
-	;; CAVATS: may modify the window area, causing issues if called again
+	;; CAVEATS: may modify the window area, causing issues if called again
 	ROUTINE RemoveWindow
 
 	;; Resets the entire Text Buffer (to tile 0)
@@ -456,16 +456,16 @@ IMPORT_MODULE Text
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display (signed)
-	;; OUTPUT: A the bank of the string to print
-	;;         X the location of the string to print 
+	;; OUTPUT: A - the bank of the string to print
+	;;         X - the location of the string to print 
 	ROUTINE ConvertDecimalString_S16Y
 
 	;; Converts the unsigned value in the 16 bit Y to a string stored in `decimalString`
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display
-	;; OUTPUT: A the bank of the string to print
-	;;         X the location of the string to print 
+	;; OUTPUT: A - the bank of the string to print
+	;;         X - the location of the string to print 
 	ROUTINE ConvertDecimalString_U16Y
 
 	;; Converts the unsigned value in the 16 bit Y with padding to a string stored
@@ -476,8 +476,8 @@ IMPORT_MODULE Text
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display
 	;;        A = minimum number of digits to display (must be < 8)
-	;; OUTPUT: A the bank of the string to print
-	;;         X the location of the string to print 
+	;; OUTPUT: A - the bank of the string to print
+	;;         X - the location of the string to print 
 	ROUTINE ConvertDecimalStringPadded_U16Y
 
 	;; Converts the signed value in the 16 bit Y with padding to a string stored
@@ -488,8 +488,8 @@ IMPORT_MODULE Text
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: Y = the number to display (signed)
 	;;        A = minimum number of digits to display (must be < 8)
-	;; OUTPUT: A the bank of the string to print
-	;;         X the location of the string to print 
+	;; OUTPUT: A - the bank of the string to print
+	;;         X - the location of the string to print 
 	ROUTINE ConvertDecimalStringPadded_S16Y
 
 	;; Converts the unsigned value in the 32 but XY to a string with padding.
@@ -499,8 +499,8 @@ IMPORT_MODULE Text
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT: XY = the number to print (Y = low byte)
 	;;	   A = the number of padding characters (if 0 then show entire string)
-	;; OUTPUT: A the bank of the string to print
-	;;         X the location of the string to print
+	;; OUTPUT: A - the bank of the string to print
+	;;         X - the location of the string to print
 	ROUTINE ConvertDecimalString_U32XY
 
 ENDMODULE
@@ -538,7 +538,7 @@ ENDMODULE
 	JSR	::Text__SetupWindow
 .endmacro
 
-;; Sets the tileOffset and TextInterface for the selected Window.
+;; Sets the `tileOffset` and `TextInterface` for the selected Window.
 ;;
 ;; REQUIRES: 16 bit Index
 ;;
@@ -701,7 +701,7 @@ ENDMODULE
 	JSR	::Text__NewLine
 .endmacro
 
-;; Prints a hexidecimal value for a given variable.
+;; Prints a hexadecimal value for a given variable.
 ;;
 ;; The routine that will be called will depend on the value of `$var__type`.
 ;;

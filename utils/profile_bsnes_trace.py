@@ -212,7 +212,7 @@ class Profile:
                 inst = m.group(2).lower()
                 instAddr = int(m.group(1), 16)
 
-                # Check to see if an interrupt occoured
+                # Check to see if an interrupt occurred
                 if instAddr in self._interrupts:
                     interruptStack.append(current)
                     current = self._interrupts[instAddr]

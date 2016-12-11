@@ -2,14 +2,14 @@
 ;; 1 layer of 16x16 MetaTiles
 ;; ==========================
 ;;
-;; This module manages a sigle layer of 16x16 pixel Metatile map
+;; This module manages a single layer of 16x16 pixel MetaTile map
 ;; with scroll support.
 ;;
-;; In order to simplify the system, both the map and the metatile
-;; set are stored in RAM. This allows the data to be compressed
-;; and loaded by the loading module to save ROM space.
+;; In order to simplify the system, both the map and the MetaTileSet are
+;; stored in RAM. This allows the data to be compressed and loaded by the
+;; loading module to save ROM space.
 ;;
-;; The map data is stored as the offsets within the metatile table
+;; The map data is stored as the offsets within the MetaTile table
 ;; (Which is a structure of arrays, that is `tile * 2`).
 ;; This is done so that other modules can create a clean
 ;; map to data mapping without worrying about alignment.
@@ -39,10 +39,10 @@ CONFIG METATILES_MAP_TILE_ALLOCATION, 80 * 80
 ;; Maximum number of rows in a map.
 CONFIG METATILES_MAX_ROWS, 128
 
-;; Number of metatiles per map
+;; Number of MetaTiles per map
 CONFIG_DEFINE METATILES_N_METATILES, 512
 
-;; Structure of arrays that contains the SNES BG tile data for each metatile
+;; Structure of arrays that contains the SNES BG tile data for each MetaTile
 .struct MetaTile16Struct
 	topLeft		.addr METATILES_N_METATILES
 	topRight	.addr METATILES_N_METATILES
@@ -81,7 +81,7 @@ IMPORT_MODULE MetaTiles1x16
 	;; IF non-zero then the map is declared dirty and a full redraw is preformed.
 	BYTE	mapDirty
 
-	;; Metatile table, mapping of metatiles to their inner tiles.
+	;; MetaTile table, mapping of MetaTiles to their inner tiles.
 	;; Structure of Arrays.
 	;;
 	;; ACCESS: WRAM7E
@@ -97,32 +97,32 @@ IMPORT_MODULE MetaTiles1x16
 	;; ACCESS: WRAM7E
 	ADDR	map, METATILES_MAP_TILE_ALLOCATION
 
-	;; The table conating the starting tile address of each row in the map.
-	;; Conatins METATILES_MAX_ROWS .addr fields.
+	;; The table containing the starting tile address of each row in the map.
+	;; Contains METATILES_MAX_ROWS .addr fields.
 	;;
 	;; ACCESS: WRAM7E
 	ADDR	mapRowAddressTable, METATILES_MAX_ROWS
 
 
-	;; Initialize the metatile system. 
+	;; Initialize the MetaTile system. 
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;;
 	;; There is no bounds checking. xPos and yPos MUST be >= 0 and less
-	;; than (mapWidth - 256) and (mapHeight - 224) respectivly.
+	;; than (mapWidth - 256) and (mapHeight - 224) respectively.
 	;;
 	;; INPUT:
 	;;	xPos - screen position
 	;;	yPos - screen position
 	;;	mapWidth - the width of the map in pixels
 	;;	mapHeight - the height of the map in pixels (MUST BE less than (METATILES_MAX_ROWS * 16))
-	;;	metaTiles - the metaTile data to use (loaded into memory)
+	;;	metaTiles - the MetaTile data to use (loaded into memory)
 	;;	map	- the map data to use (loaded into memory)
 	ROUTINE	MapInit
 
 	;; Updates the position of the screen, loading new tiles as necessary.
 	;;
 	;; There are 3 types of tile updates.
-	;;	* Horizonatal
+	;;	* Horizontal
 	;;	* Vertical
 	;;	* Whole Screen
 	;;
@@ -133,7 +133,7 @@ IMPORT_MODULE MetaTiles1x16
 	;;
 	;; There is no bounds checking, xPos and yPos MUST BE positive
 	;; and less than maxXPos (mapWidth - 256) and maxYPos (mapHeight - 224)
-	;; respectivly.
+	;; respectively.
 	;;
 	;; REQUIRES: 8 bit A, 16 bit Index
 	;; INPUT:
@@ -226,7 +226,7 @@ IMPORT_MODULE MetaTiles1x16
 				IF_C_SET
 					; Update Horizontal Buffer
 					; Need to use 2 DMA channels to handle the split tilemap.
-					; ::KUDOS Secret of Mana dynamic tile DMA code::
+					; Inspired by The Secret of Mana's DMA upload patterns.
 
 					LDA	#VMAIN_INCREMENT_HIGH | VMAIN_INCREMENT_1
 					STA	VMAIN

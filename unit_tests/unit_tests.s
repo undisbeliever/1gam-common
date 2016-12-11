@@ -101,7 +101,7 @@ ROUTINE Main
 
 ;; For the first pass just go through all the pages as fast as possible.
 ;;
-;; Waits for a keypress, then until keys released.
+;; Waits for a button-press, then waits until all buttons are released.
 ;;
 ;; REQUIRES: 8 bit A, 16 bit Index
 .I16

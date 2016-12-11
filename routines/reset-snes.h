@@ -26,7 +26,7 @@ IMPORT_MODULE Reset
 	ROUTINE ResetSNES
 
 
-	;; Resets most of the Registers in the SNES to their reccomended defaults.
+	;; Resets most of the Registers in the SNES to their recommended defaults.
 	;;
 	;; Defaults:
 	;;     * Forced Screen Blank
@@ -42,7 +42,7 @@ IMPORT_MODULE Reset
 	;;     * No HDMA
 	;;     * ROM access to slow
 	;;
-	;; This routine does not set the following as any programer need to set them anyway:
+	;; This routine does not set the following as any programmer need to set them anyway:
 	;;     * the Mode 7 Matrix
 	;;     * VRAM/CGRAM/OAM data address registers
 	;;

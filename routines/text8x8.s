@@ -107,7 +107,7 @@ ROUTINE NewLine_DoubleSpacing
 .A8
 .I16
 ROUTINE PrintChar
-	; If character is newline call NewLine
+	; If character is new line then call NewLine
 	CMP	#EOL
 	IF_EQ
 		LDX	Text__window + TextWindow::textInterfaceAddr

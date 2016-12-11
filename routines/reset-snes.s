@@ -70,7 +70,7 @@ ROUTINE ResetSNES
 
 
 
-; ROUTINE Resets most of the Registers in the SNES to their reccomended defaults.
+; ROUTINE Resets most of the Registers in the SNES to their recommended defaults.
 ROUTINE ResetRegisters
 	PHP
 	SEP	#$30

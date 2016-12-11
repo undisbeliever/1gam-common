@@ -64,7 +64,7 @@ METATILE_DISPLAY_HEIGHT = 14
 	;; The right 8x8 tiles of the vertical tile update
 	WORD	bgVerticalBufferRight, 32
 
-	;; The horizonal tiles to update during VRAM
+	;; The horizontal tiles to update during VRAM
 	;; Uses the same space as bgBuffer because both cannot be used
 	;; at the same time.
 	SAME_VARIABLE	bgHorizontalBuffer, bgBuffer
@@ -93,14 +93,14 @@ METATILE_DISPLAY_HEIGHT = 14
 	;; Changes with x movement.
 	WORD	rowBufferIndex
 
-	;; Tile offset for the vertical update metatile address.
+	;; Tile offset for the vertical update MetaTile address.
 	;; Number of 16x16 tiles in the vertical offset.
-	;; Bitwize math is used to convert this value into `bgVerticalBufferVramLocation`.
+	;; Bitwise math is used to convert this value into `bgVerticalBufferVramLocation`.
 	WORD	columnVramMetaTileOffset
 
 	;; VRAM word address offset for the horizontal update.
 	;; Number of 8x8 tiles in the horizontal offset.
-	;; Unlike the column no fancy bitwize math is needed.
+	;; Unlike the column no fancy bitwise math is needed.
 	WORD	rowVramMetaTileOffset
 
 .code
@@ -767,7 +767,7 @@ ROUTINE _ProcessHorizontalBuffer
 
 
 ; IN: X = xpos, Y = ypos
-; OUT: A = tilemap pos
+; OUT: A = tilemap index
 ; DB = $7E
 .A16
 .I16

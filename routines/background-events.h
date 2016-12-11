@@ -3,9 +3,8 @@
 ;;
 ;; In order to process the event state, {BACKGROUND_EVENT_SIZE - 2} bytes
 ;; of shadow RAM is allocated to the routine. This is accessed through
-;; the X register after allocation (by `NewEvent`'s caller) and the
-;; direct page instructions when the routine is called by the module
-;; (see `Process`).
+;; the X register after allocation (see `NewEvent`) and the direct page
+;; instructions when the routine is called by the module (see `Process`).
 ;;
 ;; For example, to create a new event with a parameter of #60, simply:
 ;;
@@ -55,7 +54,7 @@ CONFIG N_BACKGROUND_EVENTS, 3
 ;; The maximum size of the events in bytes.
 CONFIG BACKGROUND_EVENT_SIZE, 20
 
-;; Sets up a struct containing the functionPtr for the first item
+;; Sets up a struct containing the function pointer for the first item
 ;; Also ensures that the size of the structure is <= BACKGROUND_EVENT_SIZE
 .macro BACKGROUND_EVENT_STRUCT name
 	.define __BACKGROUND_EVENT_STRUCT_NAME name
@@ -78,7 +77,7 @@ CONFIG BACKGROUND_EVENT_SIZE, 20
 
 
 IMPORT_MODULE BackgroundEvents
-	;; Turns off all fo the background events.
+	;; Turns off all of the background events.
 	;; REQUIRES: DB access shadow RAM
 	ROUTINE Init
 

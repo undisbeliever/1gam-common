@@ -47,7 +47,7 @@ IMPORT_MODULE PixelBuffer
 
 	;; This variable represents the color of the pixels to set/unset.
 	;; As the SNES uses a packed-pixel format, all the bits of lobyte
-	;; represents the lobit of the color. Same goes for hibyte.
+	;; represents the low-bit of the color. Same goes for hibyte.
 	;;
 	;; This variable SHOULD only consist of the following values:
 	;; 	* Color 0 - $0000
@@ -67,7 +67,7 @@ IMPORT_MODULE PixelBuffer
 		;; tilemap to be 32x32
 		;;
 		;; If the buffer width or height is > 32 then
-		;; it expects the tilemap to be 32x64 or 64x32 tiles respectivly.
+		;; it expects the tilemap to be 32x64 or 64x32 tiles respectively.
 		;;
 		;; If the buffer is smaller than the tilemap it will be padded
 		;; with 0s.
@@ -122,7 +122,7 @@ IMPORT_MODULE PixelBuffer
 	;;	colorBits - color to set.
 	ROUTINE SetPixel
 
-	;; Draws a verical line in the buffer
+	;; Draws a vertical line in the buffer
 	;; REQUIRES: 16 bit A, 16 bit X, DB = PixelBuffer__bufferBank
 	;;
 	;; WARNING: there is no input validation on this function
@@ -135,7 +135,7 @@ IMPORT_MODULE PixelBuffer
 	;;	colorBits - color to set.
 	ROUTINE DrawVerticalLine
 
-	;; Draws a verical line in the buffer
+	;; Draws a vertical line in the buffer
 	;;
 	;; This method is a lot faster than DrawVerticalLine
 	;;

@@ -61,10 +61,10 @@ BG1_SIZE		= BGXSC_SIZE_32X32
 	BYTE	cellsPaddingAfter,	CELLS_WIDTH
 	BYTE	prevCells,		CELLS_WIDTH * GAME_HEIGHT
 
-	;; Number of frames before refesh
+	;; Number of frames before refresh
 	UINT16	framesLeft
 
-	;; If set then upate tilemap on VBlank
+	;; If set then update tilemap on VBlank
 	BYTE	updateTilemap
 
 	;; The low bytes of the tilemap
@@ -130,7 +130,7 @@ ROUTINE PlayGame
 		JSR	Random__AddJoypadEntropy
 		JSR	ProcessFrame
 
-		; Clip the framerate (to known worst case)
+		; Clip the frame-rate (to known worst case)
 		LDA	#3
 		JSR	CpuUsage__WaitLimited
 
@@ -212,7 +212,7 @@ continue:
 
 ;; Process a Game of Life Frame.
 ;;
-;; INPUT: long of data in in rlepos
+;; INPUT: long of data in in `rlepos`
 ;;
 ROUTINE ProcessFrame
 	REP	#$30
@@ -231,8 +231,8 @@ ROUTINE ProcessFrame
 	REPEAT
 		; I have lots of free space, So I'll unroll the loop.
 		;
-		; Unfortunatly for each line unrolled, 2790 bytes is added to the ROM.
-		; Also UNROLL must be divisble by 28.
+		; Unfortunately for each line unrolled, 2790 bytes is added to the ROM.
+		; Also UNROLL must be divisible by 28.
 		;
 		; Testing using `cpu_usage` bogos revealed the following spedups:
 		;
@@ -275,12 +275,12 @@ ROUTINE ProcessFrame
 ;; GAME FORMAT
 ;;
 ;;	word - number of frames
-;;	byte - starting X Positon
+;;	byte - starting X Position
 ;;	byte - starting Y
 ;;
 ;;	repeat:
 ;;		'O': New Cell
-;;		EOL: New Line (Cursor will be shifted X positon cells)
+;;		EOL: New Line (Cursor will be shifted X position cells)
 ;;
 ;;	byte 0 - End of FILE
 ;;

@@ -17,8 +17,8 @@
 ;; This module also contains two routines `LoadDataToWram7E` and
 ;; `LoadDataToWram7F` that will allow the developer to easily create
 ;; a new data table (of possibly compressed data) that will loaded into
-;; WRAM (ie, a MapsTable).
- 
+;; WRAM (for example, a maps table).
+
 .ifndef ::_RESOURCELOADER_H_
 ::_RESOURCELOADER_H_ = 1
 
