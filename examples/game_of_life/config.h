@@ -1,4 +1,4 @@
-.define VERSION 3
+.define VERSION 4
 .define REGION NTSC
 .define ROM_NAME "GAME OF LIFE"
 
