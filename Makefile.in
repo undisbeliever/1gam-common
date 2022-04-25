@@ -8,10 +8,16 @@
 #    * RESOURCES_DIR - (optional) the location of the resources, can contain its own makefile
 #    * TABLES_DIR    - (optional) the location of the pre-calculated tables, can contain its own makefile
 
+
 # Disable Builtin rules
 .SUFFIXES:
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
+
+
+ifneq ($(words $(ROM_NAME)), 1)
+  $(error ROM_NAME cannot conatain a space)
+endif
 
 
 API_ROUTINE_DIR = $(API_DIR)/routines
@@ -28,9 +34,31 @@ API_OBJECTS = $(patsubst %,obj/api/%.o,$(API_MODULES))
 CONFIG_FILE = $(API_DIR)/config/$(CONFIG).cfg
 OBJECT_DIRS = $(sort $(dir $(API_OBJECTS) $(OBJECTS)))
 
-ifneq ($(words $(ROM_NAME)), 1)
-  $(error Cannot have space in ROM_NAME)
+
+ifdef RESOURCES_DIR
+  MAPS      = $(patsubst %.pcx,%.map, $(wildcard $(RESOURCES_DIR)/images8bpp/*.pcx))
+  MAPS     += $(patsubst %.pcx,%.map, $(wildcard $(RESOURCES_DIR)/images4bpp/*.pcx))
+  MAPS     += $(patsubst %.pcx,%.mp7, $(wildcard $(RESOURCES_DIR)/mode7/*.pcx))
+  TILES     = $(patsubst %.pcx,%.8bpp,$(wildcard $(RESOURCES_DIR)/images8bpp/*.pcx))
+  TILES    += $(patsubst %.pcx,%.4bpp,$(wildcard $(RESOURCES_DIR)/images4bpp/*.pcx))
+  TILES    += $(patsubst %.pcx,%.8bpp,$(wildcard $(RESOURCES_DIR)/tiles8bpp/*.pcx))
+  TILES    += $(patsubst %.pcx,%.4bpp,$(wildcard $(RESOURCES_DIR)/tiles4bpp/*.pcx))
+  TILES    += $(patsubst %.pcx,%.2bpp,$(wildcard $(RESOURCES_DIR)/tiles2bpp/*.pcx))
+  TILES    += $(patsubst %.pcx,%.pc7, $(wildcard $(RESOURCES_DIR)/mode7/*.pcx))
+  PALETTES  = $(patsubst %.4bpp,%.clr,$(patsubst %.2bpp,%.clr, $(patsubst %.pc7,%.clr,$(TILES))))
+
+  RESOURCES := $(MAPS) $(TILES) $(PALETTES)
+else
+  RESOURCES :=
 endif
+
+
+ifdef TABLES_DIR
+  TABLES := $(patsubst %.py,%.inc, $(wildcard $TABLES_DIR/*.py))
+else
+  TABLES :=
+endif
+
 
 
 .PHONY: all
@@ -42,7 +70,10 @@ $(BINARY): $(OBJECTS) $(API_OBJECTS)
 
 
 $(OBJECTS): $(HEADERS) $(INCLUDES)
-$(OBJECTS) $(API_OBJECTS): $(CONFIG_FILE) $(API_HEADERS) $(API_DIR)/Makefile.in Makefile
+$(OBJECTS) $(API_OBJECTS): $(CONFIG_FILE) $(API_HEADERS)
+
+$(OBJECTS) $(TABLES) $(RESOURCES): $(API_DIR)/Makefile.in Makefile
+
 
 ifneq (,$(wildcard config.h))
   $(OBJECTS) $(API_OBJECTS): config.h
@@ -59,65 +90,74 @@ obj/api/%.o: $(API_ROUTINE_DIR)/%.s
 obj/api/math.o: $(wildcard $(API_ROUTINE_DIR)/math/*)
 
 
+
 .PHONY: dirs
 dirs: bin/ $(OBJECT_DIRS)
 
 bin/ $(OBJECT_DIRS):
 	mkdir $@
 
+
+
 .PHONY: resources
-resources:
+resources: $(RESOURCES)
+
 ifdef RESOURCES_DIR
   ifneq (,$(wildcard $(RESOURCES_DIR)/Makefile))
-		$(MAKE) -C $(RESOURCES_DIR)
-  else
-    # ::ANNOY tried to put common rules in here, but Makefile took 1min 23sec to process ::
-		$(MAKE) -C $(RESOURCES_DIR) -f "$(realpath $(API_DIR)/makefiles/resources.makefile)"
+  resources:
+	$(MAKE) -C $(RESOURCES_DIR)
   endif
 
-  RESOURCES   = $(wildcard $(RESOURCES_DIR)/* $(RESOURCES_DIR)/*/* $(RESOURCES_DIR)/*/*/*)
-  SNESGSS_RES = $(wildcard $(RESOURCES_DIR)/snesgss/*/*)
 
-  ifneq (,$(wildcard $(SOURCE_DIR)/resources.s))
-    obj/resources.o: $(RESOURCES)
-  else
-    $(OBJECTS): $(RESOURCES)
-  endif
+  $(RESOURCES_DIR)/tiles2bpp/%.2bpp $(RESOURCES_DIR)/tiles2bpp/%.clr &: $(RESOURCES_DIR)/tiles2bpp/%.pcx
+	pcx2snes -n -s8 -c4 -o4 $(basename $<)
+	mv $(basename $<).pic $(basename $<).2bpp
 
-  $(OBJECTS): $(SNESGSS_RES)
+  $(RESOURCES_DIR)/tiles4bpp/%.4bpp $(RESOURCES_DIR)/tiles4bpp/%.clr &: $(RESOURCES_DIR)/tiles4bpp/%.pcx
+	pcx2snes -n -s8 -c16 -o16 $(basename $<)
+	mv $(basename $<).pic $(basename $<).4bpp
+
+  $(RESOURCES_DIR)/images4bpp/%.map $(RESOURCES_DIR)/images4bpp/%.4bpp images4bpp/%.clr &: $(RESOURCES_DIR)/images4bpp/%.pcx
+	pcx2snes -r -s8 -c16 -screen $(basename $<)
+	mv $(basename $<).pic $(basename $<).4bpp
+
+  $(RESOURCES_DIR)/mode7/%.mp7 $(RESOURCES_DIR)/mode7/%.pc7 mode7/%.clr &: $(RESOURCES_DIR)/mode7/%.pcx
+	pcx2snes -screen7 $(basename $<)
 endif
+
+
+ifneq (,$(wildcard $(SOURCE_DIR)/resources.s))
+  obj/resources.o: $(RESOURCES)
+else
+  $(OBJECTS): $(RESOURCES)
+endif
+
 
 
 .PHONY: tables
-tables:
-ifdef TABLES_DIR
-  ifneq (,$(wildcard $(TABLES_DIR)/Makefile))
-		$(MAKE) -C $(TABLES_DIR)
-  else
-    # ::ANNOY tried to put rules in here, but Makefile took 12 seconds to process ::
-		$(MAKE) -C $(TABLES_DIR) -f "$(realpath $(API_DIR)/makefiles/tables.makefile)"
-  endif
+tables: $(TABLES)
 
-  $(OBJECTS): $(wildcard $(RESOURCES_DIR)/* $(RESOURCES_DIR)/*/* $(RESOURCES_DIR)/*/*/*)
-endif
+$(OBJECTS): $(TABLES)
+
+%.inc: %.py
+	python3 $< >| $@
+
 
 
 .PHONY: clean
 clean::
-ifdef TABLES_DIR
-  ifneq (,$(wildcard $(TABLES_DIR)/Makefile))
-		$(MAKE) -C $(TABLES_DIR) clean
-  else
-		$(MAKE) -C $(TABLES_DIR) -f "$(realpath $(API_DIR)/makefiles/tables.makefile)" clean
-  endif
-endif
+	$(RM) bin/$(BINARY) $(OBJECTS) $(API_OBJECTS)
+
 ifdef RESOURCES_DIR
   ifneq (,$(wildcard $(RESOURCES_DIR)/Makefile))
-		$(MAKE) -C $(RESOURCES_DIR) clean
-  else
-		$(MAKE) -C $(RESOURCES_DIR) -f "$(realpath $(API_DIR)/makefiles/resources.makefile)" clean
+	$(MAKE) -C $(RESOURCES_DIR) clean
   endif
 endif
-	$(RM) bin/$(BINARY) $(OBJECTS) $(API_OBJECTS)
+ifdef RESOURCES
+	$(RM) $(RESOURCES)
+endif
+ifdef TABLES
+	$(RM) $(TABLES)
+endif
 
 
