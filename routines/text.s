@@ -717,7 +717,10 @@ ROUTINE ClearEntireBuffer
 	LDX	#.loword(buffer)
 	LDY	#.loword(buffer) + 2
 	LDA	#.sizeof(buffer) - 3
-	MVN	.bankbyte(buffer), .bankbyte(buffer)
+	MVN	#.bankbyte(buffer), #.bankbyte(buffer)
+
+; MVN changes DB to .bankbyte(buffer)
+.assert .bankbyte(buffer) = $7e, lderror, "buffer in wrong Data Bank"
 
 	SEP	#$20
 .A8

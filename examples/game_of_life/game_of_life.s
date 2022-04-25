@@ -222,7 +222,9 @@ ROUTINE ProcessFrame
 	LDA	#.sizeof(cells) - 1
 	LDX	#.loword(cells)
 	LDY	#.loword(prevCells)
-	MVN	.bankbyte(cells), .bankbyte(prevCells)
+	MVN	#.bankbyte(prevCells), #.bankbyte(cells)
+
+; MVN changes DB to .bankbyte(cells)
 
 	SEP	#$20
 .A8

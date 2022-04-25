@@ -189,7 +189,9 @@ ROUTINE FillBuffer
 	LDY	#.loword(buffer) + 2
 	LDA	#buffer__size - 3
 
-	MVN	.bankbyte(buffer), .bankbyte(buffer)
+	MVN	#.bankbyte(buffer), #.bankbyte(buffer)
+
+; MVN changes DB to .bankbyte(buffer)
 
 	PLB
 	RTS
