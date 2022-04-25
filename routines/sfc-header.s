@@ -41,8 +41,8 @@
 
 
 .segment "ROMHEADER"
-	.byte "FF"					; $FFB0 2 Digit maker code
-	.byte "SNES"					; $FFB2 4 Character game ID
+	.byte "  "					; $FFB0 2 Digit maker code (blank = unlicensed)
+	.byte "    "					; $FFB2 4 Character game ID (black = unlicensed)
 
 	.byte $00, $00, $00, $00, $00, $00, $00		; $FFB6 Fixed Value (7 bytes)
 
@@ -62,6 +62,7 @@
 
 	.word $AAAA					; $FFDC - Checksum compliment
 	.word $5555					; $FFDE - Checksum
+
 
 ;; Define the Interrupt Vectors.
 ;;
