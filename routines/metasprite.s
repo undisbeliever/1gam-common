@@ -131,6 +131,12 @@ ROUTINE	FinalizeLoop
 .A8
 .I16
 ROUTINE ProcessSprite
+	; if xPos < -SPRITE_SIZE + 1 || xPos >= 0x100
+	;   return
+	;
+	; if yPos < -SPRITE_SIZE + 1 || yPos >= 240
+	;   return
+	;
 	; if oamBufferPos >= sizeof(oamBuffer)
 	;	return
 	;
@@ -148,15 +154,17 @@ ROUTINE ProcessSprite
 
 	LDX	xPos
 	CPX	#.loword(-SPRITE_SIZE + 1)
-	BMI	_ProcessSprite_Return
-	CPX	#$0100
-	BPL	_ProcessSprite_Return
+	IF_LT
+		CPX	#$0100
+		BCS	_ProcessSprite_Return
+	ENDIF
 
 	LDY	yPos
 	CPY	#.loword(-SPRITE_SIZE + 1)
-	BMI	_ProcessSprite_Return
-	CPY	#240
-	BPL	_ProcessSprite_Return
+	IF_LT
+		CPY	#240
+		BCS	_ProcessSprite_Return
+	ENDIF
 
 	TXA
 
@@ -281,11 +289,13 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 			AND	#$00FF
 		ENDIF
 
+		; unsigned comparison of a signed word variable
 		ADC	yPos
 		CMP	#.loword(-SPRITE_SIZE + 1)
-		BMI	SkipObject
-		CMP	#240
-		BPL	SkipObject
+		IF_LT
+			CMP	#240
+			BCS	SkipObject
+		ENDIF
 
 		SEP	#$20
 .A8
@@ -301,11 +311,13 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 			AND	#$00FF
 		ENDIF
 
+		; unsigned comparison of a signed word variable
 		ADC	xPos
 		CMP	#.loword(-SPRITE_SIZE + 1)
-		BMI	SkipObject
-		CMP	#$0100
-		BPL	SkipObject
+		IF_LT
+			CMP	#$0100
+			BCS	SkipObject
+		ENDIF
 
 		SEP	#$20
 .A8
