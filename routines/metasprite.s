@@ -72,14 +72,16 @@ ROUTINE	FinalizeLoop
 	; for x = oamBuffer2Pos + 1 to sizeof(oamBuffer2):
 	;	oamBuffer2[x] = 0
 	;
-	; if (prevOamBufferPos >= sizeof(oamBuffer)
-	;	prevOamBufferPos = sizeof(oamBuffer)
-	;
 	; if oamBufferPos < sizeof(oamBuffer):
-	;   for x = oamBufferPos to prevOamBufferPos step 4
-	;	  oamBuffer[x].ypos = 240
+	;   repeat
+	;     oamBuffer[x].ypos = 240
+	;     x += 4
+	;   until x >= prevOamBufferPos
 	;
-	; prevOamBufferPos = oamBufferPos + 1
+	;   prevOamBufferPos = oamBufferPos
+	; else:
+	;   prevOamBufferPos = sizeof(oamBuffer)
+	;
 
 	LDA	oamBuffer2Temp
 	CMP #$80
@@ -111,35 +113,34 @@ ROUTINE	FinalizeLoop
 		ENDIF
 	.endif
 
-	LDX	prevOamBufferPos
-	CPX	#.sizeof(oamBuffer) + 1
-	IF_GE
-		LDX	#.sizeof(oamBuffer)
-		STX	prevOamBufferPos
-	ENDIF
 
-	; set Ypos of all unfinished sprites to 240 (offscreen)
-	LDA	#240
+	; Set the `yPos` of unused sprites to 240 (offscreen)
+	;
+	; The sprites after `prevOamBufferPos` are already offscreen, there is no need to set all unused sprites offscreen.
 	LDX	oamBufferPos
 	CPX #.sizeof(oamBuffer)
 	IF_LT
+		LDA	#240
+
 		REPEAT
-			CPX	prevOamBufferPos
-		WHILE_LT
 			STA	oamBuffer + OamFormat::yPos, X
 			INX
 			INX
 			INX
 			INX
-		WEND
+
+			CPX	prevOamBufferPos
+		UNTIL_GE
+
+		LDX	oamBufferPos
+		STX	prevOamBufferPos
+	ELSE
+		LDX #.sizeof(oamBuffer)
+		STX prevOamBufferPos
 	ENDIF
 
-	; ::BUGFIX the INX ensures all unfinished sprites are cleared next frame::
-	LDX	oamBufferPos
-	INX
-	STX	prevOamBufferPos
 
-	; A is 240
+	LDA #1
 	STA	updateOam
 
 	RTS
