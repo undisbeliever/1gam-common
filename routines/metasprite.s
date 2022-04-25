@@ -64,36 +64,51 @@ ROUTINE InitLoop
 .I16
 ; Y unused
 ROUTINE	FinalizeLoop
-	; finalize oamBuffer2Temp
-	; oamBuffer2[oamBuffer2Pos] = oamBuffer2Temp
+	; if oamBuffer2Temp != $80
+	;   if oamBuffer2Pos < sizeof(oamBuffer2)
+	;     finalize oamBuffer2Temp
+	;     oamBuffer2[oamBuffer2Pos] = oamBuffer2Temp
+	;
 	; for x = oamBuffer2Pos + 1 to sizeof(oamBuffer2):
 	;	oamBuffer2[x] = 0
 	;
 	; if (prevOamBufferPos >= sizeof(oamBuffer)
 	;	prevOamBufferPos = sizeof(oamBuffer)
 	;
-	; for x = oamBufferPos to sizeof(oamBuffer) step 4
-	;	oamBuffer[x].ypos = 240
+	; if oamBufferPos < sizeof(oamBuffer):
+	;   for x = oamBufferPos to prevOamBufferPos step 4
+	;	  oamBuffer[x].ypos = 240
 	;
 	; prevOamBufferPos = oamBufferPos + 1
 
 	LDA	oamBuffer2Temp
-	REPEAT
-		LSR
-		LSR
-	UNTIL_C_SET
+	CMP #$80
+	IF_NE
+		LDX	oamBuffer2Pos
+		CPX #.sizeof(oamBuffer2)
+		IF_LT
+			REPEAT
+				LSR
+				LSR
+			UNTIL_C_SET
 
-	LDX	oamBuffer2Pos
-	STA	oamBuffer2, X
+			STA	oamBuffer2, X
+		ENDIF
+	ENDIF
+
 
 	; This would would be unnecessary if sprites are only 8x8 and/or 16x16 in size
 	.if SPRITE_SIZE > 16
-		REPEAT
-			INX
-			CPX	#.sizeof(oamBuffer2)
-		WHILE_LT
-			STZ	oamBuffer2, X
-		WEND
+		LDX	oamBuffer2Pos
+		INX
+		CPX #,sizeof(oamBuffer2)
+		IF_LT
+			REPEAT
+				STZ	oamBuffer2, X
+				INX
+				CPX	#.sizeof(oamBuffer2)
+			UNTIL_GE
+		ENDIF
 	.endif
 
 	LDX	prevOamBufferPos
@@ -106,15 +121,18 @@ ROUTINE	FinalizeLoop
 	; set Ypos of all unfinished sprites to 240 (offscreen)
 	LDA	#240
 	LDX	oamBufferPos
-	REPEAT
-		CPX	prevOamBufferPos
-	WHILE_LT
-		STA	oamBuffer + OamFormat::yPos, X
-		INX
-		INX
-		INX
-		INX
-	WEND
+	CPX #.sizeof(oamBuffer)
+	IF_LT
+		REPEAT
+			CPX	prevOamBufferPos
+		WHILE_LT
+			STA	oamBuffer + OamFormat::yPos, X
+			INX
+			INX
+			INX
+			INX
+		WEND
+	ENDIF
 
 	; ::BUGFIX the INX ensures all unfinished sprites are cleared next frame::
 	LDX	oamBufferPos
