@@ -54,7 +54,7 @@ endif
 
 
 ifdef TABLES_DIR
-  TABLES := $(patsubst %.py,%.inc, $(wildcard $TABLES_DIR/*.py))
+  TABLES := $(patsubst %.py,%.inc, $(wildcard $(TABLES_DIR)/*.py))
 else
   TABLES :=
 endif
