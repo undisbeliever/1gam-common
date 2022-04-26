@@ -236,6 +236,9 @@ _ProcessSprite_Return:
 .A8
 .I16
 _ProcessMetaSprite_BreakLoop:
+	; Y is index into oamBuffer
+	STY	oamBufferPos
+
 	RTS
 
 
@@ -291,9 +294,11 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 	STA	nObjects
 
 
+	LDY	oamBufferPos
+
 	REPEAT
 .A8
-		LDY	oamBufferPos
+		; Y is index into oamBuffer
 		CPY	#.sizeof(oamBuffer)
 		BGE	_ProcessMetaSprite_BreakLoop
 
@@ -356,9 +361,11 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 		ADC	f:MetaSpriteObjects + MetaSpriteObjectFormat::charAttr, X
 		STA	oamBuffer + OamFormat::char, Y
 
+
+		; increment oamBufferPos
 		TYA
 		ADD	#4
-		STA	oamBufferPos
+		TAY
 
 
 		; size
@@ -368,14 +375,19 @@ MetaSpriteObjects := MetaSpriteLayoutBank << 16 + 1
 		LSR
 		ROR	oamBuffer2Temp
 		IF_C_SET
+			PHY
+
 			; populate oamBuffer2
 			LDY	oamBuffer2Pos
 			LDA	oamBuffer2Temp
 			STA	oamBuffer2, Y
+
 			INC	oamBuffer2Pos
 
 			LDA	#$80
 			STA	oamBuffer2Temp
+
+			PLY
 		ENDIF
 
 
@@ -391,6 +403,8 @@ SkipObject:
 
 		DEC	nObjects
 	UNTIL_ZERO
+
+	STY	oamBufferPos
 
 	RTS
 
